@@ -1,0 +1,44 @@
+{
+  "name": "aslan-ussd-api",
+  "version": "1.0.0",
+  "description": "All Ussd integratin to Aslan portal",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "test",
+    "start": "node src/index.js",
+    "start-watch": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://harmonizer@bitbucket.org/alias_solutions/aslan-ussd-api.git"
+  },
+  "keywords": [
+    "Aslan",
+    "Ussd",
+    "Payment",
+    "Emergent"
+  ],
+  "author": "harmony-alabi",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/alias_solutions/aslan-ussd-api#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-mongo-sanitize": "^2.0.1",
+    "express-rate-limit": "^5.2.3",
+    "helmet": "^4.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.11.11",
+    "mongoose-unique-validator": "^2.0.3",
+    "nodemailer": "^6.4.17",
+    "socket.io": "^3.0.5",
+    "unirest": "^0.6.0",
+    "ussd-menu-builder": "^1.2.0",
+    "xss-clean": "^0.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  }
+}
