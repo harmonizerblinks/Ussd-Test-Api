@@ -1,14 +1,18 @@
 module.exports = function(app) {
 
     var ussd = require('../controllers/ussd.controller.js');
+    var ahantaman = require('../controllers/ahantaman.ussd.controller.js');
+    var ppt = require('../controllers/ppt.ussd.controller.js');
     // const verify = require('../middleware/verifyJwtToken.middleware.js');
     // const passport = require('passport');
 
     // Create a new User
-    app.post('/', ussd.ussdApp);
+    app.post('/api', ussd.ussdApp);
+    app.post('/', ahantaman.ussdApp);
 
-    // // User Login or Authentication
-    // app.post('/api/login', users.login);
+    // Ussd 
+    app.post('/api/ahantaman', ahantaman.ussdApp);
+    app.post('/api/ppt', ppt.ussdApp);
 
     // // Retrieve all User
     // app.get('/api/users', verify.verifyToken, users.findAll);
