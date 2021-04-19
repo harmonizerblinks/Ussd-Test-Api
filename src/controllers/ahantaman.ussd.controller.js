@@ -292,7 +292,7 @@ menu.state('Withdrawal.amount',{
         // console.log(accounts);
         var account = accounts[index-1]
         menu.session.set('account', account);
-        menu.con('How much would you like to pay to account number '+account.code+'?')
+        menu.con('How much would you like to withdraw from account number '+account.code+'?')
     },
     next: {
         '*\\d+': 'Withdrawal.view',
@@ -307,9 +307,10 @@ menu.state('Withdrawal.view',{
         // save user input in session
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
-        console.log(cust);
+        var account = await menu.session.get('account');
+        // console.log(cust);
         
-        menu.con(cust.fullname +', you are making a deposit of GHS ' + amount +' into your account' +
+        menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
         '\n1. Confirm' +
         '\n2. Cancel' +
         '\n#. Main Menu')
@@ -330,8 +331,8 @@ menu.state('Withdrawal.confirm', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Withdrawal',merchantid:account.merchantid };
-        await postDeposit(data, async(result)=> { 
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal',merchantid:account.merchantid };
+        await postWithdrawal(data, async(result)=> { 
             console.log(result) 
             // menu.end(JSON.stringify(result)); 
         });
@@ -591,7 +592,7 @@ async function postChangePin(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         // if (resp.error) throw new Error(resp.error); 
-        console.log(resp.raw_body);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+        console.log(resp.raw_body);      
         var response = JSON.parse(resp.raw_body);
         await callback(response);
     });
