@@ -182,6 +182,7 @@ menu.state('Deposit',{
         accounts.forEach(val => {
             console.log(val);
             accts += '\n'+count+'. '+val.type + ' A/C';
+            count +=1;
         });
         menu.con('Please Select an Account' + accts)
     },
@@ -258,20 +259,22 @@ menu.state('Withdrawal',{
         menu.con('Enter your PIN to make a Withdrawal');
     },
     next: {
-        '*\\d+': 'withdrawal.account'
+        '*\\d+': 'Withdrawal.account'
     }
 })
 
 menu.state('Withdrawal.account',{
     run: async() => {
         var pin = await menu.session.get('pin');
-        var custpin = Number(menu.val);
-        if(custpin === pin) {
+        // var custpin = Number(menu.val);
+        console.info(pin, menu.val);
+        if(menu.val === pin) {
             var accts = ''; var count = 1;
             var accounts = await menu.session.get('accounts');
             accounts.forEach(val => {
                 console.log(val);
                 accts += '\n'+count+'. '+val.type + ' A/C';
+                count +=1;
             });
             menu.con('Please Select an Account' + accts)
         } else {
@@ -309,13 +312,17 @@ menu.state('Withdrawal.view',{
         var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
         // console.log(cust);
-        
-        menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
-        '\n1. Confirm' +
-        '\n2. Cancel' +
-        '\n#. Main Menu')
+        if(account.balance >= amount) {
+            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
+            '\n1. Confirm' +
+            '\n2. Cancel' +
+            '\n#. Main Menu');
+        } else {
+            menu.con('Not Enough Fund in Account. Enter zero(0) to continue')
+        }
     },
     next: {
+        '0': 'Start',
         '#': 'Start',
         '1': 'Withdrawal.confirm',
         '2': 'Withdrawal.cancel',
@@ -335,6 +342,7 @@ menu.state('Withdrawal.confirm', {
         await postWithdrawal(data, async(result)=> { 
             console.log(result) 
             // menu.end(JSON.stringify(result)); 
+            menu.end(result.message);
         });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
@@ -360,13 +368,14 @@ menu.state('CheckBalance',{
 menu.state('CheckBalance.account',{
     run: async() => {
         var pin = await menu.session.get('pin');
-        var custpin = Number(menu.val);
-        if(custpin === pin) {
+        // var custpin = Number(menu.val);
+        if(menu.val === pin) {
             var accts = ''; var count = 1;
             var accounts = await menu.session.get('accounts');
             accounts.forEach(val => {
                 console.log(val);
                 accts += '\n'+count+'. '+val.type + ' A/C';
+                count +=1;
             });
             menu.con('Please Select an Account' + accts)
         } else {
@@ -403,6 +412,16 @@ menu.state('Other',{
         '1': 'User.account',
         '2': 'Account',
         '3': 'Statement',
+    }
+})
+
+menu.state('Account',{
+    run: () => {
+        menu.con('Please contact Ahantaman Rural Bank on <telephone_num> for assistance with account opening. Thank you' +	
+        '\n\n0.	Return to Main Menu')
+    },
+    next: {
+        '0': 'Start'
     }
 })
 
