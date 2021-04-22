@@ -136,7 +136,7 @@ menu.state('User.pin',{
 menu.state('User.newpin',{
     run: () => {
         if(menu.val.length == 4) {
-            var newpin = Number(menu.val);
+            var newpin = menu.val;
             menu.session.set('newpin', newpin);
             menu.con('Re-enter the 4 digits');
         } else {
