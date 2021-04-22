@@ -67,7 +67,7 @@ menu.startState({
         '3': 'CheckBalance',
         '4': 'Other',
         '5': 'Contact',
-        '*[0-9]+': 'User.account'
+        '*[0-9]+': 'User.newpin'
     }
 });
 
