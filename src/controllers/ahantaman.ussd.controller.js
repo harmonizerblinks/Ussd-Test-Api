@@ -4,7 +4,7 @@ var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:5000/Ussd/";
-let apiurl = "https://0ae4c4000186.ngrok.io/ussd/";
+let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
 let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
