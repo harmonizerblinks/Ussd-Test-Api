@@ -4,7 +4,10 @@ var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:5000/Ussd/";
-let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
+// let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
+// let apiurl = "http://godfreddavidson-002-site25.ftempurl.com/ussd/";
+let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
+
 let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
@@ -578,8 +581,14 @@ async function postDeposit(val, callback) {
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
+        console.log(JSON.stringify(val));
+        if (resp.error) { 
+            console.log(resp.error);
+            await postDeposit(val);
+            await callback(resp);
+        }
         // if (res.error) throw new Error(res.error); 
-        console.log(resp.raw_body);
+        // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         await callback(response);
     });
@@ -595,7 +604,7 @@ async function postWithdrawal(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         // if (res.error) throw new Error(res.error); 
-        console.log(resp.raw_body);
+        // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         await callback(response);
     });
