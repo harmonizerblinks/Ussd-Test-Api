@@ -7,7 +7,8 @@ module.exports = function(app) {
     // const passport = require('passport');
 
     // Create a new User
-    app.post('/api', ussd.ussdApp);
+    app.post('/group', ussd.ussdApp);
+    app.post('/leader', ussd.ussdApp);
     app.post('/', ahantaman.ussdApp);
 
     // Ussd 

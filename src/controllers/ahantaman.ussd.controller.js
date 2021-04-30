@@ -298,7 +298,15 @@ menu.state('Withdrawal.amount',{
         // console.log(accounts);
         var account = accounts[index-1]
         menu.session.set('account', account);
-        menu.con('How much would you like to withdraw from account number '+account.code+'?')
+        await fetchBalance(account.code, async(result)=> { 
+            console.log(result) 
+            // menu.end(JSON.stringify(result)); 
+            //menu.end(result.message);
+            account.balance = result.balance;
+            menu.session.set('account', account);
+            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+        });
+        menu.con('How much would you like to withdraw from account number '+account.code+'?');
     },
     next: {
         '*\\d+': 'Withdrawal.view',
@@ -399,7 +407,13 @@ menu.state('CheckBalance.balance',{
         // console.log(accounts);
         var account = accounts[index-1]
         menu.session.set('account', account);
-        menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue')
+        await fetchBalance(account.code, async(result)=> { 
+            console.log(result) 
+            // menu.end(JSON.stringify(result)); 
+            //menu.end(result.message);
+            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+        });
+        // menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
     },
     next: {
         '0': 'Start',
@@ -420,7 +434,7 @@ menu.state('Other',{
 
 menu.state('Account',{
     run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on <telephone_num> for assistance with account opening. Thank you' +	
+        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
         '\n\n0.	Return to Main Menu')
     },
     next: {
