@@ -298,7 +298,14 @@ menu.state('Withdrawal.amount',{
         // console.log(accounts);
         var account = accounts[index-1]
         menu.session.set('account', account);
-        menu.con('How much would you like to withdraw from account number '+account.code+'?')
+        await fetchBalance(account.code, async(result)=> { 
+            console.log(result) 
+            account.balance = result.balance;
+            menu.session.set('account', account);
+            menu.session.set('balance', result.balance);
+            menu.con('How much would you like to withdraw from account number '+account.code+'?');
+        });
+        menu.con('How much would you like to withdraw from account number '+account.code+'?');
     },
     next: {
         '*\\d+': 'Withdrawal.view',
@@ -314,6 +321,7 @@ menu.state('Withdrawal.view',{
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
+        // var balance = await menu.session.get('account');
         // console.log(cust);
         if(account.balance >= amount) {
             menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
@@ -399,7 +407,13 @@ menu.state('CheckBalance.balance',{
         // console.log(accounts);
         var account = accounts[index-1]
         menu.session.set('account', account);
-        menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue')
+        await fetchBalance(account.code, async(result)=> { 
+            console.log(result) 
+            account.balance = result.balance;
+            menu.session.set('account', account);
+            menu.session.set('balance', result.balance);
+            menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
+        });
     },
     next: {
         '0': 'Start',
