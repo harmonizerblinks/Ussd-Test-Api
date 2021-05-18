@@ -59,7 +59,7 @@ menu.startState({
             } else if(data.active && (data.pin ==null || data.pin == '')) {
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Mobile Number not Registered');
+                menu.end('Mobile Number not Registered');
             }
         });
     },
@@ -355,7 +355,7 @@ menu.state('Withdrawal.confirm', {
             // menu.end(JSON.stringify(result)); 
             menu.end(result.message);
         });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
 });
 
@@ -434,7 +434,7 @@ menu.state('Other',{
 
 menu.state('Account',{
     run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on <telephone_num> for assistance with account opening. Thank you' +	
+        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
         '\n\n0.	Return to Main Menu')
     },
     next: {
@@ -564,7 +564,7 @@ async function fetchCustomer(val, callback) {
 
 async function fetchBalance(val, callback) {
         var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
-        console.log(api_endpoint);
+        // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
             if (resp.error) { 
@@ -638,5 +638,11 @@ async function postChangePin(val, callback) {
         var response = JSON.parse(resp.raw_body);
         await callback(response);
     });
+    return true
+}
+
+
+async function getCharge(val, callback) {
+    var amount = value 
     return true
 }
