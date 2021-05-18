@@ -406,10 +406,10 @@ menu.state('CheckBalance.balance',{
         var accounts = await menu.session.get('accounts');
         // console.log(accounts);
         var account = accounts[index-1]
-        menu.session.set('account', account);
+        // menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
             console.log(result) 
-            account.balance = result.balance;
+            if(result.balance != null) { account.balance = result.balance; }
             menu.session.set('account', account);
             menu.session.set('balance', result.balance);
             menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
