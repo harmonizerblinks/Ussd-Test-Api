@@ -183,7 +183,7 @@ menu.state('Deposit',{
         var accts = ''; var count = 1;
         var accounts = await menu.session.get('accounts');
         accounts.forEach(val => {
-            console.log(val);
+            // console.log(val);
             accts += '\n'+count+'. '+val.type + ' A/C';
             count +=1;
         });
@@ -243,7 +243,7 @@ menu.state('Deposit.confirm', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit',merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
-            console.log(result) 
+            // console.log(result) 
             // menu.end(JSON.stringify(result)); 
         });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
@@ -275,7 +275,7 @@ menu.state('Withdrawal.account',{
             var accts = ''; var count = 1;
             var accounts = await menu.session.get('accounts');
             accounts.forEach(val => {
-                console.log(val);
+                // console.log(val);
                 accts += '\n'+count+'. '+val.type + ' A/C';
                 count +=1;
             });
@@ -299,7 +299,7 @@ menu.state('Withdrawal.amount',{
         var account = accounts[index-1]
         menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
-            console.log(result) 
+            // console.log(result) 
             account.balance = result.balance;
             menu.session.set('account', account);
             menu.session.set('balance', result.balance);
@@ -318,6 +318,7 @@ menu.state('Withdrawal.view',{
         // use menu.val to access user input value
         var amount = Number(menu.val);
         // save user input in session
+        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
@@ -374,7 +375,7 @@ menu.state('CheckBalance',{
         '*\\d+': 'CheckBalance.account'
     },
     defaultNext: 'CheckBalance'
-})
+});
 
 menu.state('CheckBalance.account',{
     run: async() => {
@@ -384,7 +385,7 @@ menu.state('CheckBalance.account',{
             var accts = ''; var count = 1;
             var accounts = await menu.session.get('accounts');
             accounts.forEach(val => {
-                console.log(val);
+                // console.log(val);
                 accts += '\n'+count+'. '+val.type + ' A/C';
                 count +=1;
             });
@@ -418,7 +419,7 @@ menu.state('CheckBalance.balance',{
     next: {
         '0': 'Start',
     },
-    defaultNext: 'Withdrawal.amount'
+    defaultNext: 'CheckBalance.amount'
 });
 
 menu.state('Other',{
@@ -430,7 +431,7 @@ menu.state('Other',{
         '2': 'Account',
         '3': 'Statement',
     }
-})
+});
 
 menu.state('Account',{
     run: () => {
@@ -440,7 +441,67 @@ menu.state('Account',{
     next: {
         '0': 'Start'
     }
+});
+
+
+menu.state('Statement',{
+    run: () => {
+        menu.con('Enter your PIN to check Account Mini statement');
+    },
+    next: {
+        '*\\d+': 'Statement.account'
+    },
+    defaultNext: 'Statement'
+});
+
+menu.state('Statement.account',{
+    run: async() => {
+        var pin = await menu.session.get('pin');
+        // var custpin = Number(menu.val);
+        if(menu.val === pin) {
+            var accts = ''; var count = 1;
+            var accounts = await menu.session.get('accounts');
+            accounts.forEach(val => {
+                // console.log(val);
+                accts += '\n'+count+'. '+val.type + ' A/C';
+                count +=1;
+            });
+            menu.con('Please Select an Account' + accts)
+        } else {
+            menu.con('Incorrect Pin. Enter zero(0) to continue')
+        }
+    },
+    next: {
+        '0': 'Start',
+        '*\\d+': 'Statement.transactions'
+    },
+    defaultNext: 'Statement'
 })
+
+menu.state('Statement.transactions',{
+    run: async() => {
+        var index = Number(menu.val);
+        var accounts = await menu.session.get('accounts');
+        // console.log(accounts);
+        var account = accounts[index-1]
+        // menu.session.set('account', account);
+        await fetchStatement(account.code, async(data)=> { 
+            console.log(data)
+            var accts = ''; var count = 1;
+            await data.forEach(async(val) => {
+                // console.log(val);
+                accts += '\n'+count+'. '+ new Date(val.date).toLocaleDateString() +' '+val.type.toUpperCase() + '- GHC ' +val.amount;
+                count +=1;
+            });
+            menu.con('Transaction Details' + accts)
+        });
+    },
+    next: {
+        '0': 'Start',
+    },
+    defaultNext: 'Statement.amount'
+});
+
 
 menu.state('Contact', {
     run: () => {
@@ -563,28 +624,39 @@ async function fetchCustomer(val, callback) {
 }
 
 async function fetchBalance(val, callback) {
-        var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
-        // console.log(api_endpoint);
-        var request = unirest('GET', api_endpoint)
-        .end(async(resp)=> { 
-            if (resp.error) { 
-                console.log(resp.error);
-                await callback(resp);
-            }
-            // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            if(response.balance)
-            {
-                menu.session.set('balance', response.balance);
-            }
-            
-            await callback(response);
-        });
-    // }
-    // catch(err) {
-    //     console.log(err);
-    //     return err;
-    // }
+    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        if(response.balance)
+        {
+            menu.session.set('balance', response.balance);
+        }
+        
+        await callback(response);
+    });
+}
+
+async function fetchStatement(val, callback) {
+    var api_endpoint = apiurl + 'getAccountTransaction/' + access.code + '/'+ access.key + '/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        
+        await callback(response);
+    });
 }
 
 async function postDeposit(val, callback) {
