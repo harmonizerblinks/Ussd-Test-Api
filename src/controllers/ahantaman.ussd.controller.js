@@ -184,7 +184,7 @@ menu.state('Deposit',{
         var accounts = await menu.session.get('accounts');
         accounts.forEach(val => {
             // console.log(val);
-            accts += '\n'+count+'. '+val.type + ' A/C';
+            accts += '\n'+count+'. '+val.code + ' A/C';
             count +=1;
         });
         menu.con('Please Select an Account' + accts)
@@ -276,7 +276,7 @@ menu.state('Withdrawal.account',{
             var accounts = await menu.session.get('accounts');
             accounts.forEach(val => {
                 // console.log(val);
-                accts += '\n'+count+'. '+val.type + ' A/C';
+                accts += '\n'+count+'. '+val.code + ' A/C';
                 count +=1;
             });
             menu.con('Please Select an Account' + accts)
@@ -386,7 +386,7 @@ menu.state('CheckBalance.account',{
             var accounts = await menu.session.get('accounts');
             accounts.forEach(val => {
                 // console.log(val);
-                accts += '\n'+count+'. '+val.type + ' A/C';
+                accts += '\n'+count+'. '+val.code + ' A/C';
                 count +=1;
             });
             menu.con('Please Select an Account' + accts)
@@ -463,7 +463,7 @@ menu.state('Statement.account',{
             var accounts = await menu.session.get('accounts');
             accounts.forEach(val => {
                 // console.log(val);
-                accts += '\n'+count+'. '+val.type + ' A/C';
+                accts += '\n'+count+'. '+val.code + ' A/C';
                 count +=1;
             });
             menu.con('Please Select an Account' + accts)
