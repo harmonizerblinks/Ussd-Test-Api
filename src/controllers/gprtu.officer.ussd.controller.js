@@ -5,8 +5,8 @@ let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
-// let apiurl = "http://godfreddavidson-002-site25.ftempurl.com/ussd/";
-let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
+let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+// let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 
 let access = { code: "test", key: "VWJ1bnR1IENhcGl0YWwgTWljci4gTHRk" };
 
@@ -52,7 +52,7 @@ menu.startState({
                 menu.con('Welcome to GPRTU Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
-                menu.con('You are not an Field Officer');
+                menu.con('You are not a Field Officer');
             }
         });
     },
@@ -184,12 +184,12 @@ menu.state('Deposit', {
 menu.state('Deposit.confirm', {
     run: async() => {
         // access user input value save in session
-        //var cust = await menu.session.get('cust');
+        var of = await menu.session.get('officer');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit',merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
             // console.log(result) 
             // menu.end(JSON.stringify(result)); 
@@ -334,7 +334,7 @@ async function fetchStatement(val, callback) {
 }
 
 async function postDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Deposit/' + access.code;
+    var api_endpoint = apiurl + 'Agent/Deposit/' + access.code;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
