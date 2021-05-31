@@ -263,10 +263,10 @@ async function fetchOfficer(val, callback) {
 
 async function fetchCustomer(val, callback) {
     // try {
-        if (val && val.startsWith('+233')) {
-            // Remove Bearer from string
-            val = val.replace('+233','0');
-        }
+        // if (val && val.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('+233','0');
+        // }
         var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + val;
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
