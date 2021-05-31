@@ -46,57 +46,38 @@ menu.on('error', (err) => {
 menu.startState({
     run: async() => {
         // Fetch Customer information
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active && data.pin != '') {     
+        await fetchOfficer(menu.args.phoneNumber, (data)=> { 
+            // console.log(1,data);
+            if(data.active) { 
                 menu.con('Welcome to GPRTU Agent Collections' + 
-                '\nEnter Member Phone Number.');
-            } else if(data.active && (data.pin ==null || data.pin == '')) {
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                    '\nEnter Member Phone Number.');
             } else {
-                menu.end('Mobile Number not Registered');
+                menu.con('You are not an Field Officer');
             }
         });
     },
     // next object links to next state based on user input
     next: {
-        '1': 'Deposit',
-        '2': 'Withdrawal',
-        '3': 'CheckBalance',
-        '4': 'Other',
-        '5': 'Contact',
-        '*[0-9]+': 'User.newpin'
+        '*[0-9]+': 'Deposit'
     }
 });
 
 menu.state('Start', {
     run: async() => {
         // Fetch Customer information
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {     
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
-                '\nSelect an Option.' + 
-                '\n1. Deposit' +
-                '\n2. Withdrawal' +
-                '\n3. Check Balance' +
-                '\n4. Other' +
-                '\n5. Contact');
-            } else if(data.active && data.pin ==null) {
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+        await fetchOfficer(menu.args.phoneNumber, (data)=> { 
+            // console.log(1,data);
+            if(data.active) { 
+                menu.con('Welcome to GPRTU Agent Collections' + 
+                    '\nEnter Member Phone Number.');
             } else {
-                menu.con('Mobile Number not Registered');
+                menu.con('You are not an Field Officer');
             }
         });
     },
     // next object links to next state based on user input
     next: {
-        '1': 'Deposit',
-        '2': 'Withdrawal',
-        '3': 'CheckBalance',
-        '4': 'Other',
-        '5': 'Contact',
-        '*[0-9]+': 'User.newpin'
+        '*[0-9]+': 'Deposit'
     },
     defaultNext: 'Start'
 });
@@ -128,8 +109,6 @@ menu.state('User.pin',{
     },
     defaultNext: 'Start'
 });
-
-
 
 menu.state('User.newpin',{
     run: () => {
@@ -173,52 +152,26 @@ menu.state('User.verifypin', {
     defaultNext: 'Start'
 });
 
-menu.state('Deposit',{
+menu.state('Deposit', {
     run: async() => {
-        var accts = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            // console.log(val);
-            accts += '\n'+count+'. '+val.code;
-            count +=1;
+        await fetchCustomer(menu.val, (data)=> { 
+            // console.log(1,data); 
+            if(data.active) {
+                var index = 1;
+                // var accounts = await menu.session.get('accounts');
+                var account = data.accounts[index-1]
+                menu.session.set('account', account);
+                var amount = 3;
+                menu.session.set('amount', amount);
+                
+                menu.con('You are making a payment of GHS ' + amount +' into '+data.fullname+' account'+
+                '\n1. Confirm' +
+                '\n2. Cancel' +
+                '\n#. Main Menu')
+            } else {
+                menu.con('Mobile Number not Registered');
+            }
         });
-        menu.con('Please Select an Account' + accts)
-    },
-    next: {
-        '#': 'Start',
-        '*\\d+': 'Deposit.amount'
-    },
-    defaultNext: 'Deposit'
-})
-
-menu.state('Deposit.amount',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        menu.session.set('account', account);
-        menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?')
-    },
-    next: {
-        '*\\d+': 'Deposit.view',
-    },
-    defaultNext: 'Deposit.amount'
-})
-
-menu.state('Deposit.view',{
-    run: async() => {
-        // use menu.val to access user input value
-        var amount = Number(menu.val);
-        // save user input in session
-        menu.session.set('amount', amount);
-        var cust = await menu.session.get('cust');
-        // console.log(cust);
-        
-        menu.con(cust.fullname +', you are making a deposit of GHS ' + amount +' into your account' +
-        '\n1. Confirm' +
-        '\n2. Cancel' +
-        '\n#. Main Menu')
     },
     next: {
         '#': 'Start',
@@ -251,307 +204,6 @@ menu.state('Deposit.cancel', {
         menu.end('Thank you for using Ahantaman Rural Bank.');
     }
 });
-
-menu.state('Withdrawal',{
-    run: () => {
-        menu.con('Enter your PIN to make a Withdrawal');
-    },
-    next: {
-        '*\\d+': 'Withdrawal.account'
-    }
-})
-
-menu.state('Withdrawal.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        console.info(pin, menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'Withdrawal.amount'
-    },
-    defaultNext: 'Withdrawal'
-})
-
-menu.state('Withdrawal.amount',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        menu.session.set('account', account);
-        await fetchBalance(account.code, async(result)=> { 
-            // console.log(result) 
-            account.balance = result.balance;
-            menu.session.set('account', account);
-            menu.session.set('balance', result.balance);
-            menu.con('How much would you like to withdraw from account number '+account.code+'?');
-        });
-        menu.con('How much would you like to withdraw from account number '+account.code+'?');
-    },
-    next: {
-        '*\\d+': 'Withdrawal.view',
-    },
-    defaultNext: 'Withdrawal.amount'
-})
-
-menu.state('Withdrawal.view',{
-    run: async() => {
-        // use menu.val to access user input value
-        var amount = Number(menu.val);
-        // save user input in session
-        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
-        menu.session.set('amount', amount);
-        var cust = await menu.session.get('cust');
-        var account = await menu.session.get('account');
-        // var balance = await menu.session.get('account');
-        // console.log(cust);
-        if(account.balance >= amount) {
-            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
-            '\n1. Confirm' +
-            '\n2. Cancel' +
-            '\n#. Main Menu');
-        } else {
-            menu.con('Not Enough Fund in Account. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '#': 'Start',
-        '1': 'Withdrawal.confirm',
-        '2': 'Withdrawal.cancel',
-    },
-    defaultNext: 'Withdrawal.amount'
-});
-
-menu.state('Withdrawal.confirm', {
-    run: async() => {
-        // access user input value save in session
-        //var cust = await menu.session.get('cust');
-        var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal',merchantid:account.merchantid };
-        await postWithdrawal(data, async(result)=> { 
-            console.log(result) 
-            // menu.end(JSON.stringify(result)); 
-            menu.end(result.message);
-        });
-        // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
-    }
-});
-
-menu.state('Withdrawal.cancel', {
-    run: () => {
-        // Cancel Withdrawal request
-        menu.end('Thank you for using People Pension Trust.');
-    }
-});
-
-menu.state('CheckBalance',{
-    run: () => {
-        menu.con('Enter your PIN to check balance');
-    },
-    next: {
-        '*\\d+': 'CheckBalance.account'
-    },
-    defaultNext: 'CheckBalance'
-});
-
-menu.state('CheckBalance.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'CheckBalance.balance'
-    },
-    defaultNext: 'CheckBalance'
-})
-
-menu.state('CheckBalance.balance',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        // menu.session.set('account', account);
-        await fetchBalance(account.code, async(result)=> { 
-            console.log(result) 
-            if(result.balance != null) { account.balance = result.balance; }
-            menu.session.set('account', account);
-            menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
-        });
-    },
-    next: {
-        '0': 'Start',
-    },
-    defaultNext: 'CheckBalance.amount'
-});
-
-menu.state('Other',{
-    run: () => {
-        menu.con('1. Change Pin' + '\n2. Open Account' + '\n3. Mini Satement')
-    },
-    next: {
-        '1': 'User.account',
-        '2': 'Account',
-        '3': 'Statement',
-    }
-});
-
-menu.state('Account',{
-    run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
-        '\n\n0.	Return to Main Menu')
-    },
-    next: {
-        '0': 'Start'
-    }
-});
-
-
-menu.state('Statement',{
-    run: () => {
-        menu.con('Enter your PIN to check Account Mini statement');
-    },
-    next: {
-        '*\\d+': 'Statement.account'
-    },
-    defaultNext: 'Statement'
-});
-
-menu.state('Statement.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'Statement.transactions'
-    },
-    defaultNext: 'Statement'
-})
-
-menu.state('Statement.transactions',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        // menu.session.set('account', account);
-        await fetchStatement(account.code, async(data)=> { 
-            console.log(data)
-            var accts = ''; var count = 1;
-            await data.forEach(async(val) => {
-                // console.log(val);
-                accts += '\n'+count+'. '+ new Date(val.date).toLocaleDateString() +' '+val.type.toUpperCase() + '- GHC ' +val.amount;
-                count +=1;
-            });
-            menu.con('Transaction Details' + accts)
-        });
-    },
-    next: {
-        '0': 'Start',
-    },
-    defaultNext: 'Statement.amount'
-});
-
-
-menu.state('Contact', {
-    run: () => {
-        // use menu.con() to send response without terminating session      
-        menu.con('1. Stop auto-debit' +
-            '\n2. Name' +
-            '\n3. Email' +
-            '\n4. Mobile' +
-            '\n5. Website');
-    },
-    // next object links to next state based on user input
-    next: {
-        '1': 'AutoDebit',
-        '2': 'Contact.name',
-        '3': 'Contact.email',
-        '4': 'Contact.mobile',
-        '5': 'Contact.website'
-    }
-});
-
-menu.state('AutoDebit', {
-    run: () => {
-        // Cancel Savings request
-        menu.end('Auto Debit disabled successfully.');
-    }
-});
-
-menu.state('Contact.name', {
-    run: () => {
-        // Cancel Savings request
-        menu.end('Ahantaman Rural Bank Limited.');
-    }
-});
-
-menu.state('Contact.email', {
-    run: () => {
-        // Cancel Savings request
-        menu.end('info@ahantamanbank.com.gh.');
-    }
-});
-
-menu.state('Contact.mobile', {
-    run: () => {
-        // Contact Mobile
-        menu.end('+233 (0) 31 209 1033');
-    }
-});
-
-menu.state('Contact.website', {
-    run: () => {
-        // Contact Website
-        menu.end('http://www.ahantamanbank.com.gh');
-    }
-});
-
 
 // Pension USSD
 exports.ussdApp = async(req, res) => {
@@ -600,11 +252,7 @@ async function fetchOfficer(val, callback) {
             var response = JSON.parse(resp.raw_body);
             if(response.active)
             {
-                menu.session.set('name', response.name);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('type', response.type);
+                menu.session.set('officer', response);
                 menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
             }
@@ -637,8 +285,6 @@ async function fetchCustomer(val, callback) {
                 menu.session.set('mobile', val);
                 menu.session.set('accounts', response.accounts);
                 menu.session.set('cust', response);
-                menu.session.set('type', response.type);
-                menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
             }
             
