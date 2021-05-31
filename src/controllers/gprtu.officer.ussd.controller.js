@@ -5,8 +5,8 @@ let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
-let apiurl = "https://app.alias-solutions.net:5000/ussd/";
-// let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
+// let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 
 let access = { code: "test", key: "VWJ1bnR1IENhcGl0YWwgTWljci4gTHRk" };
 
