@@ -3,12 +3,14 @@ module.exports = function(app) {
     var ussd = require('../controllers/ussd.controller.js');
     var ahantaman = require('../controllers/ahantaman.ussd.controller.js');
     var ppt = require('../controllers/ppt.ussd.controller.js');
+    var gprtu = require('../controllers/gprtu.ussd.controller.js');
+    var gprtuofficer = require('../controllers/gprtu.officer.ussd.controller.js');
     // const verify = require('../middleware/verifyJwtToken.middleware.js');
     // const passport = require('passport');
 
     // Create a new User
-    app.post('/group', ussd.ussdApp);
-    app.post('/leader', ussd.ussdApp);
+    app.post('/group', gprtu.ussdApp);
+    app.post('/leader', gprtuofficer.ussdApp);
     app.post('/', ahantaman.ussdApp);
 
     // Ussd 
