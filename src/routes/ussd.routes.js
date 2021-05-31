@@ -8,9 +8,11 @@ module.exports = function(app) {
     // const verify = require('../middleware/verifyJwtToken.middleware.js');
     // const passport = require('passport');
 
-    // Create a new User
+    // *789*7879# 
     app.post('/group', gprtu.ussdApp);
+    // *789*7880#
     app.post('/leader', gprtuofficer.ussdApp);
+    // *789*7878#
     app.post('/', ahantaman.ussdApp);
 
     // Ussd 

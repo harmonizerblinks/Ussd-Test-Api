@@ -49,13 +49,8 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && data.pin != '') {     
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
-                '\nSelect an Option.' + 
-                '\n1. Deposit' +
-                '\n2. Withdrawal' +
-                '\n3. Check Balance' +
-                '\n4. Other' +
-                '\n5. Contact');
+                menu.con('Welcome to GPRTU Agent Collections' + 
+                '\nEnter Member Phone Number.');
             } else if(data.active && (data.pin ==null || data.pin == '')) {
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
@@ -585,7 +580,7 @@ function buyAirtime(phone, val) {
     return true
 }
 
-async function fetchCustomer(val, callback) {
+async function fetchOfficer(val, callback) {
     // try {
         if (val && val.startsWith('+233')) {
             // Remove Bearer from string
