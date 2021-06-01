@@ -19,7 +19,7 @@ const app = express();
 
 global.appRoot = path.resolve(__dirname);
 
-const PORT = process.env.PORT || 7000;
+const PORT = process.env.PORT || 5006;
 
 // Creating a Server
 let server = http.createServer(app);
