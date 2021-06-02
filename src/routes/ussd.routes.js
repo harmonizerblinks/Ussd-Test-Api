@@ -15,29 +15,10 @@ module.exports = function(app) {
     // *789*7878#
     app.post('/', ahantaman.ussdApp);
 
-    // Ussd 
+    // Ahantaman collections 
     app.post('/api/ahantaman', ahantaman.ussdApp);
     app.post('/api/ppt', ppt.ussdApp);
 
-    // // Retrieve all User
-    // app.get('/api/users', verify.verifyToken, users.findAll);
-
-    // // Retrieve all User
-    // // app.get('/api/users/usertype/:type', verify.verifyToken, users.findAllByType);
-
-    // // Retrieve Current Login User Prodile
-    // // app.get('/api/profile', passport.authenticate('jwt', { session: false }), users.profile);
-
-    // // Retrieve a single User by Id
-    // app.get('/api/users/:userId', verify.verifyToken, users.findOne);
-
-    // // Retrieve a single User by username
-    // app.get('/api/users/username/:username', verify.verifyToken, users.findOneByUsername);
-
-    // // Update a User with Id
-    // app.put('/api/users/:userId', verify.verifyToken, verify.isAdmin, users.update);
-
-    // // Delete a User with Id
-    // app.delete('/api/users/:userId', verify.verifyToken, verify.isAdmin, users.delete);
+    // GPRTU Collection
 
 }
