@@ -7,7 +7,7 @@ let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 // let apiurl = "https://api.alias-solutions.net:5000/ussd/";
 
-let access = { code: "ACU001", key: "1029398" };
+let access = { code: "ARB", key: "10198553" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
