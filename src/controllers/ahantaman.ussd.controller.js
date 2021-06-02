@@ -3,9 +3,9 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
-let apiurl = "http://localhost:4000/Ussd/";
+// let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-// let apiurl = "https://api.alias-solutions.net:5000/ussd/";
+let apiurl = "https://api.alias-solutions.net:5000/ussd/";
 
 let access = { code: "ARB", key: "10198553" };
 
