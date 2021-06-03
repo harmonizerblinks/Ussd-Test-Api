@@ -3,9 +3,9 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
-// let apiurl = "http://localhost:4000/Ussd/";
+let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+// let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 
 let access = { code: "ARB", key: "10198553" };
 
@@ -47,7 +47,7 @@ menu.startState({
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && data.pin != '') {     
+            if(data.active && (data.pin != '' || data.pin == null)) {     
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
@@ -78,7 +78,7 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active) {     
+            if(data.active && (data.pin != '' || data.pin == null)) {     
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
@@ -86,7 +86,7 @@ menu.state('Start', {
                 '\n3. Check Balance' +
                 '\n4. Other' +
                 '\n5. Contact');
-            } else if(data.active && data.pin ==null) {
+            } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Mobile Number not Registered');
