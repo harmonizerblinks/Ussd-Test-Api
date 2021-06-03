@@ -3,9 +3,9 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
-let apiurl = "http://localhost:4000/Ussd/";
+// let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-// let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 
 let access = { code: "ARB", key: "10198553" };
 // let access = { code: "ACU001", key: "1029398" };
@@ -47,8 +47,8 @@ menu.startState({
     run: async() => {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active && (data.pin != '' || data.pin == null)) {     
+            console.log(1,data); 
+            if(data.active && (data.pin != '' || data.pin == null || data.pin == '1234')) {     
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
@@ -676,6 +676,7 @@ async function postDeposit(val, callback) {
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
+        console.log(response);
         await callback(response);
     });
     return true
