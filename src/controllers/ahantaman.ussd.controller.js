@@ -48,7 +48,7 @@ menu.startState({
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
-            if(data.active && (data.pin != '' || data.pin == null || data.pin != '1234')) {     
+            if(data.active && (data.pin != '' || data.pin != null || data.pin != '1234')) {     
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
