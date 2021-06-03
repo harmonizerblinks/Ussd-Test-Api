@@ -48,7 +48,7 @@ menu.startState({
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
-            if(data.active && (data.pin != '' || data.pin == null || data.pin == '1234')) {     
+            if(data.active && (data.pin != '' || data.pin == null || data.pin != '1234')) {     
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
@@ -56,7 +56,7 @@ menu.startState({
                 '\n3. Check Balance' +
                 '\n4. Other' +
                 '\n5. Contact');
-            } else if(data.active && (data.pin ==null || data.pin == '')) {
+            } else if(data.active && (data.pin ==null || data.pin == '' || data.pin == '1234')) {
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.end('Mobile Number not Registered, kindly Open an Account with Ahantaman Rural Bank.');
