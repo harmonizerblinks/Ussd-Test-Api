@@ -54,7 +54,7 @@ app.use(cors());
 app.use('/public', express.static(path.join(__dirname, '../public')))
 
 // Bodyparser Middleware
-app.use(bodyParser.json({ limit: '1000kb' }));
+app.use(bodyParser.json({ limit: '20mb' }));
 
 // Helmet
 app.use(helmet());
