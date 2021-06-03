@@ -13,7 +13,7 @@ module.exports = function(app) {
     // *789*7880#
     app.post('/leader', gprtuofficer.ussdApp);
     // *789*7878#
-    app.post('/', ahantaman.ussdApp);
+    app.post('/', ussd.ussdApp);
 
     // Ahantaman collections 
     app.post('/api/ahantaman', ahantaman.ussdApp);

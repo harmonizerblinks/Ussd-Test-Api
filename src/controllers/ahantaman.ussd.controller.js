@@ -219,13 +219,17 @@ menu.state('Deposit.view',{
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         // console.log(cust);
-        
-        menu.con(cust.fullname +', you are making a deposit of GHS ' + amount +' into your account' +
-        '\n1. Confirm' +
-        '\n2. Cancel' +
-        '\n#. Main Menu')
+        if(amount > 10000) {
+            menu.con('Invalid Amount Provided. Enter (0) to continue.');
+        } else {
+            menu.con(cust.fullname +', you are making a deposit of GHS '+amount+' into your account'+
+            '\n1. Confirm' +
+            '\n2. Cancel' +
+            '\n#. Main Menu');
+        }
     },
     next: {
+        '0': 'Start',
         '#': 'Start',
         '1': 'Deposit.confirm',
         '2': 'Deposit.cancel',
