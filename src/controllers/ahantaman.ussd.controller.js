@@ -304,12 +304,16 @@ menu.state('Withdrawal.amount',{
         menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
             // console.log(result) 
-            account.balance = result.balance;
-            menu.session.set('account', account);
-            menu.session.set('balance', result.balance);
-            menu.con('How much would you like to withdraw from account number '+account.code+'?');
+            if(result.balance > 0) {
+                account.balance = result.balance;
+                menu.session.set('account', account);
+                menu.session.set('balance', result.balance);
+                menu.con('How much would you like to withdraw from account number '+account.code+'?');
+            } else {
+                menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
+            }
         });
-        menu.con('How much would you like to withdraw from account number '+account.code+'?');
+        // menu.con('How much would you like to withdraw from account number '+account.code+'?');
     },
     next: {
         '*\\d+': 'Withdrawal.view',
@@ -417,7 +421,7 @@ menu.state('CheckBalance.balance',{
             if(result.balance != null) { account.balance = result.balance; }
             menu.session.set('account', account);
             menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
+            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
         });
     },
     next: {
@@ -596,7 +600,7 @@ async function fetchCustomer(val, callback) {
             // Remove Bearer from string
             val = val.replace('+233','0');
         }
-        var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + val;
+        var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
@@ -665,7 +669,7 @@ async function fetchStatement(val, callback) {
 }
 
 async function postDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Deposit/' + access.code;
+    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -688,7 +692,7 @@ async function postDeposit(val, callback) {
 }
 
 async function postWithdrawal(val, callback) {
-    var api_endpoint = apiurl + 'Withdrawal/' + access.code;
+    var api_endpoint = apiurl + 'Withdrawal/' + access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -704,7 +708,7 @@ async function postWithdrawal(val, callback) {
 }
 
 async function postChangePin(val, callback) {
-    var api_endpoint = apiurl + 'Change/' + access.code;
+    var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
