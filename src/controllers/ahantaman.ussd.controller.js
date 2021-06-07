@@ -46,6 +46,8 @@ menu.on('error', (err) => {
 menu.startState({
     run: async() => {
         // Fetch Customer information
+        
+        menu.end('Service Currently Down, We are working to ensure smooth Transaction proccess for your. Thanks For Banking With Us');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
