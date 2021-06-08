@@ -4,8 +4,9 @@ var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:4000/Ussd/";
-let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
+// let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 // let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "ACU001", key: "1029398" };
@@ -672,6 +673,7 @@ async function fetchStatement(val, callback) {
 
 async function postDeposit(val, callback) {
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -681,7 +683,7 @@ async function postDeposit(val, callback) {
         console.log(JSON.stringify(val));
         if (resp.error) { 
             console.log(resp.error);
-            await postDeposit(val);
+            // await postDeposit(val);
             await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
