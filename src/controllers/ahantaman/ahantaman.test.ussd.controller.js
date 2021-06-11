@@ -305,20 +305,21 @@ menu.state('Withdrawal.amount',{
         // console.log(accounts);
         var account = accounts[index-1]
         menu.session.set('account', account);
-        // await fetchBalance(account.code, async(result)=> { 
-        //     // console.log(result) 
-        //     if(result.balance > 0) {
-        //         account.balance = result.balance;
-        //         menu.session.set('account', account);
-        //         menu.session.set('balance', result.balance);
-        //         menu.con('How much would you like to withdraw from account number '+account.code+'?');
-        //     } else {
-        //         menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
-        //     }
-        // });
-        menu.con('How much would you like to withdraw from account number '+account.code+'?');
+        await fetchBalance(account.code, async(result)=> { 
+            // console.log(result) 
+            if(result.balance > 0) {
+                account.balance = result.balance;
+                menu.session.set('account', account);
+                menu.session.set('balance', result.balance);
+                menu.con('How much would you like to withdraw from account number '+account.code+'?');
+            } else {
+                menu.end('Error Retrieving Account Balance with '+account.code+', please try again');
+            }
+        });
+        // menu.con('How much would you like to withdraw from account number '+account.code+'?');
     },
     next: {
+        '0': 'Start',
         '*\\d+': 'Withdrawal.view',
     },
     defaultNext: 'Withdrawal.amount'
@@ -419,14 +420,14 @@ menu.state('CheckBalance.balance',{
         // console.log(accounts);
         var account = accounts[index-1]
         // menu.session.set('account', account);
-        // await fetchBalance(account.code, async(result)=> { 
-        //     console.log(result) 
-        //     if(result.balance != null) { account.balance = result.balance; }
-        //     menu.session.set('account', account);
-        //     menu.session.set('balance', result.balance);
-        //     menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
-        // });
-        menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
+        await fetchBalance(account.code, async(result)=> { 
+            console.log(result) 
+            if(result.balance != null) { account.balance = result.balance; }
+            menu.session.set('account', account);
+            menu.session.set('balance', result.balance);
+            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+        });
+        // menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
     },
     next: {
         '0': 'Start',
