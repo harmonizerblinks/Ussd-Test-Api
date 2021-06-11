@@ -2,7 +2,10 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
-let types = ["", "Current", "Savings", "Susu" ];
+let types = ["", "Current", "Savings", "Susu"];
+let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
+let genderArray = ["", "Male", "Female"]
+
 // let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 let apiurl = "https://app.alias-solutions.net:5000/ussd/";
@@ -47,11 +50,11 @@ menu.startState({
     run: async() => {
         // Fetch Customer information
         
-        menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
+        //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to Aslan Credit Union.' +
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -59,38 +62,7 @@ menu.startState({
                 '\n4. Other' +
                 '\n5. Contact');
             } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
-            } else {
-                menu.end('Mobile Number not Registered, kindly Open an Account with Ahantaman Rural Bank.');
-            }
-        });
-    },
-    // next object links to next state based on user input
-    next: {
-        '1': 'Deposit',
-        '2': 'Withdrawal',
-        '3': 'CheckBalance',
-        '4': 'Other',
-        '5': 'Contact',
-        '*[0-9]+': 'User.newpin'
-    }
-});
-
-menu.state('Start', {
-    run: async() => {
-        // Fetch Customer information
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active && (data.pin != '' || data.pin == null)) {     
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
-                '\nSelect an Option.' + 
-                '\n1. Deposit' +
-                '\n2. Withdrawal' +
-                '\n3. Check Balance' +
-                '\n4. Other' +
-                '\n5. Contact');
-            } else if(data.active && (data.pin != '' || data.pin == null)) {
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Mobile Number not Registered \n0. Register');
             }
@@ -103,6 +75,39 @@ menu.state('Start', {
         '3': 'CheckBalance',
         '4': 'Other',
         '5': 'Contact',
+        '6': 'Register',
+        '*[0-9]+': 'User.newpin'
+    }
+});
+
+menu.state('Start', {
+    run: async() => {
+        // Fetch Customer information
+        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
+            // console.log(1,data); 
+            if(data.active && (data.pin != '' || data.pin == null)) {     
+                menu.con('Welcome to Aslan Credit Union.' + 
+                '\nSelect an Option.' + 
+                '\n1. Deposit' +
+                '\n2. Withdrawal' +
+                '\n3. Check Balance' +
+                '\n4. Other' +
+                '\n5. Contact');
+            } else if(data.active && (data.pin != '' || data.pin == null)) {
+                menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
+            } else {
+                menu.con('Mobile Number not Registered \n0. Register');
+            }
+        });
+    },
+    // next object links to next state based on user input
+    next: {
+        '1': 'Deposit',
+        '2': 'Withdrawal',
+        '3': 'CheckBalance',
+        '4': 'Other',
+        '5': 'Contact',
+        '6': 'Register',
         '*[0-9]+': 'User.newpin'
     },
     defaultNext: 'Start'
@@ -179,6 +184,117 @@ menu.state('User.verifypin', {
     },
     defaultNext: 'Start'
 });
+
+menu.state('Register', {
+    run: () => {
+        menu.con('Enter your full name')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Register.name'
+    }
+});
+
+menu.state('Register.name', {
+    run: () => {
+        let name = menu.val;
+        menu.session.set('customername', name);
+        menu.con('Select your gender:' +
+            '\n1. Male' +
+            '\n2. Female')
+    },
+    next: {
+        '*\\d+': 'Register.gender'
+    }
+});
+
+menu.state('Register.gender', {
+    run: () => {
+        var index = Number(menu.val);
+        var gender = genderArray[index]
+        menu.session.set('customergender', gender);
+        menu.con('Enter your Ghana Card Id number:')
+    },
+    next: {
+        '*\\d+': 'Register.idnumber'
+    }
+});
+
+menu.state('Register.idnumber', {
+    run: () => {
+        let idnumber = menu.val;
+        menu.session.set('customeridnumber', idnumber);
+        menu.con('Select your Marital Status:' +
+            '\n1. Single' +
+            '\n2. Married' +
+            '\n3. Skip')
+    },
+    next: {
+        '*\\d+': 'Register.marital'
+    }
+});
+
+menu.state('Register.marital', {
+    run: () => {
+        var index = Number(menu.val);
+        var marital = maritalArray[index]
+        menu.session.set('customermarital', marital);
+        menu.con('Purpose of opening account')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Register.purpose'
+    }
+});
+
+menu.state('Register.purpose', {
+    run: async () => {
+        let purpose = menu.val;
+        menu.session.set('accountpurpose', purpose);
+
+        var name = await menu.session.get('customername');
+        var gender = await menu.session.get('customergender');
+        var ghanacard = await menu.session.get('customeridnumber');
+        var maritalstatus = await menu.session.get('customermarital');
+        menu.con('Please confirm your details to continue:' +
+            '\n Full Name: ' + name +
+            '\n Gender: ' + gender +
+            '\n Ghana Card Id: ' + ghanacard +
+            '\n Marital Status: ' + maritalstatus +
+            '\n\n1. Proceed' +
+            '\n0. Back')
+    },
+    next: {
+        '0': 'Register',
+        '1': 'Register.proceed'
+    }
+});
+
+menu.state('Register.proceed', {
+    run: async () => {
+        var name = await menu.session.get('customername');
+        var gender = await menu.session.get('customergender');
+        var ghanacard = await menu.session.get('customeridnumber');
+        var maritalstatus = await menu.session.get('customermarital');
+        var accountpurpose = await menu.session.get('accountpurpose');
+        var mobile = menu.args.phoneNumber;
+        var data = {
+            code: ghanacard,
+            name: name,
+            mobile: mobile,
+            gender: gender,
+            maritalstatus: maritalstatus,
+            email: "alias@gmail.com",
+            accountpurpose: accountpurpose,
+            source: "USSD"
+        };
+        await postCustomer(data, (data) => {
+            menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu')
+        })
+    },
+    next: {
+        '0': 'Start'
+    }
+});
+
 
 menu.state('Deposit',{
     run: async() => {
@@ -596,17 +712,33 @@ function buyAirtime(phone, val) {
     return true
 }
 
+async function postCustomer(val, callback) {
+    var api_endpoint = apiurl + 'Withdrawal/' + access.code + '/' + access.key;
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        });
+    return true
+}
+
 async function fetchCustomer(val, callback) {
     // try {
-        if (val && val.startsWith('+233')) {
-            // Remove Bearer from string
-            val = val.replace('+233','0');
-        }
-        var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
-        console.log(api_endpoint);
-        var request = unirest('GET', api_endpoint)
-        .end(async(resp)=> { 
-            if (resp.error) { 
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233', '0');
+    }
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
                 console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
@@ -614,8 +746,7 @@ async function fetchCustomer(val, callback) {
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            if(response.active)
-            {
+            if (response.active) {
                 menu.session.set('name', response.name);
                 menu.session.set('mobile', val);
                 menu.session.set('accounts', response.accounts);
@@ -624,7 +755,7 @@ async function fetchCustomer(val, callback) {
                 menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
             }
-            
+
             await callback(response);
         });
     // }
