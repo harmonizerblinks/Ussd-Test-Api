@@ -1,8 +1,6 @@
-const Ussd = require('../models/insurance.model.js');
 var unirest = require('unirest');
 const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
-
 
 // var apiurl = 'https://localhost:5001/Integration/';
 // var apiurl = 'http://api-aslan.paynowafrica.com/api/services/app/'

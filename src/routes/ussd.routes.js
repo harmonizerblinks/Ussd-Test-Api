@@ -11,8 +11,8 @@ module.exports = function(app) {
     var ecg = require('../controllers/ecg.ussd.controller.js');
 
     var ppt = require('../controllers/ppt.ussd.controller.js');
-    var gprtu = require('../controllers/gprtu.ussd.controller.js');
-    var gprtuofficer = require('../controllers/gprtu.officer.ussd.controller.js');
+    var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
+    var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
     // *789*7879# 
     app.post('/group', gprtu.ussdApp);
