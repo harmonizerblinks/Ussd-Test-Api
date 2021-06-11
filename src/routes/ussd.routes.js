@@ -4,7 +4,7 @@ module.exports = function(app) {
     // Ahantaman
     var ahantaman = require('../controllers/ahantaman/ahantaman.ussd.controller.js');
     var ahantamantest = require('../controllers/ahantaman/ahantaman.test.ussd.controller.js');
-    var ahantamantest = require('../controllers/ahantaman/ahantaman.officer.ussd.controller.js');
+    var ahantamanofficer = require('../controllers/ahantaman/ahantaman.officer.ussd.controller.js');
     // Aslan
     var aslan = require('../controllers/aslan/aslan.ussd.controller.js');
     // ECG 
