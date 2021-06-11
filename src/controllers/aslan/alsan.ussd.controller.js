@@ -92,7 +92,7 @@ menu.state('Start', {
             } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Mobile Number not Registered');
+                menu.con('Mobile Number not Registered \n0. Register');
             }
         });
     },
