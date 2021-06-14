@@ -70,12 +70,12 @@ menu.startState({
     },
     // next object links to next state based on user input
     next: {
+        '0': 'Register',
         '1': 'Deposit',
         '2': 'Withdrawal',
         '3': 'CheckBalance',
         '4': 'Other',
         '5': 'Contact',
-        '6': 'Register',
         '*[0-9]+': 'User.newpin'
     }
 });
@@ -141,8 +141,6 @@ menu.state('User.pin',{
     defaultNext: 'Start'
 });
 
-
-
 menu.state('User.newpin',{
     run: () => {
         if(menu.val.length == 4) {
@@ -197,7 +195,7 @@ menu.state('Register', {
 menu.state('Register.name', {
     run: () => {
         let name = menu.val;
-        menu.session.set('customername', name);
+        menu.session.set('name', name);
         menu.con('Select your gender:' +
             '\n1. Male' +
             '\n2. Female')
@@ -211,7 +209,7 @@ menu.state('Register.gender', {
     run: () => {
         var index = Number(menu.val);
         var gender = genderArray[index]
-        menu.session.set('customergender', gender);
+        menu.session.set('gender', gender);
         menu.con('Enter your Ghana Card Id number:')
     },
     next: {
@@ -222,7 +220,7 @@ menu.state('Register.gender', {
 menu.state('Register.idnumber', {
     run: () => {
         let idnumber = menu.val;
-        menu.session.set('customeridnumber', idnumber);
+        menu.session.set('idnumber', idnumber);
         menu.con('Select your Marital Status:' +
             '\n1. Single' +
             '\n2. Married' +
@@ -237,7 +235,7 @@ menu.state('Register.marital', {
     run: () => {
         var index = Number(menu.val);
         var marital = maritalArray[index]
-        menu.session.set('customermarital', marital);
+        menu.session.set('marital', marital);
         menu.con('Purpose of opening account')
     },
     next: {
@@ -248,12 +246,12 @@ menu.state('Register.marital', {
 menu.state('Register.purpose', {
     run: async () => {
         let purpose = menu.val;
-        menu.session.set('accountpurpose', purpose);
+        menu.session.set('purpose', purpose);
 
-        var name = await menu.session.get('customername');
-        var gender = await menu.session.get('customergender');
-        var ghanacard = await menu.session.get('customeridnumber');
-        var maritalstatus = await menu.session.get('customermarital');
+        var name = await menu.session.get('name');
+        var gender = await menu.session.get('gender');
+        var ghanacard = await menu.session.get('idnumber');
+        var maritalstatus = await menu.session.get('marital');
         menu.con('Please confirm your details to continue:' +
             '\n Full Name: ' + name +
             '\n Gender: ' + gender +
@@ -270,21 +268,19 @@ menu.state('Register.purpose', {
 
 menu.state('Register.proceed', {
     run: async () => {
-        var name = await menu.session.get('customername');
-        var gender = await menu.session.get('customergender');
-        var ghanacard = await menu.session.get('customeridnumber');
-        var maritalstatus = await menu.session.get('customermarital');
-        var accountpurpose = await menu.session.get('accountpurpose');
+        var name = await menu.session.get('name');
+        var gender = await menu.session.get('gender');
+        var ghanacard = await menu.session.get('idnumber');
+        var maritalstatus = await menu.session.get('marital');
+        var purpose = await menu.session.get('purpose');
         var mobile = menu.args.phoneNumber;
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }
         var data = {
-            code: ghanacard,
-            name: name,
-            mobile: mobile,
-            gender: gender,
-            maritalstatus: maritalstatus,
-            email: "alias@gmail.com",
-            accountpurpose: accountpurpose,
-            source: "USSD"
+            code: ghanacard, fullname: name, mobile: mobile, gender: gender, maritalstatus: maritalstatus,
+            email: "alias@gmail.com", purpose: purpose, source: "USSD"
         };
         await postCustomer(data, (data) => {
             menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu')
@@ -713,7 +709,7 @@ function buyAirtime(phone, val) {
 }
 
 async function postCustomer(val, callback) {
-    var api_endpoint = apiurl + 'Withdrawal/' + access.code + '/' + access.key;
+    var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'

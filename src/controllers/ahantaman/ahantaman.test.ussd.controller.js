@@ -288,7 +288,7 @@ menu.state('Withdrawal.account',{
             });
             menu.con('Please Select an Account' + accts)
         } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
+            menu.end('Incorrect Pin. Enter zero(0) to continue')
         }
     },
     next: {
