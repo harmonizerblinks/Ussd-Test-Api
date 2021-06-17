@@ -6,12 +6,12 @@ let types = ["", "Current", "Savings", "Susu"];
 let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
-// let apiurl = "http://localhost:4000/Ussd/";
+let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+// let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 
-let access = { code: "ARB", key: "10198553" };
-// let access = { code: "ACU001", key: "1029398" };
+// let access = { code: "ARB", key: "10198553" };
+let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -283,7 +283,11 @@ menu.state('Register.proceed', {
             email: "alias@gmail.com", purpose: purpose, source: "USSD"
         };
         await postCustomer(data, (data) => {
-            menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu')
+            if(data.active) {
+                menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu');
+            } else {
+                menu.end(data.message);
+            }
         })
     },
     next: {
@@ -687,7 +691,7 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    console.log(args);
+    // console.log(args);
     menu.run(args, ussdResult => {
         menu.session.set('network', args.Operator);
         res.send(ussdResult);
@@ -717,7 +721,12 @@ async function postCustomer(val, callback) {
         .send(JSON.stringify(val))
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
-            // console.log(resp.raw_body);
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
         });
