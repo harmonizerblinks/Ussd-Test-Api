@@ -8,7 +8,7 @@ let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 
-let access = { code: "test", key: "VWJ1bnR1IENhcGl0YWwgTWljci4gTHRk" };
+let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -295,6 +295,33 @@ async function fetchCustomer(val, callback) {
     //     console.log(err);
     //     return err;
     // }
+}
+
+async function fetchAccount(val, callback) {
+    
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        if(response.active)
+        {
+            menu.session.set('name', response.name);
+            menu.session.set('mobile', val);
+            menu.session.set('accounts', response.accounts);
+            menu.session.set('cust', response);
+            // menu.session.set('limit', response.result.limit);
+        }
+        
+        await callback(response);
+    });
 }
 
 async function fetchBalance(val, callback) {

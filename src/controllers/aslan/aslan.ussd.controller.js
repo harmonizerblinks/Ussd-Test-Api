@@ -3,7 +3,7 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu"];
-let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
+let maritalArray = ["", "Single", "Married", "Private", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
@@ -185,7 +185,7 @@ menu.state('User.verifypin', {
 
 menu.state('Register', {
     run: () => {
-        menu.con('Enter your full name')
+        menu.con('Enter your FullName')
     },
     next: {
         '*[a-zA-Z]+': 'Register.name'
@@ -261,32 +261,33 @@ menu.state('Register.purpose', {
             '\n0. Back')
     },
     next: {
-        '0': 'Register',
-        '1': 'Register.proceed'
+        '0': 'Start',
+        '1': 'Register.confirm'
     }
 });
 
-menu.state('Register.proceed', {
-    run: async () => {
+menu.state('Register.confirm', {
+    run: async() => {
         var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
         var ghanacard = await menu.session.get('idnumber');
-        var maritalstatus = await menu.session.get('marital');
+        var marital = await menu.session.get('marital');
         var purpose = await menu.session.get('purpose');
         var mobile = menu.args.phoneNumber;
         if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
             mobile = mobile.replace('+233', '0');
+        } else if (mobile && mobile.startsWith('233')) {
+            mobile = mobile.replace('233', '0');
         }
         var data = {
-            code: ghanacard, fullname: name, mobile: mobile, gender: gender, maritalstatus: maritalstatus,
+            code: ghanacard, fullname: name, mobile: mobile, gender: gender, maritalstatus: marital,
             email: "alias@gmail.com", purpose: purpose, source: "USSD"
         };
-        await postCustomer(data, (data) => {
+        await postCustomer(data, async(data) => {
             if(data.active) {
                 menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu');
             } else {
-                menu.end(data.message);
+                menu.end(data.message || 'Register Was not Successful');
             }
         })
     },
