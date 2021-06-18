@@ -330,14 +330,14 @@ menu.state('Withdrawal.view',{
         // use menu.val to access user input value
         var amount = Number(menu.val);
         // save user input in session
-        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
+        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis"); }
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
-        // var balance = await menu.session.get('account');
+        var charge = await amount * (1/100);
         // console.log(cust);
-        if(account.balance >= amount) {
-            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
+        if(account.balance >= (amount + charge)) {
+            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + (amount+charge) +' from your '+account.type+' account' +
             '\n1. Confirm' +
             '\n2. Cancel' +
             '\n#. Main Menu');
