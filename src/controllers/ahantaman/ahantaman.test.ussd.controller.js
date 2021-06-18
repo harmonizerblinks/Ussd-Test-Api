@@ -8,8 +8,8 @@ let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
-let access = { code: "ARB", key: "10198553" };
-// let access = { code: "ACU001", key: "1029398" };
+// let access = { code: "ARB", key: "10198553" };
+let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
