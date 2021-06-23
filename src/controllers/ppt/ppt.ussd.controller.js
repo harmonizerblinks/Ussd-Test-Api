@@ -6,9 +6,9 @@ let types = ["", "Current", "Savings", "Susu"];
 let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
-let apiurl = "http://localhost:5000/Ussd/";
+// let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-// let apiurl = "https://app.alias-solutions.net:5003/ussd/";
+let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "ACU001", key: "1029398" };
@@ -54,17 +54,19 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
-                menu.con('Welcome to Aslan Credit Union.' +
-                '\nSelect an Option.' + 
-                '\n1. Deposit' +
-                '\n2. Withdrawal' +
+                menu.con('Welcome to Peoples Pensions Trust' + 
+                '\n1. Pay' +
+                '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
-                '\n4. Other' +
-                '\n5. Contact');
-            } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                '\n4. Withdrawal' +
+                '\n5. Tier 2' +
+                '\n6. Trimester Save' +
+                '\n7. Contact us'
+                )
+        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+                menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Welcome Aslan Credit Union, kindly follow the steps to Onboard \n0. Register');
+                menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
             }
         });
     },
@@ -83,31 +85,35 @@ menu.startState({
 menu.state('Start', {
     run: async() => {
         // Fetch Customer information
+        
+        //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && (data.pin != '' || data.pin == null)) {     
-                menu.con('Welcome to Aslan Credit Union.' + 
-                '\nSelect an Option.' + 
-                '\n1. Deposit' +
-                '\n2. Withdrawal' +
+            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
+                menu.con('Welcome to Peoples Pensions Trust' + 
+                '\n1. Pay' +
+                '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
-                '\n4. Other' +
-                '\n5. Contact');
-            } else if(data.active && (data.pin != '' || data.pin == null)) {
-                menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                '\n4. Withdrawal' +
+                '\n5. Tier 2' +
+                '\n6. Trimester Save' +
+                '\n7. Contact us'
+                )
+        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+                menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Mobile Number not Registered \n0. Register');
+                menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
             }
         });
     },
     // next object links to next state based on user input
     next: {
+        '0': 'Register',
         '1': 'Deposit',
         '2': 'Withdrawal',
         '3': 'CheckBalance',
         '4': 'Other',
         '5': 'Contact',
-        '6': 'Register',
         '*[0-9]+': 'User.newpin'
     },
     defaultNext: 'Start'
@@ -206,178 +212,291 @@ menu.state('Register.name', {
 });
 
 menu.state('Register.gender', {
-    run: () => {
+    run: async() => {
         var index = Number(menu.val);
         var gender = genderArray[index]
         menu.session.set('gender', gender);
-        menu.con('Enter your Ghana Card Id number:')
-    },
-    next: {
-        '*\\d+': 'Register.idnumber'
-    }
-});
 
-menu.state('Register.idnumber', {
-    run: () => {
-        let idnumber = menu.val;
-        menu.session.set('idnumber', idnumber);
-        menu.con('Select your Marital Status:' +
-            '\n1. Single' +
-            '\n2. Married' +
-            '\n3. Skip')
-    },
-    next: {
-        '*\\d+': 'Register.marital'
-    }
-});
+        let name = await menu.session.get('name');  
 
-menu.state('Register.marital', {
-    run: () => {
-        var index = Number(menu.val);
-        var marital = maritalArray[index]
-        menu.session.set('marital', marital);
-        menu.con('Purpose of opening account')
-    },
-    next: {
-        '*[a-zA-Z]+': 'Register.purpose'
-    }
-});
-
-menu.state('Register.purpose', {
-    run: async () => {
-        let purpose = menu.val;
-        menu.session.set('purpose', purpose);
-
-        var name = await menu.session.get('name');
-        var gender = await menu.session.get('gender');
-        var ghanacard = await menu.session.get('idnumber');
-        var maritalstatus = await menu.session.get('marital');
-        menu.con('Please confirm your details to continue:' +
-            '\n Full Name: ' + name +
-            '\n Gender: ' + gender +
-            '\n Ghana Card Id: ' + ghanacard +
-            '\n Marital Status: ' + maritalstatus +
-            '\n\n1. Proceed' +
-            '\n0. Back')
-    },
-    next: {
-        '0': 'Register',
-        '1': 'Register.proceed'
-    }
-});
-
-menu.state('Register.proceed', {
-    run: async () => {
-        var name = await menu.session.get('name');
-        var gender = await menu.session.get('gender');
-        var ghanacard = await menu.session.get('idnumber');
-        var maritalstatus = await menu.session.get('marital');
-        var purpose = await menu.session.get('purpose');
-        var mobile = menu.args.phoneNumber;
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }
-        var data = {
-            code: ghanacard, fullname: name, mobile: mobile, gender: gender, maritalstatus: maritalstatus,
-            email: "alias@gmail.com", purpose: purpose, source: "USSD"
-        };
-        await postCustomer(data, (data) => {
-            if(data.active) {
-                menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu');
+        await postCustomer(menu.args.phoneNumber, (data) => {
+            // console.log(data);
+            if (data) {
+                menu.con('Server Error. Please contact admin.')
             } else {
-                menu.end(data.message);
+                menu.con('Dear '+ name + ', you have successfully register for the Peoples Pension Trust' + 
+                '\nWould you like to continue with payment?' +
+                '\n0. Exit' +
+                '\n1. Pay')        
             }
-        })
+        });  
     },
     next: {
-        '0': 'Start'
+        '0': 'exit',
+        '1': 'register.pay',
     }
 });
 
-
-menu.state('Deposit',{
-    run: async() => {
-        var accts = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            // console.log(val);
-            accts += '\n'+count+'. '+val.code;
-            count +=1;
-        });
-        menu.con('Please Select an Account' + accts)
-    },
-    next: {
-        '#': 'Start',
-        '*\\d+': 'Deposit.amount'
-    },
-    defaultNext: 'Deposit'
+menu.state('exit', {
+    run: () => {
+        menu.end('')
+    }
 })
 
-menu.state('Deposit.amount',{
+
+///////////////--------------PAY ROUTE STARTS--------------////////////////
+menu.state('pay', {
+    run: async() => {
+        let name = await menu.session.get('name');
+        menu.con(`Dear ${name}, How much would you like to pay?`)
+    },
+    next: {
+        '*\\d+': 'pay.amount'
+    }
+})
+
+menu.state('pay.amount', {
+    run: () => {
+        let amount = menu.val;
+        menu.session.set('amount', amount);
+
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. Only once' +
+        '\n5. Stop Repeat Payments'
+        )
+    },
+    next: {
+        '1': 'policy',
+        '2': 'policy',
+        '3': 'policy',
+        '4': 'policy',
+        '5': 'srp'
+    }
+})
+
+menu.state('policy', {
+    run: async() => {
+        var schemes = ''; var count = 1;
+        var accounts = await menu.session.get('accounts');
+        accounts.forEach(val => {
+            schemes += '\n' + count + '. ' + val.type + ' A/C';
+            count += 1;
+        });
+        menu.con('Please select Preferred Scheme Number: ' + schemes)
+    },
+    next: {
+        '1': 'policy.proceed',
+        '2': 'policy.proceed',
+        '3': 'policy.proceed',
+    }
+})
+
+menu.state('policy.proceed', {
     run: async() => {
         var index = Number(menu.val);
         var accounts = await menu.session.get('accounts');
         // console.log(accounts);
         var account = accounts[index-1]
-        menu.session.set('account', account);
-        menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?')
+        menu.session.set('schemenumber', account);
+
+        let amount = await menu.session.get('amount'); 
+        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+        '\n1. Proceed' +
+        '\n0. Exit'
+        )
     },
     next: {
-        '*\\d+': 'Deposit.view',
-    },
-    defaultNext: 'Deposit.amount'
+        '0': 'policy',
+        '1': 'policy.accepted',
+    }
 })
 
-menu.state('Deposit.view',{
+menu.state('policy.accepted', {
+    run: async () => {
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        await postDeposit(menu.args.phoneNumber, (data) => {
+                if (data) {
+                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+                } else {
+                    menu.end('Application Server error. Please contact administrator');
+                }
+            });
+        }
+})
+
+menu.state('srp', {
+    run: () => {
+        menu.end('You have successfully cancelled your Repeat Payments')
+    }
+})
+
+///////////////--------------ICARE ROUTE STARTS--------------////////////////
+
+menu.state('icare', {
+    run: () => {
+        menu.con('Choose Preferred Option:' +
+        '\n1. Register for Someone' +
+        '\n2. Pay for Someone')
+    },
+    next: {
+        '1': 'icare.register',
+        '2': 'icare.phonenumber',
+    }
+})
+
+menu.state('icare.register', {
+    run: () => {
+        menu.con('Please enter Person\'s first name')
+    },
+    next: {
+        '*[a-zA-Z]+': 'register.firstname'
+    }
+})
+
+menu.state('register.firstname', {
+    run: () => {
+        let firstname = menu.val;
+        menu.session.set('icarefirstname', firstname);
+        menu.con('Please enter Person\'s last name')
+    },
+    next: {
+        '*[a-zA-Z]+': 'register.phonenumber'
+    }
+})
+
+menu.state('register.phonenumber', {
+    run: () => {
+        let lastname = menu.val;
+        menu.session.set('icarelastname', lastname);
+        menu.con('Enter Mobile Number of Person')
+    },
+    next: {
+        '*\\d+': 'register.confirm'
+    }
+})
+
+menu.state('register.confirm', {
     run: async() => {
-        // use menu.val to access user input value
-        var amount = Number(menu.val);
-        // save user input in session
-        menu.session.set('amount', amount);
-        var cust = await menu.session.get('cust');
-        // console.log(cust);
-        if(amount > 10000) {
-            menu.con('Invalid Amount Provided. Enter (0) to continue.');
+        let phonenumber = menu.val;
+        menu.session.set('icaremobile', phonenumber);        
+        var Firstname = await menu.session.get('icarefirstname');
+        var Lastname = await menu.session.get('icarelastname');
+        var Mobile = await menu.session.get('icaremobile');
+        menu.con('Please confirm the registration details below to continue:' +
+        '\nFirst Name - ' + Firstname +
+        '\nLast Name - '+ Lastname + 
+        '\nMobile Number - '+ Mobile + 
+        '\n\n0. Make Changes' +
+        '\n1. Confirm')
+    },
+    next: {
+        '0': 'icare.register',
+        '1': 'register.pay',
+    }
+})
+
+menu.state('register.pay', {
+    run: async() => {
+        var name = await menu.session.get('icarefirstname') + ' ' + await menu.session.get('icarelastname');
+        menu.session.set('icarename', name);
+
+        await register();
+    },
+    next: {
+        '0': 'exit',
+        '1': 'icare.phonenumber',
+    }
+})
+
+menu.state('exit', {
+    run: () => {
+        menu.end('')
+    }
+})
+
+menu.state('icare.phonenumber', {
+    run: () => {
+        menu.con('Enter Mobile Number of Person')
+    },
+    next: {
+        '*\\d+': 'icare.pay'
+    }
+})
+
+menu.state('icare.pay', {
+    run: async() => {
+        let phonenumber = menu.val;
+        menu.session.set('icaremobile', phonenumber);
+        let name = await menu.session.get('icarename');
+        menu.con(`Enter amount to pay for ${name}`)
+    },
+    next: {
+        '*\\d+': 'pay.amount'
+    }
+})
+
+
+///////////////--------------CHECK BALANCE ROUTE STARTS--------------////////////////
+
+menu.state('checkbalance',{
+    run: () => {
+        menu.con('Enter your PIN to check balance');
+    },
+    next: {
+        '*\\d+': 'CheckBalance.account'
+    },
+    defaultNext: 'CheckBalance'
+});
+
+menu.state('CheckBalance.account',{
+    run: async() => {
+        var pin = await menu.session.get('pin');
+        // var custpin = Number(menu.val);
+        if(menu.val === pin) {
+            var accts = ''; var count = 1;
+            var accounts = await menu.session.get('accounts');
+            accounts.forEach(val => {
+                // console.log(val);
+                accts += '\n'+count+'. '+val.code;
+                count +=1;
+            });
+            menu.con('Please select Preferred Scheme Number: ' + accts)
         } else {
-            menu.con(cust.fullname +', you are making a deposit of GHS '+amount+' into your account'+
-            '\n1. Confirm' +
-            '\n2. Cancel' +
-            '\n#. Main Menu');
+            menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
     },
     next: {
         '0': 'Start',
-        '#': 'Start',
-        '1': 'Deposit.confirm',
-        '2': 'Deposit.cancel',
+        '*\\d+': 'CheckBalance.balance'
     },
-    defaultNext: 'Deposit.amount'
-});
+    defaultNext: 'CheckBalance'
+})
 
-menu.state('Deposit.confirm', {
+menu.state('CheckBalance.balance',{
     run: async() => {
-        // access user input value save in session
-        //var cust = await menu.session.get('cust');
-        var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
-        await postDeposit(data, async(result)=> { 
-            // console.log(result) 
-            // menu.end(JSON.stringify(result)); 
+        var index = Number(menu.val);
+        var accounts = await menu.session.get('accounts');
+        // console.log(accounts);
+        var account = accounts[index-1]
+        // menu.session.set('account', account);
+        await fetchBalance(account.code, async(result)=> { 
+            console.log(result) 
+            if(result.balance != null) { account.balance = result.balance; }
+            menu.session.set('account', account);
+            menu.session.set('balance', result.balance);
+            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
         });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
-    }
+    },
+    next: {
+        '0': 'Start',
+    },
+    defaultNext: 'CheckBalance.amount'
 });
 
-menu.state('Deposit.cancel', {
-    run: () => {
-        // Cancel Deposit request
-        menu.end('Thank you for using Ahantaman Rural Bank.');
-    }
-});
+///////////////--------------WITHDRAWAL ROUTE STARTS--------------////////////////
 
 menu.state('Withdrawal',{
     run: () => {
@@ -401,7 +520,7 @@ menu.state('Withdrawal.account',{
                 accts += '\n'+count+'. '+val.code;
                 count +=1;
             });
-            menu.con('Please Select an Account' + accts)
+            menu.con('Please select Preferred Scheme Number: ' + accts)
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
@@ -493,197 +612,189 @@ menu.state('Withdrawal.cancel', {
     }
 });
 
-menu.state('CheckBalance',{
-    run: () => {
-        menu.con('Enter your PIN to check balance');
-    },
-    next: {
-        '*\\d+': 'CheckBalance.account'
-    },
-    defaultNext: 'CheckBalance'
-});
+///////////////--------------TIER 2 ROUTE STARTS--------------////////////////
 
-menu.state('CheckBalance.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
+menu.state('tier2', {
+    run: () => {
+        menu.con('Enter Company Name')
     },
     next: {
-        '0': 'Start',
-        '*\\d+': 'CheckBalance.balance'
-    },
-    defaultNext: 'CheckBalance'
+        '*[a-zA-z]+': 'company.name'
+    }
 })
 
-menu.state('CheckBalance.balance',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        // menu.session.set('account', account);
-        await fetchBalance(account.code, async(result)=> { 
-            console.log(result) 
-            if(result.balance != null) { account.balance = result.balance; }
-            menu.session.set('account', account);
-            menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
-        });
-    },
-    next: {
-        '0': 'Start',
-    },
-    defaultNext: 'CheckBalance.amount'
-});
-
-menu.state('Other',{
+menu.state('company.name', {
     run: () => {
-        menu.con('1. Change Pin' + '\n2. Open Account' + '\n3. Mini Satement')
+        let company = menu.val;
+        menu.session.set('companyname', company)
+        menu.con('How much would you like to pay?')
     },
     next: {
-        '1': 'User.account',
-        '2': 'Account',
-        '3': 'Statement',
+        '*\\d+': 'tier2.confirm'
     }
-});
-
-menu.state('Account',{
-    run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
-        '\n\n0.	Return to Main Menu')
-    },
-    next: {
-        '0': 'Start'
-    }
-});
-
-
-menu.state('Statement',{
-    run: () => {
-        menu.con('Enter your PIN to check Account Mini statement');
-    },
-    next: {
-        '*\\d+': 'Statement.account'
-    },
-    defaultNext: 'Statement'
-});
-
-menu.state('Statement.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'Statement.transactions'
-    },
-    defaultNext: 'Statement'
 })
 
-menu.state('Statement.transactions',{
+menu.state('tier2.confirm', {
     run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        // menu.session.set('account', account);
-        await fetchStatement(account.code, async(data)=> { 
-            console.log(data)
-            var accts = ''; var count = 1;
-            await data.forEach(async(val) => {
-                // console.log(val);
-                accts += '\n'+count+'. '+ new Date(val.date).toLocaleDateString() +' '+val.type.toUpperCase() + '- GHC ' +val.amount;
-                count +=1;
-            });
-            menu.con('Transaction Details' + accts)
-        });
+        let tier2amount = menu.val;
+        menu.session.set('tier2amount', tier2amount);
+        var tier2AR = await menu.session.get('tier2amount');
+        var companyname = await menu.session.get('companyname');
+        menu.con('Please confirm the details below to continue payment:' +
+        '\nCompany Name - ' + companyname +
+        '\nAmount - GHS '+ tier2AR + 
+        '\n\n0. Make Changes' +
+        '\n1. Confirm')
     },
     next: {
-        '0': 'Start',
-    },
-    defaultNext: 'Statement.amount'
-});
+        '0': 'tier2',
+        '1': 'tier2.end'
+    }
+})
 
+menu.state('tier2.end', {
+    run: async() => {
+        await tier2payment();
+    }
+})
 
-menu.state('Contact', {
+///////////////--------------TRIMESTER ROUTE STARTS--------------////////////////
+menu.state('trimestersave', {
     run: () => {
-        // use menu.con() to send response without terminating session      
-        menu.con('1. Stop auto-debit' +
-            '\n2. Name' +
-            '\n3. Email' +
-            '\n4. Mobile' +
-            '\n5. Website');
+        menu.con('Choose Option' +
+        '\n1. Pay')
     },
-    // next object links to next state based on user input
     next: {
-        '1': 'AutoDebit',
-        '2': 'Contact.name',
-        '3': 'Contact.email',
-        '4': 'Contact.mobile',
-        '5': 'Contact.website'
+        '1': 'trimester.pay'
     }
-});
+})
 
-menu.state('AutoDebit', {
+menu.state('trimester.pay', {
     run: () => {
-        // Cancel Savings request
-        menu.end('Auto Debit disabled successfully.');
+        menu.con('Enter Customer\'s Mobile Number')
+    },
+    next: {
+        '*\\d+': 'customernumber'
     }
-});
+})
+
+menu.state('customernumber', {
+    run: () => {
+       //  Receive input from menu and verify from API
+       var phonenumber = menu.val;
+       if(phonenumber){
+        menu.con('Dear (Customer Name), You are already registered. How much would you like to pay?')
+       }else{
+        menu.con('Dear (Customer Name), Your registration is successful. How much would you like to pay?')
+       }
+    },
+    next: {
+        '*\\d+': 'customernumber.pay'
+    }
+})
+menu.state('customernumber', {
+    run: () => {
+       //  Receive input from menu and verify from API
+       var phonenumber = menu.val;
+       if(phonenumber){
+        menu.con('Dear (Customer Name), You are already registered. How much would you like to pay?')
+       }else{
+        menu.con('Dear (Customer Name), Your registration is successful. How much would you like to pay?')
+       }
+    },
+    next: {
+        '*\\d+': 'customernumber.pay'
+    }
+})
+
+menu.state('customernumber.pay', {
+    run: () => {
+        let amount = menu.val;
+        menu.session.set('trimesteramount', amount)
+
+        menu.con('Please select Preferred Scheme Number:' +
+        '\n1. XXX' +
+        '\n2. XXX'+
+        '\n3. XXX'
+        )
+    },
+    next: {
+        '1': 'policy.customernumber.proceed',
+        '2': 'policy.customernumber.proceed',
+        '3': 'policy.customernumber.proceed',
+    }
+})
+
+menu.state('policy.customernumber.proceed', {
+    run: async() => {
+        var amount = await menu.session.get('trimesteramount')
+        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount}` +
+        '\n1. Proceed' +
+        '\n0. Exit'
+        )
+    },
+    next: {
+        '0': 'policy.exit',
+        '1': 'policy.customernumber.accepted',
+    }
+})
+
+menu.state('policy.customernumber.accepted', {
+    run: () => {
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+    }
+})
+
+
+
+/////////////////------------------CONTACT US STARTS------------------/////////////////////
+menu.state('contactus', {
+    run: () => {
+        menu.con('1. Name' +
+        '\n2. Email' +
+        '\n3. Mobile' +
+        '\n4. Website');
+    },
+    next: {
+        '1': 'Contact.name',
+        '2': 'Contact.email',
+        '3': 'Contact.mobile',
+        '4': 'Contact.website'
+    }
+})
 
 menu.state('Contact.name', {
     run: () => {
         // Cancel Savings request
-        menu.end('Ahantaman Rural Bank Limited.');
+        menu.end('People Pension Trust.');
     }
 });
 
 menu.state('Contact.email', {
     run: () => {
         // Cancel Savings request
-        menu.end('info@ahantamanbank.com.gh.');
+        menu.end('info@peoplespensiontrust.com.');
     }
 });
 
 menu.state('Contact.mobile', {
     run: () => {
-        // Contact Mobile
-        menu.end('+233 (0) 31 209 1033');
+        // Cancel Savings request
+        menu.end('0302738242');
     }
 });
 
 menu.state('Contact.website', {
     run: () => {
-        // Contact Website
-        menu.end('http://www.ahantamanbank.com.gh');
+        // Cancel Savings request
+        menu.end('http://www.peoplespensiontrust.com');
     }
 });
 
 
+
+
+/////////////////------------------USSD SESSION STARTS------------------/////////////////////
 // Pension USSD
 exports.ussdApp = async(req, res) => {
     // Create a 
@@ -790,21 +901,6 @@ async function fetchBalance(val, callback) {
     });
 }
 
-async function fetchStatement(val, callback) {
-    var api_endpoint = apiurl + 'getAccountTransaction/' + access.code + '/'+ access.key + '/' + val;
-    // console.log(api_endpoint);
-    var request = unirest('GET', api_endpoint)
-    .end(async(resp)=> { 
-        if (resp.error) { 
-            console.log(resp.error);
-            await callback(resp);
-        }
-        // console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        
-        await callback(response);
-    });
-}
 
 async function postDeposit(val, callback) {
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
