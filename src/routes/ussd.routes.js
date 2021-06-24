@@ -10,6 +10,7 @@ module.exports = function(app) {
     // ECG 
     var ecg = require('../controllers/ecg.ussd.controller.js');
 
+    var pptussd = require('../controllers/ppt/ppt.ussd.controller.js');
     var ppt = require('../controllers/ppt.ussd.controller.js');
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
@@ -39,5 +40,9 @@ module.exports = function(app) {
     // GPRTU Collection
     app.post('/api/gprtu', ahantaman.ussdApp);
     app.post('/api/gprtu/officer', ppt.ussdApp);
+
+    // PPT Collection
+    app.post('/api/ppt', pptussd.ussdApp);
+    // app.post('/api/gprtu/officer', ppt.ussdApp);
 
 }

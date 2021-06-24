@@ -316,8 +316,12 @@ menu.state('policy.proceed', {
 
 menu.state('policy.accepted', {
     run: async () => {
+        var amount = await menu.session.get('amount');
+        var account = await menu.session.get('account');
+        var network = await menu.session.get('network');
+        var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
-        await postDeposit(menu.args.phoneNumber, (data) => {
+        await postDeposit(data, async(data) => {
                 if (data) {
                     menu.end('Request submitted successfully. You will receive a payment prompt shortly');
                 } else {
@@ -637,12 +641,12 @@ menu.state('company.name', {
 menu.state('tier2.confirm', {
     run: async() => {
         let tier2amount = menu.val;
-        menu.session.set('tier2amount', tier2amount);
-        var tier2AR = await menu.session.get('tier2amount');
+        menu.session.set('amount', tier2amount);
+        var amount = await menu.session.get('amount');
         var companyname = await menu.session.get('companyname');
         menu.con('Please confirm the details below to continue payment:' +
         '\nCompany Name - ' + companyname +
-        '\nAmount - GHS '+ tier2AR + 
+        '\nAmount - GHS '+ amount + 
         '\n\n0. Make Changes' +
         '\n1. Confirm')
     },
@@ -654,7 +658,19 @@ menu.state('tier2.confirm', {
 
 menu.state('tier2.end', {
     run: async() => {
-        await tier2payment();
+        var amount = await menu.session.get('amount');
+        var account = await menu.session.get('account');
+        var network = await menu.session.get('network');
+        var mobile = menu.args.phoneNumber;
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        await postDeposit(data, async(data) => {
+                if (data) {
+                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+                } else {
+                    menu.end('Application Server error. Please contact administrator');
+                }
+            });
+
     }
 })
 
@@ -682,25 +698,14 @@ menu.state('customernumber', {
     run: () => {
        //  Receive input from menu and verify from API
        var phonenumber = menu.val;
-       if(phonenumber){
-        menu.con('Dear (Customer Name), You are already registered. How much would you like to pay?')
-       }else{
-        menu.con('Dear (Customer Name), Your registration is successful. How much would you like to pay?')
-       }
-    },
-    next: {
-        '*\\d+': 'customernumber.pay'
-    }
-})
-menu.state('customernumber', {
-    run: () => {
-       //  Receive input from menu and verify from API
-       var phonenumber = menu.val;
-       if(phonenumber){
-        menu.con('Dear (Customer Name), You are already registered. How much would you like to pay?')
-       }else{
-        menu.con('Dear (Customer Name), Your registration is successful. How much would you like to pay?')
-       }
+       await fetchCustomer(phonenumber, (data)=> { 
+            // console.log(1,data); 
+            if(data.active) {     
+                menu.con(`Dear ${data.fullname}, You are already registered. How much would you like to pay?`)
+            }else {
+                menu.con(`Dear ${data.fullname}, Your registration is successful. How much would you like to pay?`)
+            }
+        });
     },
     next: {
         '*\\d+': 'customernumber.pay'
@@ -710,13 +715,14 @@ menu.state('customernumber', {
 menu.state('customernumber.pay', {
     run: () => {
         let amount = menu.val;
-        menu.session.set('trimesteramount', amount)
-
-        menu.con('Please select Preferred Scheme Number:' +
-        '\n1. XXX' +
-        '\n2. XXX'+
-        '\n3. XXX'
-        )
+        menu.session.set('amount', amount)
+        var schemes = ''; var count = 1;
+        var accounts = await menu.session.get('accounts');
+        accounts.forEach(val => {
+            schemes += '\n' + count + '. ' + val.type + ' A/C';
+            count += 1;
+        });
+        menu.con('Please select Preferred Scheme Number: ' + schemes)
     },
     next: {
         '1': 'policy.customernumber.proceed',
@@ -727,7 +733,7 @@ menu.state('customernumber.pay', {
 
 menu.state('policy.customernumber.proceed', {
     run: async() => {
-        var amount = await menu.session.get('trimesteramount')
+        var amount = await menu.session.get('amount')
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount}` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -740,8 +746,19 @@ menu.state('policy.customernumber.proceed', {
 })
 
 menu.state('policy.customernumber.accepted', {
-    run: () => {
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+    run: async() => {
+        var amount = await menu.session.get('amount');
+        var account = await menu.session.get('account');
+        var network = await menu.session.get('network');
+        var mobile = menu.args.phoneNumber;
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        await postDeposit(data, async(data) => {
+                if (data) {
+                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+                } else {
+                    menu.end('Application Server error. Please contact administrator');
+                }
+        });
     }
 })
 
