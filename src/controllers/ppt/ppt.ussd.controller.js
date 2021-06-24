@@ -1,5 +1,5 @@
 const UssdMenu = require('ussd-menu-builder');
-let menu = new UssdMenu({ provider: 'hubtel' });
+let menu = new UssdMenu({provider: 'hubtel'});
 var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu"];
@@ -17,7 +17,7 @@ menu.sessionConfig({
     start: (sessionId, callback) => {
         // initialize current session if it doesn't exist
         // this is called by menu.run()
-        if (!(sessionId in sessions)) sessions[sessionId] = {};
+        if(!(sessionId in sessions)) sessions[sessionId] = {};
         callback();
     },
     end: (sessionId, callback) => {
@@ -37,7 +37,6 @@ menu.sessionConfig({
         callback(null, value);
     }
 });
-
 
 menu.on('error', (err) => {
     // handle errors
@@ -73,12 +72,14 @@ menu.startState({
     // next object links to next state based on user input
     next: {
         '0': 'Register',
-        '1': 'Deposit',
-        '2': 'Withdrawal',
-        '3': 'CheckBalance',
-        '4': 'Other',
-        '5': 'Contact',
-        '*[0-9]+': 'User.newpin'
+        '1': 'pay',
+        '2': 'icare',
+        '3': 'checkbalance',
+        '4': 'withdrawal',
+        '5': 'tier2',
+        '6': 'trimestersave',
+        '7': 'contactus',
+        '*[0-9]+': 'pin'
     }
 });
 
@@ -120,7 +121,7 @@ menu.state('Start', {
 });
 
 
-menu.state('User.account',{
+menu.state('pin',{
     run: () => {
         menu.con('Enter your current 4 digits PIN')
     },
@@ -300,7 +301,7 @@ menu.state('policy.proceed', {
         var accounts = await menu.session.get('accounts');
         // console.log(accounts);
         var account = accounts[index-1]
-        menu.session.set('schemenumber', account);
+        menu.session.set('account', account);
 
         let amount = await menu.session.get('amount'); 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
@@ -322,7 +323,7 @@ menu.state('policy.accepted', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
         await postDeposit(data, async(data) => {
-                if (data) {
+                if (data.status) {
                     menu.end('Request submitted successfully. You will receive a payment prompt shortly');
                 } else {
                     menu.end('Application Server error. Please contact administrator');
@@ -502,7 +503,7 @@ menu.state('CheckBalance.balance',{
 
 ///////////////--------------WITHDRAWAL ROUTE STARTS--------------////////////////
 
-menu.state('Withdrawal',{
+menu.state('w ithdrawal',{
     run: () => {
         menu.con('Enter your PIN to make a Withdrawal');
     },
@@ -695,7 +696,7 @@ menu.state('trimester.pay', {
 })
 
 menu.state('customernumber', {
-    run: () => {
+    run: async() => {
        //  Receive input from menu and verify from API
        var phonenumber = menu.val;
        await fetchCustomer(phonenumber, (data)=> { 
@@ -713,7 +714,7 @@ menu.state('customernumber', {
 })
 
 menu.state('customernumber.pay', {
-    run: () => {
+    run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount)
         var schemes = ''; var count = 1;
@@ -819,7 +820,7 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    // console.log(args);
+    console.log(args);
     menu.run(args, ussdResult => {
         menu.session.set('network', args.Operator);
         res.send(ussdResult);
@@ -868,7 +869,7 @@ async function fetchCustomer(val, callback) {
         val = val.replace('+233', '0');
     }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint);
+    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -877,14 +878,13 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
+            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
-                menu.session.set('name', response.name);
+                menu.session.set('name', response.fullname);
                 menu.session.set('mobile', val);
                 menu.session.set('accounts', response.accounts);
                 menu.session.set('cust', response);
-                menu.session.set('type', response.type);
                 menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
             }
@@ -927,7 +927,7 @@ async function postDeposit(val, callback) {
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
-        console.log(JSON.stringify(val));
+        // console.log(JSON.stringify(val));
         if (resp.error) { 
             console.log(resp.error);
             await postDeposit(val);

@@ -658,28 +658,28 @@ menu.state('AutoDebit', {
 menu.state('Contact.name', {
     run: () => {
         // Cancel Savings request
-        menu.end('Ahantaman Rural Bank Limited.');
+        menu.end('Aslan Credit Union.');
     }
 });
 
 menu.state('Contact.email', {
     run: () => {
         // Cancel Savings request
-        menu.end('info@ahantamanbank.com.gh.');
+        menu.end('Coming Soon.');
     }
 });
 
 menu.state('Contact.mobile', {
     run: () => {
         // Contact Mobile
-        menu.end('+233 (0) 31 209 1033');
+        menu.end('+233 264 371 378');
     }
 });
 
 menu.state('Contact.website', {
     run: () => {
         // Contact Website
-        menu.end('http://www.ahantamanbank.com.gh');
+        menu.end('Coming Soon.');
     }
 });
 
