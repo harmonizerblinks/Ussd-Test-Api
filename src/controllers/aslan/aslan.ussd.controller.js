@@ -219,20 +219,6 @@ menu.state('Register.gender', {
 
 menu.state('Register.idnumber', {
     run: () => {
-        let idnumber = menu.val;
-        menu.session.set('idnumber', idnumber);
-        menu.con('Select your Marital Status:' +
-            '\n1. Single' +
-            '\n2. Married' +
-            '\n3. Skip')
-    },
-    next: {
-        '*\\d+': 'Register.marital'
-    }
-});
-
-menu.state('Register.marital', {
-    run: () => {
         var index = Number(menu.val);
         var marital = maritalArray[index]
         menu.session.set('marital', marital);
@@ -251,12 +237,10 @@ menu.state('Register.purpose', {
         var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
         var ghanacard = await menu.session.get('idnumber');
-        var maritalstatus = await menu.session.get('marital');
         menu.con('Please confirm your details to continue:' +
             '\n Full Name: ' + name +
             '\n Gender: ' + gender +
             '\n Ghana Card Id: ' + ghanacard +
-            '\n Marital Status: ' + maritalstatus +
             '\n\n1. Proceed' +
             '\n0. Back')
     },
@@ -271,7 +255,6 @@ menu.state('Register.proceed', {
         var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
         var ghanacard = await menu.session.get('idnumber');
-        var maritalstatus = await menu.session.get('marital');
         var purpose = await menu.session.get('purpose');
         var mobile = menu.args.phoneNumber;
         if (mobile && mobile.startsWith('+233')) {
@@ -279,7 +262,7 @@ menu.state('Register.proceed', {
             mobile = mobile.replace('+233', '0');
         }
         var data = {
-            code: ghanacard, fullname: name, mobile: mobile, gender: gender, maritalstatus: maritalstatus,
+            code: ghanacard, fullname: name, mobile: mobile, gender: gender,
             email: "alias@gmail.com", purpose: purpose, source: "USSD"
         };
         await postCustomer(data, (data) => {
@@ -375,7 +358,7 @@ menu.state('Deposit.confirm', {
 menu.state('Deposit.cancel', {
     run: () => {
         // Cancel Deposit request
-        menu.end('Thank you for using Ahantaman Rural Bank.');
+        menu.end('Thank you for using Aslan Credit Union.');
     }
 });
 
@@ -561,7 +544,7 @@ menu.state('Other',{
 
 menu.state('Account',{
     run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
+        menu.con('Please contact Aslan Credit Union on +233264371378 for assistance with account opening. Thank you' +	
         '\n\n0.	Return to Main Menu')
     },
     next: {
