@@ -199,7 +199,7 @@ menu.state('Deposit.confirm', {
 menu.state('Deposit.cancel', {
     run: () => {
         // Cancel Deposit request
-        menu.end('Thank you for using Ahantaman Rural Bank.');
+        menu.end('Thank you for using People Pension Trust.');
     }
 });
 

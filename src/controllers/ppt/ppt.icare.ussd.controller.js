@@ -53,14 +53,11 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
-                menu.con('Welcome to Peoples Pensions Trust' + 
-                '\n1. Pay' +
-                '\n2. iCare (Pay for Someone)' +
-                '\n3. Check Balance' +
-                '\n4. Withdrawal' +
-                '\n6. Contact us'
+                menu.con('Welcome to Peoples Pensions Trust. Choose Preferred Option:' +
+                '\n1. Register for Someone' +
+                '\n2. Pay for Someone'
                 )
-        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+            }else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
@@ -69,13 +66,8 @@ menu.startState({
     },
     // next object links to next state based on user input
     next: {
-        '0': 'Register',
-        '1': 'pay',
-        '2': 'icare',
-        '3': 'checkbalance',
-        '4': 'withdrawal',
-        '5': 'contactus',
-        '*[0-9]+': 'pin'
+        '1': 'icare.register',
+        '2': 'icare.phonenumber',
     }
 });
 
@@ -87,16 +79,11 @@ menu.state('Start', {
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
-                menu.con('Welcome to Peoples Pensions Trust' + 
-                '\n1. Pay' +
-                '\n2. iCare (Pay for Someone)' +
-                '\n3. Check Balance' +
-                '\n4. Withdrawal' +
-                '\n5. Tier 2' +
-                '\n6. Trimester Save' +
-                '\n7. Contact us'
+                menu.con('Welcome to Peoples Pensions Trust. Choose Preferred Option:' +
+                '\n1. Register for Someone' +
+                '\n2. Pay for Someone'
                 )
-        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+            }else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
@@ -105,234 +92,12 @@ menu.state('Start', {
     },
     // next object links to next state based on user input
     next: {
-        '0': 'Register',
-        '1': 'Deposit',
-        '2': 'Withdrawal',
-        '3': 'CheckBalance',
-        '4': 'Other',
-        '5': 'Contact',
-        '*[0-9]+': 'User.newpin'
+        '1': 'icare.register',
+        '2': 'icare.phonenumber',
     },
     defaultNext: 'Start'
 });
 
-
-menu.state('pin',{
-    run: () => {
-        menu.con('Enter your current 4 digits PIN')
-    },
-    next: {
-        '*\\d+': 'User.pin'
-    }
-});
-
-menu.state('User.pin',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        if(menu.val === pin) {
-            // var newpin = Number(menu.val);
-            // menu.session.set('newpin', newpin);
-            menu.con('Enter new 4 digits PIN');
-        } else {
-            menu.end('Incorrect Pin. Enter zero(0) to continue');
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'User.newpin'
-    },
-    defaultNext: 'Start'
-});
-
-menu.state('User.newpin',{
-    run: () => {
-        if(menu.val.length == 4) {
-            var newpin = menu.val;
-            menu.session.set('newpin', newpin);
-            menu.con('Re-enter the 4 digits');
-        } else {
-            menu.end('Pin must be 4 digits');
-        }
-    },
-    next: {
-        '*\\d+': 'User.verifypin'
-    },
-    defaultNext: 'Start'
-})
-
-menu.state('User.verifypin', {
-    run: async() => {
-        var pin = await menu.session.get('newpin');
-        if(menu.val === pin) {
-            var newpin = Number(menu.val);
-            // var cust = await menu.session.get('cust');
-            // console.log(cust);
-            // var cus = JSON.parse(cust);
-            var mobile = await menu.session.get('mobile');
-            // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
-            var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
-            await postChangePin(value, (data)=> { 
-                // console.log(1,data); 
-                menu.session.set('pin', newpin);
-                menu.con(data.message);
-            });
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start'
-    },
-    defaultNext: 'Start'
-});
-
-menu.state('Register', {
-    run: () => {
-        menu.con('Enter your full name')
-    },
-    next: {
-        '*[a-zA-Z]+': 'Register.name'
-    }
-});
-
-menu.state('Register.name', {
-    run: () => {
-        let name = menu.val;
-        menu.session.set('name', name);
-        menu.con('Select your gender:' +
-            '\n1. Male' +
-            '\n2. Female')
-    },
-    next: {
-        '*\\d+': 'Register.gender'
-    }
-});
-
-menu.state('Register.gender', {
-    run: async() => {
-        var index = Number(menu.val);
-        var gender = genderArray[index]
-        menu.session.set('gender', gender);
-
-        let name = await menu.session.get('name');  
-
-        await postCustomer(menu.args.phoneNumber, (data) => {
-            // console.log(data);
-            if (data) {
-                menu.con('Server Error. Please contact admin.')
-            } else {
-                menu.con('Dear '+ name + ', you have successfully register for the Peoples Pension Trust' + 
-                '\nWould you like to continue with payment?' +
-                '\n0. Exit' +
-                '\n1. Pay')        
-            }
-        });  
-    },
-    next: {
-        '0': 'exit',
-        '1': 'register.pay',
-    }
-});
-
-menu.state('exit', {
-    run: () => {
-        menu.end('')
-    }
-})
-
-
-///////////////--------------PAY ROUTE STARTS--------------////////////////
-menu.state('pay', {
-    run: async() => {
-        let name = await menu.session.get('name');
-        menu.con(`Dear ${name}, How much would you like to pay?`)
-    },
-    next: {
-        '*\\d+': 'pay.amount'
-    }
-})
-
-menu.state('pay.amount', {
-    run: () => {
-        let amount = menu.val;
-        menu.session.set('amount', amount);
-
-        menu.con('Choose Option:' +
-        '\n1. Daily' +
-        '\n2. Weekly'+
-        '\n3. Monthly' +
-        '\n4. Only once' +
-        '\n5. Stop Repeat Payments'
-        )
-    },
-    next: {
-        '1': 'policy',
-        '2': 'policy',
-        '3': 'policy',
-        '4': 'policy',
-        '5': 'srp'
-    }
-})
-
-menu.state('policy', {
-    run: async() => {
-        var schemes = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.type + ' A/C';
-            count += 1;
-        });
-        menu.con('Please select Preferred Scheme Number: ' + schemes)
-    },
-    next: {
-        '1': 'policy.proceed',
-        '2': 'policy.proceed',
-        '3': 'policy.proceed',
-    }
-})
-
-menu.state('policy.proceed', {
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        menu.session.set('account', account);
-
-        let amount = await menu.session.get('amount'); 
-        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
-        '\n1. Proceed' +
-        '\n0. Exit'
-        )
-    },
-    next: {
-        '0': 'policy',
-        '1': 'policy.accepted',
-    }
-})
-
-menu.state('policy.accepted', {
-    run: async () => {
-        var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
-        await postDeposit(data, async(data) => {
-                if (data.status) {
-                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-                } else {
-                    menu.end('Application Server error. Please contact administrator');
-                }
-            });
-        }
-});
-
-menu.state('srp', {
-    run: () => {
-        menu.end('You have successfully cancelled your Repeat Payments')
-    }
-});
 
 ///////////////--------------ICARE ROUTE STARTS--------------////////////////
 

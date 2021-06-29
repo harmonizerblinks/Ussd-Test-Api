@@ -2,8 +2,8 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({provider: 'hubtel'});
 var unirest = require('unirest');
 let sessions = {};
-let types = ["", "Current", "Savings", "Susu"];
-let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
+// let types = ["", "Current", "Savings", "Susu"];
+// let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
@@ -216,7 +216,7 @@ menu.state('Register.gender', {
 
         await postCustomer(menu.args.phoneNumber, (data) => {
             // console.log(data);
-            if (data) {
+            if (!data) {
                 menu.con('Server Error. Please contact admin.')
             } else {
                 menu.con('Dear '+ name + ', you have successfully register for the Peoples Pension Trust' + 
