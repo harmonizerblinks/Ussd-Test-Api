@@ -28,6 +28,7 @@
     "express": "^4.17.1",
     "express-mongo-sanitize": "^2.0.2",
     "express-rate-limit": "^5.2.3",
+    "generate-serial-number": "0.0.3",
     "helmet": "^4.4.1",
     "http": "0.0.1-security",
     "jsonwebtoken": "^8.5.1",
