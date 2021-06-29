@@ -11,7 +11,7 @@ let genderArray = ["", "Male", "Female"]
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
-let access = { code: "ACU001", key: "1029398" };
+let access = { code: "446785909", key: "164383692" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -211,12 +211,20 @@ menu.state('Register.gender', {
         var index = Number(menu.val);
         var gender = genderArray[index]
         menu.session.set('gender', gender);
-
+        var mobile = menu.args.phoneNumber;
         let name = await menu.session.get('name');  
+        if (mobile && mobile.startsWith('+233')) {
+            mobile = mobile.replace('+233', '0');
+        } else if (mobile && mobile.startsWith('233')) {
+            mobile = mobile.replace('233', '0');
+        }
+        var data = {
+            fullname: name, mobile: mobile, gender: gender, email: "peoplespensiontrust@gmail.com", type: 'Pension', source: "USSD"
+        };
 
-        await postCustomer(menu.args.phoneNumber, (data) => {
-            // console.log(data);
-            if (!data) {
+        await postCustomer(data, (data) => {
+            // console.log(data.body);
+            if (data.status === 400) {
                 menu.con('Server Error. Please contact admin.')
             } else {
                 menu.con('Dear '+ name + ', you have successfully register for the Peoples Pension Trust' + 
@@ -910,7 +918,7 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
+            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
