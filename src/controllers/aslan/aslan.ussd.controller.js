@@ -3,8 +3,6 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu"];
-let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-let genderArray = ["", "Male", "Female"]
 
 let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -206,41 +204,12 @@ menu.state('Register.name', {
 });
 
 menu.state('Register.gender', {
-    run: () => {
-        var index = Number(menu.val);
-        var gender = genderArray[index]
-        menu.session.set('gender', gender);
-        menu.con('Enter your Ghana Card Id number:')
-    },
-    next: {
-        '*\\d+': 'Register.idnumber'
-    }
-});
-
-menu.state('Register.idnumber', {
-    run: () => {
-        var index = Number(menu.val);
-        var marital = maritalArray[index]
-        menu.session.set('marital', marital);
-        menu.con('Purpose of opening account')
-    },
-    next: {
-        '*[a-zA-Z]+': 'Register.purpose'
-    }
-});
-
-menu.state('Register.purpose', {
     run: async () => {
-        let purpose = menu.val;
-        menu.session.set('purpose', purpose);
-
         var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
-        var ghanacard = await menu.session.get('idnumber');
         menu.con('Please confirm your details to continue:' +
             '\n Full Name: ' + name +
             '\n Gender: ' + gender +
-            '\n Ghana Card Id: ' + ghanacard +
             '\n\n1. Proceed' +
             '\n0. Back')
     },
@@ -254,16 +223,13 @@ menu.state('Register.proceed', {
     run: async () => {
         var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
-        var ghanacard = await menu.session.get('idnumber');
-        var purpose = await menu.session.get('purpose');
         var mobile = menu.args.phoneNumber;
         if (mobile && mobile.startsWith('+233')) {
             // Remove Bearer from string
             mobile = mobile.replace('+233', '0');
         }
         var data = {
-            code: ghanacard, fullname: name, mobile: mobile, gender: gender,
-            email: "alias@gmail.com", purpose: purpose, source: "USSD"
+            fullname: name, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
         };
         await postCustomer(data, (data) => {
             if(data.active) {

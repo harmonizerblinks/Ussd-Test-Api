@@ -8,7 +8,7 @@ let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5003/ussd/";
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "ACU001", key: "1029398" };
@@ -58,9 +58,7 @@ menu.startState({
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
-                '\n5. Tier 2' +
-                '\n6. Trimester Save' +
-                '\n7. Contact us'
+                '\n5. Contact us'
                 )
         } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
@@ -76,9 +74,7 @@ menu.startState({
         '2': 'icare',
         '3': 'checkbalance',
         '4': 'withdrawal',
-        '5': 'tier2',
-        '6': 'trimestersave',
-        '7': 'contactus',
+        '5': 'contactus',
         '*[0-9]+': 'pin'
     }
 });
@@ -96,9 +92,7 @@ menu.state('Start', {
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
-                '\n5. Tier 2' +
-                '\n6. Trimester Save' +
-                '\n7. Contact us'
+                '\n5. Contact us'
                 )
         } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
