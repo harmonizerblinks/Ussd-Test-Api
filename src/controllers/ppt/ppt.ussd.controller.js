@@ -41,7 +41,7 @@ menu.sessionConfig({
 menu.on('error', (err) => {
     // handle errors
     console.log('Error', err);
-    menu.end('error ' + err);
+    menu.end(err);
 });
 
 // Define menu states
@@ -75,7 +75,7 @@ menu.startState({
         '3': 'checkbalance',
         '4': 'withdrawal',
         '5': 'contactus',
-        '*[0-9]+': 'newpin'
+        '*[0-9]+': 'User.newpin'
     }
 });
 
@@ -165,9 +165,7 @@ menu.state('User.verifypin', {
             var newpin = Number(menu.val);
             // var cust = await menu.session.get('cust');
             // console.log(cust);
-            // var cus = JSON.parse(cust);
             var mobile = await menu.session.get('mobile');
-            // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
             var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
             await postChangePin(value, (data)=> { 
                 // console.log(1,data); 
@@ -792,7 +790,7 @@ async function fetchCustomer(val, callback) {
 }
 
 async function fetchBalance(val, callback) {
-    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
+    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
