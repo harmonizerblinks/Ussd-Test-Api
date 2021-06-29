@@ -9,16 +9,19 @@ module.exports = function(app) {
     var aslan = require('../controllers/aslan/aslan.ussd.controller.js');
     // ECG 
     var ecg = require('../controllers/ecg.ussd.controller.js');
+    
+    // Ppt
+    var ppt = require('../controllers/ppt/ppt.ussd.controller.js');
+    var ppticare = require('../controllers/ahantaman/ahantaman.test.ussd.controller.js');
+    var pptofficer = require('../controllers/ppt/ppt.officer.ussd.controller.js');
 
-    var pptussd = require('../controllers/ppt/ppt.ussd.controller.js');
-    var ppt = require('../controllers/ppt.ussd.controller.js');
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
     // *789*7879# 
-    app.post('/group', gprtu.ussdApp);
+    app.post('/group', ppt.ussdApp);
     // *789*7880#
-    app.post('/leader', gprtuofficer.ussdApp);
+    app.post('/leader', pptofficer.ussdApp);
     // *789*7878#
     app.post('/', ahantamantest.ussdApp);
 
@@ -42,7 +45,8 @@ module.exports = function(app) {
     app.post('/api/gprtu/officer', ppt.ussdApp);
 
     // PPT Collection
-    app.post('/api/ppt', pptussd.ussdApp);
-    // app.post('/api/gprtu/officer', ppt.ussdApp);
+    app.post('/api/ppt', ppt.ussdApp);
+    app.post('/api/ppt/officer', pptofficer.ussdApp);
+    app.post('/api/ppt/icare', ppticare.ussdApp);
 
 }

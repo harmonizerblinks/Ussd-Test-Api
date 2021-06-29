@@ -8,7 +8,7 @@ let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "ACU001", key: "1029398" };
@@ -58,7 +58,7 @@ menu.startState({
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
-                '\n5. Contact us'
+                '\n6. Contact us'
                 )
         } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
@@ -92,7 +92,9 @@ menu.state('Start', {
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
-                '\n5. Contact us'
+                '\n5. Tier 2' +
+                '\n6. Trimester Save' +
+                '\n7. Contact us'
                 )
         } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
@@ -362,40 +364,19 @@ menu.state('register.firstname', {
         menu.con('Please enter Person\'s last name')
     },
     next: {
-        '*[a-zA-Z]+': 'register.gender'
-    }
-})
-
-menu.state('register.gender', {
-    run: () => {
-        let lastname = menu.val;
-        menu.session.set('icarelastname', lastname);
-        menu.con('Select Person\'s gender:' +
-            '\n1. Male' +
-            '\n2. Female'
-        )
-    },
-    next: {
-        '*\\d+': 'register.phonenumber'
+        '*[a-zA-Z]+': 'register.phonenumber'
     }
 })
 
 menu.state('register.phonenumber', {
     run: () => {
-        var index = Number(menu.val);
-        if (index > 2) {
-            menu.con('Incorrect Pin. Enter zero(0) to retry again')
-        } else {
-            var gender = genderArray[index]
-            menu.session.set('gender', gender);
-            menu.con('Enter Mobile Number of Person')  
-        }
+        let lastname = menu.val;
+        menu.session.set('icarelastname', lastname);
+        menu.con('Enter Mobile Number of Person')
     },
     next: {
-        '0': 'icare.register',
         '*\\d+': 'register.confirm'
-    },
-    defaultNext: 'register.gender'
+    }
 })
 
 menu.state('register.confirm', {
@@ -404,13 +385,11 @@ menu.state('register.confirm', {
         menu.session.set('icaremobile', phonenumber);        
         var Firstname = await menu.session.get('icarefirstname');
         var Lastname = await menu.session.get('icarelastname');
-        var gender = await menu.session.get('gender');
         var Mobile = await menu.session.get('icaremobile');
         menu.con('Please confirm the registration details below to continue:' +
         '\nFirst Name - ' + Firstname +
         '\nLast Name - '+ Lastname + 
-        '\nMobile Number - '+ Mobile +
-        '\nGender: ' + gender +
+        '\nMobile Number - '+ Mobile + 
         '\n\n0. Make Changes' +
         '\n1. Confirm')
     },
@@ -425,24 +404,7 @@ menu.state('register.pay', {
         var name = await menu.session.get('icarefirstname') + ' ' + await menu.session.get('icarelastname');
         menu.session.set('icarename', name);
 
-        var name = await menu.session.get('icarename');
-        var gender = await menu.session.get('gender');
-        var mobile = await menu.session.get('icaremobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }
-        var data = {
-            fullname: name, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
-        };
-        await postCustomer(data, (data) => {
-            if(data.active) {
-                menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu');
-            } else {
-                menu.end(data.message);
-            }
-        })
-
+        await register();
     },
     next: {
         '0': 'exit',
@@ -487,7 +449,7 @@ menu.state('checkbalance',{
     next: {
         '*\\d+': 'CheckBalance.account'
     },
-    defaultNext: 'checkbalance'
+    defaultNext: 'CheckBalance'
 });
 
 menu.state('CheckBalance.account',{
@@ -511,7 +473,7 @@ menu.state('CheckBalance.account',{
         '0': 'Start',
         '*\\d+': 'CheckBalance.balance'
     },
-    defaultNext: 'checkbalance'
+    defaultNext: 'CheckBalance'
 })
 
 menu.state('CheckBalance.balance',{
@@ -537,7 +499,7 @@ menu.state('CheckBalance.balance',{
 
 ///////////////--------------WITHDRAWAL ROUTE STARTS--------------////////////////
 
-menu.state('withdrawal',{
+menu.state('w ithdrawal',{
     run: () => {
         menu.con('Enter your PIN to make a Withdrawal');
     },
@@ -704,7 +666,8 @@ menu.state('tier2.end', {
                 } else {
                     menu.end('Application Server error. Please contact administrator');
                 }
-        });
+            });
+
     }
 })
 
@@ -853,7 +816,7 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    // console.log(args);
+    console.log(args);
     menu.run(args, ussdResult => {
         menu.session.set('network', args.Operator);
         res.send(ussdResult);
@@ -868,6 +831,7 @@ exports.ussdApp = async(req, res) => {
     //     res.send(resMsg);
     // });
 };
+
 
 function buyAirtime(phone, val) {
     return true
@@ -887,7 +851,7 @@ async function postCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
+            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
         });
@@ -910,7 +874,7 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
+            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
@@ -949,6 +913,7 @@ async function fetchBalance(val, callback) {
         await callback(response);
     });
 }
+
 
 async function postDeposit(val, callback) {
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
@@ -1004,6 +969,7 @@ async function postChangePin(val, callback) {
     });
     return true
 }
+
 
 async function getCharge(val, callback) {
     var amount = value 

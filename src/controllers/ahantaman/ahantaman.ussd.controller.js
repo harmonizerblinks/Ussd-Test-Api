@@ -247,7 +247,7 @@ menu.state('Deposit.confirm', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
             // console.log(result) 
             // menu.end(JSON.stringify(result)); 
@@ -360,7 +360,7 @@ menu.state('Withdrawal.confirm', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' from mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
             console.log(result) 
             // menu.end(JSON.stringify(result)); 

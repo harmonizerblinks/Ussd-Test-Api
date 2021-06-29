@@ -2,13 +2,11 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
-let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
-// let apiurl = "https://app.alias-solutions.net:5000/ussd/";
-let apiurl = "https://app.alias-solutions.net:5003/ussd/";
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 
-let access = { code: "ACU001", key: "1029398" };
+let access = { code: "test", key: "VWJ1bnR1IENhcGl0YWwgTWljci4gTHRk" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -49,7 +47,7 @@ menu.startState({
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
             if(data.active) { 
-                menu.con('Welcome to GPRTU Agent Collections' + 
+                menu.con('Welcome to PPT Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
                 menu.con('You are not a Field Officer');
@@ -68,7 +66,7 @@ menu.state('Start', {
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
             if(data.active) { 
-                menu.con('Welcome to GPRTU Agent Collections' + 
+                menu.con('Welcome to PPT Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
                 menu.con('You are not an Field Officer');
@@ -155,7 +153,7 @@ menu.state('User.verifypin', {
 menu.state('Deposit', {
     run: async() => {
         await fetchCustomer(menu.val, (data)=> { 
-            // console.log(1,data); 
+            // console.log(1,data);  
             if(data.active) {
                 var index = 1;
                 // var accounts = await menu.session.get('accounts');
@@ -295,33 +293,6 @@ async function fetchCustomer(val, callback) {
     //     console.log(err);
     //     return err;
     // }
-}
-
-async function fetchAccount(val, callback) {
-    
-    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + val;
-    console.log(api_endpoint);
-    var request = unirest('GET', api_endpoint)
-    .end(async(resp)=> { 
-        if (resp.error) { 
-            console.log(resp.error);
-            // var response = JSON.parse(res);
-            // return res;
-            await callback(resp);
-        }
-        // console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        if(response.active)
-        {
-            menu.session.set('name', response.name);
-            menu.session.set('mobile', val);
-            menu.session.set('accounts', response.accounts);
-            menu.session.set('cust', response);
-            // menu.session.set('limit', response.result.limit);
-        }
-        
-        await callback(response);
-    });
 }
 
 async function fetchBalance(val, callback) {

@@ -248,7 +248,7 @@ menu.state('Deposit.confirm', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
             // console.log(result) 
             // menu.end(JSON.stringify(result)); 
@@ -330,14 +330,14 @@ menu.state('Withdrawal.view',{
         // use menu.val to access user input value
         var amount = Number(menu.val);
         // save user input in session
-        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
+        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis"); }
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
-        // var balance = await menu.session.get('account');
+        var charge = await amount * (1/100);
         // console.log(cust);
-        if(account.balance >= amount) {
-            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
+        if(account.balance >= (amount + charge)) {
+            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + (amount+charge) +' from your '+account.type+' account' +
             '\n1. Confirm' +
             '\n2. Cancel' +
             '\n#. Main Menu');
@@ -362,7 +362,7 @@ menu.state('Withdrawal.confirm', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code+' from mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
             console.log(result) 
             // menu.end(JSON.stringify(result)); 

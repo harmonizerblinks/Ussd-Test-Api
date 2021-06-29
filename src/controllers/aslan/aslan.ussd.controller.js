@@ -2,11 +2,13 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
-let types = ["", "Current", "Savings", "Susu"];
+// let types = ["", "Current", "Savings", "Susu"];
+// let maritalArray = ["", "Single", "Married", "Private", "Divorced", "Widow", "Widower", "Private"];
+// let genderArray = ["", "Male", "Female"]
 
-let apiurl = "http://localhost:5000/Ussd/";
+// let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-// let apiurl = "https://app.alias-solutions.net:5003/ussd/";
+let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "ACU001", key: "1029398" };
@@ -105,7 +107,7 @@ menu.state('Start', {
         '3': 'CheckBalance',
         '4': 'Other',
         '5': 'Contact',
-        '6': 'Register',
+        '0': 'Register',
         '*[0-9]+': 'User.newpin'
     },
     defaultNext: 'Start'
@@ -183,7 +185,7 @@ menu.state('User.verifypin', {
 
 menu.state('Register', {
     run: () => {
-        menu.con('Enter your full name')
+        menu.con('Enter your FullName')
     },
     next: {
         '*[a-zA-Z]+': 'Register.name'
@@ -214,28 +216,29 @@ menu.state('Register.gender', {
             '\n0. Back')
     },
     next: {
-        '0': 'Register',
-        '1': 'Register.proceed'
+        '0': 'Start',
+        '1': 'Register.confirm'
     }
 });
 
-menu.state('Register.proceed', {
-    run: async () => {
+menu.state('Register.confirm', {
+    run: async() => {
         var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
         var mobile = menu.args.phoneNumber;
         if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
             mobile = mobile.replace('+233', '0');
+        } else if (mobile && mobile.startsWith('233')) {
+            mobile = mobile.replace('233', '0');
         }
         var data = {
             fullname: name, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
         };
-        await postCustomer(data, (data) => {
+        await postCustomer(data, async(data) => {
             if(data.active) {
                 menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu');
             } else {
-                menu.end(data.message);
+                menu.end(data.message || 'Register Was not Successful');
             }
         })
     },
