@@ -75,7 +75,7 @@ menu.startState({
         '3': 'checkbalance',
         '4': 'withdrawal',
         '5': 'contactus',
-        '*[0-9]+': 'pin'
+        '*[0-9]+': 'newpin'
     }
 });
 
@@ -128,8 +128,8 @@ menu.state('User.pin',{
     run: async() => {
         var pin = await menu.session.get('pin');
         if(menu.val === pin) {
-            // var newpin = Number(menu.val);
-            // menu.session.set('newpin', newpin);
+            var newpin = Number(menu.val);
+            menu.session.set('newpin', newpin);
             menu.con('Enter new 4 digits PIN');
         } else {
             menu.end('Incorrect Pin. Enter zero(0) to continue');
@@ -658,153 +658,6 @@ menu.state('Withdrawal.cancel', {
         menu.end('Thank you for using People Pension Trust.');
     }
 });
-
-///////////////--------------TIER 2 ROUTE STARTS--------------////////////////
-
-menu.state('tier2', {
-    run: () => {
-        menu.con('Enter Company Name')
-    },
-    next: {
-        '*[a-zA-z]+': 'company.name'
-    }
-})
-
-menu.state('company.name', {
-    run: () => {
-        let company = menu.val;
-        menu.session.set('companyname', company)
-        menu.con('How much would you like to pay?')
-    },
-    next: {
-        '*\\d+': 'tier2.confirm'
-    }
-})
-
-menu.state('tier2.confirm', {
-    run: async() => {
-        let tier2amount = menu.val;
-        menu.session.set('amount', tier2amount);
-        var amount = await menu.session.get('amount');
-        var companyname = await menu.session.get('companyname');
-        menu.con('Please confirm the details below to continue payment:' +
-        '\nCompany Name - ' + companyname +
-        '\nAmount - GHS '+ amount + 
-        '\n\n0. Make Changes' +
-        '\n1. Confirm')
-    },
-    next: {
-        '0': 'tier2',
-        '1': 'tier2.end'
-    }
-})
-
-menu.state('tier2.end', {
-    run: async() => {
-        var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
-        await postDeposit(data, async(data) => {
-                if (data) {
-                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-                } else {
-                    menu.end('Application Server error. Please contact administrator');
-                }
-        });
-    }
-})
-
-///////////////--------------TRIMESTER ROUTE STARTS--------------////////////////
-menu.state('trimestersave', {
-    run: () => {
-        menu.con('Choose Option' +
-        '\n1. Pay')
-    },
-    next: {
-        '1': 'trimester.pay'
-    }
-})
-
-menu.state('trimester.pay', {
-    run: () => {
-        menu.con('Enter Customer\'s Mobile Number')
-    },
-    next: {
-        '*\\d+': 'customernumber'
-    }
-})
-
-menu.state('customernumber', {
-    run: async() => {
-       //  Receive input from menu and verify from API
-       var phonenumber = menu.val;
-       await fetchCustomer(phonenumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {     
-                menu.con(`Dear ${data.fullname}, You are already registered. How much would you like to pay?`)
-            }else {
-                menu.con(`Dear ${data.fullname}, Your registration is successful. How much would you like to pay?`)
-            }
-        });
-    },
-    next: {
-        '*\\d+': 'customernumber.pay'
-    }
-})
-
-menu.state('customernumber.pay', {
-    run: async() => {
-        let amount = menu.val;
-        menu.session.set('amount', amount)
-        var schemes = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.type + ' A/C';
-            count += 1;
-        });
-        menu.con('Please select Preferred Scheme Number: ' + schemes)
-    },
-    next: {
-        '1': 'policy.customernumber.proceed',
-        '2': 'policy.customernumber.proceed',
-        '3': 'policy.customernumber.proceed',
-    }
-})
-
-menu.state('policy.customernumber.proceed', {
-    run: async() => {
-        var amount = await menu.session.get('amount')
-        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount}` +
-        '\n1. Proceed' +
-        '\n0. Exit'
-        )
-    },
-    next: {
-        '0': 'policy.exit',
-        '1': 'policy.customernumber.accepted',
-    }
-})
-
-menu.state('policy.customernumber.accepted', {
-    run: async() => {
-        var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
-        await postDeposit(data, async(data) => {
-                if (data) {
-                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-                } else {
-                    menu.end('Application Server error. Please contact administrator');
-                }
-        });
-    }
-})
-
-
 
 /////////////////------------------CONTACT US STARTS------------------/////////////////////
 menu.state('contactus', {

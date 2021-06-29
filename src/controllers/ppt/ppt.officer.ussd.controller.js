@@ -6,7 +6,7 @@ let sessions = {};
 // let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 
-let access = { code: "test", key: "VWJ1bnR1IENhcGl0YWwgTWljci4gTHRk" };
+let access = { code: "446785909", key: "164383692" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {

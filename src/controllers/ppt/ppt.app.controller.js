@@ -14,7 +14,7 @@ let sessions = {};
 let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
-let access = { code: "PPT001", key: "1029398" };
+let access = { code: "446785909", key: "164383692" };
 
 // POST a User
 exports.createUser = async(req, res) => {
