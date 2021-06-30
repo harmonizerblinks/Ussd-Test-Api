@@ -270,15 +270,28 @@ menu.state('Pay.amount', {
         )
     },
     next: {
-        '1': 'Policy',
-        '2': 'Policy',
-        '3': 'Policy',
-        '4': 'Policy',
-        '5': 'Srp'
+        '4': 'Pay.account',
+        '5': 'Srp',
+        '*[0-3]+': 'Pay.auto'
     }
 })
 
 menu.state('Pay.account', {
+    run: async() => {
+        var schemes = ''; var count = 1;
+        var accounts = await menu.session.get('accounts');
+        accounts.forEach(val => {
+            schemes += '\n' + count + '. ' + val.code;
+            count += 1;
+        });
+        menu.con('Please select Preferred Scheme Number: ' + schemes)
+    },
+    next: {
+        '*\\d+': 'Pay.view',
+    }
+})
+
+menu.state('Pay.auto', {
     run: async() => {
         var schemes = ''; var count = 1;
         var accounts = await menu.session.get('accounts');
