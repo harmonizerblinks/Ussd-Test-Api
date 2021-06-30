@@ -14,6 +14,7 @@ module.exports = function(app) {
     var ppt = require('../controllers/ppt/ppt.ussd.controller.js');
     var ppticare = require('../controllers/ahantaman/ahantaman.test.ussd.controller.js');
     var pptofficer = require('../controllers/ppt/ppt.officer.ussd.controller.js');
+    var pptpromo = require('../controllers/ppt/ppt.promo.controller.js');
 
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
@@ -48,5 +49,6 @@ module.exports = function(app) {
     app.post('/api/ppt', ppt.ussdApp);
     app.post('/api/ppt/officer', pptofficer.ussdApp);
     app.post('/api/ppt/icare', ppticare.ussdApp);
+    app.post('/api/ppt/promo', pptpromo.ussdApp);
 
 }
