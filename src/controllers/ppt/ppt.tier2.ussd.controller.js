@@ -8,10 +8,9 @@ let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5003/ussd/";
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 
-// let access = { code: "ARB", key: "10198553" };
-let access = { code: "ACU001", key: "1029398" };
+let access = { code: "446785909", key: "164383692" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
