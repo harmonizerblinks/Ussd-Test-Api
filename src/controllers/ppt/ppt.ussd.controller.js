@@ -289,7 +289,7 @@ menu.state('Pay.account', {
     next: {
         '*\\d+': 'Pay.view',
     }
-})
+});
 
 menu.state('Pay.auto', {
     run: async() => {

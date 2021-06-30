@@ -155,31 +155,59 @@ menu.state('Deposit', {
         await fetchCustomer(menu.val, (data)=> { 
             // console.log(1,data);  
             if(data.active) {
-                var index = 1;
-                // var accounts = await menu.session.get('accounts');
-                var account = data.accounts[index-1]
-                menu.session.set('account', account);
-                var amount = 3;
-                menu.session.set('amount', amount);
                 
-                menu.con('You are making a payment of GHS ' + amount +' into '+data.fullname+' account'+
-                '\n1. Confirm' +
-                '\n2. Cancel' +
-                '\n#. Main Menu')
+                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
-                menu.con('Mobile Number not Registered');
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
             }
         });
     },
     next: {
-        '#': 'Start',
-        '1': 'Deposit.confirm',
-        '2': 'Deposit.cancel',
+        '0': 'Start',
+        '*\\d+': 'Deposit.account'
     },
-    defaultNext: 'Deposit.amount'
+    defaultNext: 'Deposit.account'
 });
 
-menu.state('Deposit.confirm', {
+menu.state('Deposit.account', {
+    run: async() => {
+        let amount = menu.val;
+        menu.session.set('amount', amount);
+        var schemes = ''; var count = 1;
+        var accounts = await menu.session.get('accounts');
+        accounts.forEach(val => {
+            schemes += '\n' + count + '. ' + val.code;
+            count += 1;
+        });
+        menu.con('Please select Preferred Scheme Number: ' + schemes)
+    },
+    next: {
+        '*\\d+': 'Deposit.view',
+    }
+});
+
+
+menu.state('Deposit.view', {
+    run: async() => {
+        var index = Number(menu.val);
+        var accounts = await menu.session.get('accounts');
+        // console.log(accounts);
+        var account = accounts[index-1]
+        menu.session.set('account', account);
+
+        let amount = await menu.session.get('amount'); 
+        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+        '\n1. Proceed' +
+        '\n0. Exit'
+        )
+    },
+    next: {
+        '0': 'Exit',
+        '1': 'Deposit.send',
+    }
+})
+
+menu.state('Deposit.send', {
     run: async() => {
         // access user input value save in session
         var of = await menu.session.get('officer');
