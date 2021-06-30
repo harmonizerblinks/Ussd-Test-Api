@@ -679,8 +679,6 @@ menu.state('Contact.website', {
 });
 
 
-
-
 /////////////////------------------USSD SESSION STARTS------------------/////////////////////
 // Pension USSD
 exports.ussdApp = async(req, res) => {
