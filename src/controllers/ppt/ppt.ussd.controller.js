@@ -72,7 +72,7 @@ menu.startState({
         '0': 'Register',
         '1': 'Pay',
         '2': 'Icare',
-        '3': 'Checkbalance',
+        '3': 'CheckBalance',
         '4': 'Withdrawal',
         '5': 'Contact',
         '*[0-9]+': 'User.newpin'
@@ -233,12 +233,12 @@ menu.state('Register.gender', {
         });  
     },
     next: {
-        '0': 'exit',
-        '1': 'register.pay',
+        '0': 'Exit',
+        '1': 'Register.pay',
     }
 });
 
-menu.state('exit', {
+menu.state('Exit', {
     run: () => {
         menu.end('')
     }
@@ -308,12 +308,12 @@ menu.state('Pay.view', {
         )
     },
     next: {
-        '0': 'Policy',
-        '1': 'Policy.accepted',
+        '0': 'Exit',
+        '1': 'Pay.send',
     }
 })
 
-menu.state('Policy.accepted', {
+menu.state('Pay.send', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
@@ -348,7 +348,7 @@ menu.state('Icare', {
     },
     next: {
         '1': 'Icare.register',
-        '2': 'Icare.phonenumber',
+        '2': 'Icare.mobile',
     }
 });
 
@@ -361,7 +361,7 @@ menu.state('Icare.register', {
     }
 });
 
-menu.state('Register.firstname', {
+menu.state('Icare.firstname', {
     run: () => {
         let firstname = menu.val;
         menu.session.set('firstname', firstname);
@@ -372,7 +372,7 @@ menu.state('Register.firstname', {
     }
 })
 
-menu.state('Register.gender', {
+menu.state('Icare.gender', {
     run: () => {
         let lastname = menu.val;
         menu.session.set('lastname', lastname);
@@ -382,11 +382,11 @@ menu.state('Register.gender', {
         )
     },
     next: {
-        '*\\d+': 'Register.phonenumber'
+        '*\\d+': 'Register.mobile'
     }
 })
 
-menu.state('Register.phonenumber', {
+menu.state('Icare.mobile', {
     run: () => {
         var index = Number(menu.val);
         if (index > 2) {
@@ -398,20 +398,20 @@ menu.state('Register.phonenumber', {
         }
     },
     next: {
-        '0': 'icare.register',
-        '*\\d+': 'register.confirm'
+        '0': 'Icare.register',
+        '*\\d+': 'Register.confirm'
     },
-    defaultNext: 'register.gender'
+    defaultNext: 'Register.gender'
 })
 
-menu.state('register.confirm', {
+menu.state('Icare.confirm', {
     run: async() => {
         let phonenumber = menu.val;
-        menu.session.set('icaremobile', phonenumber);        
-        var Firstname = await menu.session.get('icarefirstname');
-        var Lastname = await menu.session.get('icarelastname');
+        menu.session.set('mobile', phonenumber);        
+        var Firstname = await menu.session.get('firstname');
+        var Lastname = await menu.session.get('lastname');
         var gender = await menu.session.get('gender');
-        var Mobile = await menu.session.get('icaremobile');
+        var Mobile = await menu.session.get('mobile');
         menu.con('Please confirm the registration details below to continue:' +
         '\nFirst Name - ' + Firstname +
         '\nLast Name - '+ Lastname + 
@@ -421,19 +421,19 @@ menu.state('register.confirm', {
         '\n1. Confirm')
     },
     next: {
-        '0': 'icare.register',
-        '1': 'register.pay',
+        '0': 'Icare.register',
+        '1': 'Register.pay',
     }
 });
 
-menu.state('register.pay', {
+menu.state('Icare.pay', {
     run: async() => {
-        var name = await menu.session.get('icarefirstname') + ' ' + await menu.session.get('icarelastname');
-        menu.session.set('icarename', name);
+        var name = await menu.session.get('firstname') + ' ' + await menu.session.get('lastname');
+        menu.session.set('name', name);
 
-        var name = await menu.session.get('icarename');
+        // var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
-        var mobile = await menu.session.get('icaremobile');
+        var mobile = await menu.session.get('mobile');
         if (mobile && mobile.startsWith('+233')) {
             // Remove Bearer from string
             mobile = mobile.replace('+233', '0');
@@ -452,7 +452,7 @@ menu.state('register.pay', {
     },
     next: {
         '0': 'exit',
-        '1': 'icare.phonenumber',
+        '1': 'Icare.phonenumber',
     }
 })
 
@@ -462,45 +462,35 @@ menu.state('exit', {
     }
 })
 
-menu.state('icare.phonenumber', {
+menu.state('Icare.mobile', {
     run: () => {
         menu.con('Enter Mobile Number of Person')
     },
     next: {
-        '*\\d+': 'icare.pay'
+        '*\\d+': 'Icare.pay'
     }
 })
 
-menu.state('icare.pay', {
+menu.state('Icare.pay', {
     run: async() => {
-        let phonenumber = menu.val;
-        menu.session.set('icaremobile', phonenumber);
-        let name = await menu.session.get('icarename');
+        let mobile = menu.val;
+        menu.session.set('mobile', mobile);
+        let name = await menu.session.get('firstname');
         menu.con(`Enter amount to pay for ${name}`)
     },
     next: {
-        '*\\d+': 'pay.amount'
+        '*\\d+': 'Pay.amount'
     }
 })
 
 
 ///////////////--------------CHECK BALANCE ROUTE STARTS--------------////////////////
 
-menu.state('checkbalance',{
-    run: () => {
-        menu.con('Enter your PIN to check balance');
-    },
-    next: {
-        '*\\d+': 'CheckBalance.account'
-    },
-    defaultNext: 'checkbalance'
-});
-
-menu.state('CheckBalance.account',{
+menu.state('CheckBalance',{
     run: async() => {
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
-        if(menu.val === pin) {
+        // if(menu.val === pin) {
             var accts = ''; var count = 1;
             var accounts = await menu.session.get('accounts');
             accounts.forEach(val => {
@@ -509,15 +499,15 @@ menu.state('CheckBalance.account',{
                 count +=1;
             });
             menu.con('Please select Preferred Scheme Number: ' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
+        // } else {
+        //     menu.con('Incorrect Pin. Enter zero(0) to continue')
+        // }
     },
     next: {
         '0': 'Start',
         '*\\d+': 'CheckBalance.balance'
     },
-    defaultNext: 'checkbalance'
+    defaultNext: 'CheckBalance'
 })
 
 menu.state('CheckBalance.balance',{
@@ -532,7 +522,7 @@ menu.state('CheckBalance.balance',{
             if(result.balance != null) { account.balance = result.balance; }
             menu.session.set('account', account);
             menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+            menu.con('Your '+account.type+' Total Contribution is GHS '+ result.contribution+ '\nSaving is GHS '+result.savings +'.\nEnter zero(0) to continue');
         });
     },
     next: {
@@ -543,32 +533,17 @@ menu.state('CheckBalance.balance',{
 
 ///////////////--------------WITHDRAWAL ROUTE STARTS--------------////////////////
 
-menu.state('withdrawal',{
-    run: () => {
-        menu.con('Enter your PIN to make a Withdrawal');
-    },
-    next: {
-        '*\\d+': 'Withdrawal.account'
-    }
-})
-
-menu.state('Withdrawal.account',{
+menu.state('Withdrawal',{
     run: async() => {
-        var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
         console.info(pin, menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please select Preferred Scheme Number: ' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
+        var accts = ''; var count = 1;
+        var accounts = await menu.session.get('accounts');
+        accounts.forEach(val => {
+            accts += '\n'+count+'. '+val.code;
+            count +=1;
+        });
+        menu.con('Please select Preferred Scheme Number: ' + accts)
     },
     next: {
         '0': 'Start',
@@ -587,9 +562,9 @@ menu.state('Withdrawal.amount',{
         await fetchBalance(account.code, async(result)=> { 
             // console.log(result) 
             if(result.balance > 0) {
-                account.balance = result.balance;
+                account.balance = result.contribution;
                 menu.session.set('account', account);
-                menu.session.set('balance', result.balance);
+                menu.session.set('balance', result.savings);
                 menu.con('How much would you like to withdraw from account number '+account.code+'?');
             } else {
                 menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
@@ -615,12 +590,12 @@ menu.state('Withdrawal.view',{
         // var balance = await menu.session.get('account');
         // console.log(cust);
         if(account.balance >= amount) {
-            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
+            menu.con(cust.fullname +', you are making a Withdrawal Request of GHS ' + amount +' from your '+account.type+' account' +
             '\n1. Confirm' +
             '\n2. Cancel' +
             '\n#. Main Menu');
         } else {
-            menu.con('Not Enough Fund in Account. Enter zero(0) to continue')
+            menu.con('Not Enough Savings in Account. Enter zero(0) to continue')
         }
     },
     next: {
@@ -658,18 +633,20 @@ menu.state('Withdrawal.cancel', {
 });
 
 /////////////////------------------CONTACT US STARTS------------------/////////////////////
-menu.state('contactus', {
+menu.state('Contact', {
     run: () => {
-        menu.con('1. Name' +
-        '\n2. Email' +
-        '\n3. Mobile' +
-        '\n4. Website');
+        menu.con('1. Stop Repeat Payment' +
+        '\n2. Name' +
+        '\n3. Email' +
+        '\n4. Mobile' +
+        '\n5. Website');
     },
     next: {
-        '1': 'Contact.name',
-        '2': 'Contact.email',
-        '3': 'Contact.mobile',
-        '4': 'Contact.website'
+        '1': 'Srp',
+        '2': 'Contact.name',
+        '3': 'Contact.email',
+        '4': 'Contact.mobile',
+        '5': 'Contact.website'
     }
 })
 
@@ -683,7 +660,7 @@ menu.state('Contact.name', {
 menu.state('Contact.email', {
     run: () => {
         // Cancel Savings request
-        menu.end('info@peoplespensiontrust.com.');
+        menu.end('info@peoplepension.global.');
     }
 });
 
@@ -697,7 +674,7 @@ menu.state('Contact.mobile', {
 menu.state('Contact.website', {
     run: () => {
         // Cancel Savings request
-        menu.end('http://www.peoplespensiontrust.com');
+        menu.end('http://www.peoplespension.global');
     }
 });
 
