@@ -265,7 +265,7 @@ async function fetchCustomer(val, callback) {
         //     // Remove Bearer from string
         //     val = val.replace('+233','0');
         // }
-        var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
