@@ -70,11 +70,11 @@ menu.startState({
     // next object links to next state based on user input
     next: {
         '0': 'Register',
-        '1': 'pay',
-        '2': 'icare',
-        '3': 'checkbalance',
-        '4': 'withdrawal',
-        '5': 'contactus',
+        '1': 'Pay',
+        '2': 'Icare',
+        '3': 'Checkbalance',
+        '4': 'Withdrawal',
+        '5': 'Contact',
         '*[0-9]+': 'User.newpin'
     }
 });
@@ -246,17 +246,17 @@ menu.state('exit', {
 
 
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
-menu.state('pay', {
+menu.state('Pay', {
     run: async() => {
         let name = await menu.session.get('name');
         menu.con(`Dear ${name}, How much would you like to pay?`)
     },
     next: {
-        '*\\d+': 'pay.amount'
+        '*\\d+': 'Pay.amount'
     }
 })
 
-menu.state('pay.amount', {
+menu.state('Pay.amount', {
     run: () => {
         let amount = menu.val;
         menu.session.set('amount', amount);
@@ -270,32 +270,30 @@ menu.state('pay.amount', {
         )
     },
     next: {
-        '1': 'policy',
-        '2': 'policy',
-        '3': 'policy',
-        '4': 'policy',
-        '5': 'srp'
+        '1': 'Policy',
+        '2': 'Policy',
+        '3': 'Policy',
+        '4': 'Policy',
+        '5': 'Srp'
     }
 })
 
-menu.state('policy', {
+menu.state('Pay.account', {
     run: async() => {
         var schemes = ''; var count = 1;
         var accounts = await menu.session.get('accounts');
         accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.type + ' A/C';
+            schemes += '\n' + count + '. ' + val.code;
             count += 1;
         });
         menu.con('Please select Preferred Scheme Number: ' + schemes)
     },
     next: {
-        '1': 'policy.proceed',
-        '2': 'policy.proceed',
-        '3': 'policy.proceed',
+        '*\\d+': 'Pay.view',
     }
 })
 
-menu.state('policy.proceed', {
+menu.state('Pay.view', {
     run: async() => {
         var index = Number(menu.val);
         var accounts = await menu.session.get('accounts');
@@ -310,30 +308,31 @@ menu.state('policy.proceed', {
         )
     },
     next: {
-        '0': 'policy',
-        '1': 'policy.accepted',
+        '0': 'Policy',
+        '1': 'Policy.accepted',
     }
 })
 
-menu.state('policy.accepted', {
+menu.state('Policy.accepted', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
-        console.log(data);
+        // console.log(data);
         await postDeposit(data, async(data) => {
-                if (data.status) {
-                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-                } else {
-                    menu.end('Application Server error. Please contact administrator');
-                }
-            });
-        }
+            if (data.status == 0) {
+                menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+            } else {
+                menu.end('Application Server error. Please contact administrator');
+            }
+        });
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+    }
 });
 
-menu.state('srp', {
+menu.state('Srp', {
     run: () => {
         menu.end('You have successfully cancelled your Repeat Payments')
     }
@@ -341,19 +340,19 @@ menu.state('srp', {
 
 ///////////////--------------ICARE ROUTE STARTS--------------////////////////
 
-menu.state('icare', {
+menu.state('Icare', {
     run: () => {
         menu.con('Choose Preferred Option:' +
         '\n1. Register for Someone' +
         '\n2. Pay for Someone')
     },
     next: {
-        '1': 'icare.register',
-        '2': 'icare.phonenumber',
+        '1': 'Icare.register',
+        '2': 'Icare.phonenumber',
     }
 });
 
-menu.state('icare.register', {
+menu.state('Icare.register', {
     run: () => {
         menu.con('Please enter Person\'s first name')
     },
@@ -362,32 +361,32 @@ menu.state('icare.register', {
     }
 });
 
-menu.state('register.firstname', {
+menu.state('Register.firstname', {
     run: () => {
         let firstname = menu.val;
-        menu.session.set('icarefirstname', firstname);
+        menu.session.set('firstname', firstname);
         menu.con('Please enter Person\'s last name')
     },
     next: {
-        '*[a-zA-Z]+': 'register.gender'
+        '*[a-zA-Z]+': 'Register.gender'
     }
 })
 
-menu.state('register.gender', {
+menu.state('Register.gender', {
     run: () => {
         let lastname = menu.val;
-        menu.session.set('icarelastname', lastname);
+        menu.session.set('lastname', lastname);
         menu.con('Select Person\'s gender:' +
             '\n1. Male' +
             '\n2. Female'
         )
     },
     next: {
-        '*\\d+': 'register.phonenumber'
+        '*\\d+': 'Register.phonenumber'
     }
 })
 
-menu.state('register.phonenumber', {
+menu.state('Register.phonenumber', {
     run: () => {
         var index = Number(menu.val);
         if (index > 2) {

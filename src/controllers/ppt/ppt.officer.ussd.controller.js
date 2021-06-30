@@ -236,7 +236,7 @@ async function fetchOfficer(val, callback) {
             // Remove Bearer from string
             val = val.replace('+233','0');
         }
-        var api_endpoint = apiurl + 'getOfficer/' + access.code + '/' + val;
+        var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/' + val;
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
@@ -265,7 +265,7 @@ async function fetchCustomer(val, callback) {
         //     // Remove Bearer from string
         //     val = val.replace('+233','0');
         // }
-        var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + val;
+        var api_endpoint = apiurl + 'getCustomer/' + access.code + '/'+ access.key + '/' + val;
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
@@ -296,7 +296,7 @@ async function fetchCustomer(val, callback) {
 }
 
 async function fetchBalance(val, callback) {
-    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
+    var api_endpoint = apiurl + 'getBalance/' + access.code + '/'+ access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
@@ -332,7 +332,7 @@ async function fetchStatement(val, callback) {
 }
 
 async function postDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Agent/Deposit/' + access.code;
+    var api_endpoint = apiurl + 'Deposit/' + access.code + '/'+ access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -354,7 +354,7 @@ async function postDeposit(val, callback) {
 }
 
 async function postWithdrawal(val, callback) {
-    var api_endpoint = apiurl + 'Withdrawal/' + access.code;
+    var api_endpoint = apiurl + 'Withdrawal/'+ access.key + '/' + access.code;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
