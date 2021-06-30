@@ -52,7 +52,7 @@ menu.startState({
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
+            if(data.active) {     
                 menu.con('Welcome to Peoples Pensions Trust' + 
                 '\n1. Pay' +
                 '\n2. iCare (Pay for Someone)' +
@@ -86,7 +86,7 @@ menu.state('Start', {
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
+            if(data.active) {     
                 menu.con('Welcome to Peoples Pensions Trust' + 
                 '\n1. Pay' +
                 '\n2. iCare (Pay for Someone)' +
@@ -321,7 +321,8 @@ menu.state('policy.accepted', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
+        console.log(data);
         await postDeposit(data, async(data) => {
                 if (data.status) {
                     menu.end('Request submitted successfully. You will receive a payment prompt shortly');
@@ -640,7 +641,7 @@ menu.state('Withdrawal.confirm', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Scheme Number '+account.code,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
             console.log(result) 
             // menu.end(JSON.stringify(result)); 
@@ -820,11 +821,11 @@ async function postDeposit(val, callback) {
         // console.log(JSON.stringify(val));
         if (resp.error) { 
             console.log(resp.error);
-            await postDeposit(val);
+            // await postDeposit(val);
             await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
-        // console.log(resp.raw_body);
+        console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         console.log(response);
         await callback(response);
