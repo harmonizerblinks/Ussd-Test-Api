@@ -303,7 +303,7 @@ menu.state('Withdrawal.amount',{
         var accounts = await menu.session.get('accounts');
         // console.log(accounts);
         var account = accounts[index-1]
-        menu.session.set('account', account);
+        // menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
             // console.log(result) 
             if(result.balance > 0) {
@@ -312,7 +312,7 @@ menu.state('Withdrawal.amount',{
                 menu.session.set('balance', result.balance);
                 menu.con('How much would you like to withdraw from account number '+account.code+'?');
             } else {
-                menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
+                menu.end('Error Retrieving Account Balance with '+account.code+', please try again');
             }
         });
         // menu.con('How much would you like to withdraw from account number '+account.code+'?');
@@ -340,7 +340,7 @@ menu.state('Withdrawal.view',{
             '\n2. Cancel' +
             '\n#. Main Menu');
         } else {
-            menu.con('Insufficent Account Balance. Enter zero(0) to continue')
+            menu.end('Insufficent Account Balance.')
         }
     },
     next: {
