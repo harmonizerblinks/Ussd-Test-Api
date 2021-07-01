@@ -101,7 +101,6 @@ menu.state('Tier2.confirm', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        var amount = await menu.session.get('amount');
         var companyname = await menu.session.get('name');
         menu.con('Please confirm the details below to continue payment:' +
         '\nCompany Name - ' + companyname +
@@ -110,12 +109,12 @@ menu.state('Tier2.confirm', {
         '\n1. Confirm')
     },
     next: {
-        '0': 'tier2',
-        '1': 'tier2.end'
+        '0': 'Tier2',
+        '1': 'Tier2.end'
     }
 })
 
-menu.state('tier2.end', {
+menu.state('Tier2.end', {
     run: async() => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
@@ -143,7 +142,6 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    console.log(args);
     menu.run(args, ussdResult => {
         menu.session.set('network', args.Operator);
         res.send(ussdResult);
@@ -180,8 +178,8 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
+            console.log(response);
             if (response.active) {
                 menu.session.set('name', response.fullname);
                 menu.session.set('mobile', val);

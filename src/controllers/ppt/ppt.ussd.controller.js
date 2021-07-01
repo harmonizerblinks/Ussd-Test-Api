@@ -365,7 +365,7 @@ menu.state('Icare.register', {
         menu.con('Please enter Person\'s first name')
     },
     next: {
-        '*[a-zA-Z]+': 'register.firstname'
+        '*[a-zA-Z]+': 'Icare.firstname'
     }
 });
 
@@ -376,7 +376,7 @@ menu.state('Icare.firstname', {
         menu.con('Please enter Person\'s last name')
     },
     next: {
-        '*[a-zA-Z]+': 'Register.gender'
+        '*[a-zA-Z]+': 'Icare.gender'
     }
 })
 
@@ -390,7 +390,7 @@ menu.state('Icare.gender', {
         )
     },
     next: {
-        '*\\d+': 'Register.mobile'
+        '*\\d+': 'Icare.mobile'
     }
 })
 
@@ -407,9 +407,9 @@ menu.state('Icare.mobile', {
     },
     next: {
         '0': 'Icare.register',
-        '*\\d+': 'Register.confirm'
+        '*\\d+': 'Icare.confirm'
     },
-    defaultNext: 'Register.gender'
+    defaultNext: 'Icare.gender'
 })
 
 menu.state('Icare.confirm', {
@@ -430,7 +430,7 @@ menu.state('Icare.confirm', {
     },
     next: {
         '0': 'Icare.register',
-        '1': 'Register.pay',
+        '1': 'Icare.pay',
     }
 });
 
@@ -487,9 +487,105 @@ menu.state('Icare.pay', {
         menu.con(`Enter amount to pay for ${name}`)
     },
     next: {
-        '*\\d+': 'Pay.amount'
+        '*\\d+': 'Icare.amount'
     }
 })
+
+menu.state('Icare.amount', {
+    run: () => {
+        let amount = menu.val;
+        menu.session.set('amount', amount);
+
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. Only once' +
+        '\n5. Stop Repeat Payments'
+        )
+    },
+    next: {
+        '4': 'Icare.account',
+        '5': 'Srp',
+        '*[0-3]+': 'Pay.auto'
+    }
+})
+
+menu.state('Icare.account', {
+    run: async() => {
+        var schemes = ''; var count = 1;
+        var accounts = await menu.session.get('accounts');
+        accounts.forEach(val => {
+            schemes += '\n' + count + '. ' + val.code;
+            count += 1;
+        });
+        menu.con('Please select Preferred Scheme Number: ' + schemes)
+    },
+    next: {
+        '*\\d+': 'Pay.view',
+    }
+});
+
+menu.state('Pay.auto', {
+    run: async() => {
+        var schemes = ''; var count = 1;
+        var accounts = await menu.session.get('accounts');
+        accounts.forEach(val => {
+            schemes += '\n' + count + '. ' + val.code;
+            count += 1;
+        });
+        menu.con('Please select Preferred Scheme Number: ' + schemes)
+    },
+    next: {
+        '*\\d+': 'Pay.view',
+    }
+})
+
+menu.state('Pay.view', {
+    run: async() => {
+        var index = Number(menu.val);
+        var accounts = await menu.session.get('accounts');
+        // console.log(accounts);
+        var account = accounts[index-1]
+        menu.session.set('account', account);
+
+        let amount = await menu.session.get('amount'); 
+        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+        '\n1. Proceed' +
+        '\n0. Exit'
+        )
+    },
+    next: {
+        '0': 'Exit',
+        '1': 'Pay.send',
+    }
+})
+
+menu.state('Pay.send', {
+    run: async () => {
+        var amount = await menu.session.get('amount');
+        var account = await menu.session.get('account');
+        var network = await menu.session.get('network');
+        var mobile = menu.args.phoneNumber;
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
+        // console.log(data);
+        await postIcare(data, async(data) => {
+            if (data.status == 0) {
+                menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+            } else {
+                menu.end('Application Server error. Please contact administrator');
+            }
+        });
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+    }
+});
+
+menu.state('Srp', {
+    run: () => {
+        menu.end('You have successfully cancelled your Repeat Payments')
+    }
+});
+
 
 
 ///////////////--------------CHECK BALANCE ROUTE STARTS--------------////////////////
@@ -736,6 +832,63 @@ async function postCustomer(val, callback) {
     return true
 }
 
+async function postIcareCustomer(val, callback) {
+    var api_endpoint = apiurl + 'CreateIcare/' + access.code + '/' + access.key;
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        });
+    return true
+}
+
+async function fetchIcareCustomer(val, callback) {
+    // try {
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233', '0');
+    }
+    var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.error);
+                // var response = JSON.parse(res);
+                // return res;
+                await callback(resp);
+            }
+            console.log(resp.fullname);
+            var response = JSON.parse(resp.raw_body);
+            if (response.active) {
+                menu.session.set('name', response.fullname);
+                menu.session.set('mobile', val);
+                menu.session.set('accounts', response.accounts);
+                menu.session.set('cust', response);
+                menu.session.set('pin', response.pin);
+                // menu.session.set('limit', response.result.limit);
+            }
+
+            await callback(response);
+        });
+    // }
+    // catch(err) {
+    //     console.log(err);
+    //     return err;
+    // }
+}
+
 async function fetchCustomer(val, callback) {
     // try {
     if (val && val.startsWith('+233')) {
@@ -790,6 +943,29 @@ async function fetchBalance(val, callback) {
         
         await callback(response);
     });
+}
+
+async function postIcare(val, callback) {
+    var api_endpoint = apiurl + 'CreateIcare/'+access.code+'/'+access.key;
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        // console.log(JSON.stringify(val));
+        if (resp.error) { 
+            console.log(resp.error);
+            // await postDeposit(val);
+            await callback(resp);
+        }
+        // if (res.error) throw new Error(res.error); 
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        console.log(response);
+        await callback(response);
+    });
+    return true
 }
 
 async function postDeposit(val, callback) {

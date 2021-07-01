@@ -264,11 +264,7 @@ async function fetchOfficer(val, callback) {
             // Remove Bearer from string
             val = val.replace('+233','0');
         }
-<<<<<<< HEAD
-        var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/' + val;
-=======
         var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
->>>>>>> ea06945b728c23c9a948f2bd5103bc071317ac7c
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
@@ -297,11 +293,7 @@ async function fetchCustomer(val, callback) {
         //     // Remove Bearer from string
         //     val = val.replace('+233','0');
         // }
-<<<<<<< HEAD
-        var api_endpoint = apiurl + 'getCustomer/' + access.code + '/'+ access.key + '/' + val;
-=======
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
->>>>>>> ea06945b728c23c9a948f2bd5103bc071317ac7c
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
