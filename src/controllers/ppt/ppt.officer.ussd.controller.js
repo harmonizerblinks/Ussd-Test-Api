@@ -264,7 +264,11 @@ async function fetchOfficer(val, callback) {
             // Remove Bearer from string
             val = val.replace('+233','0');
         }
+<<<<<<< HEAD
         var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/' + val;
+=======
+        var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
+>>>>>>> ea06945b728c23c9a948f2bd5103bc071317ac7c
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
@@ -274,7 +278,7 @@ async function fetchOfficer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
+            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if(response.active)
             {
@@ -293,7 +297,11 @@ async function fetchCustomer(val, callback) {
         //     // Remove Bearer from string
         //     val = val.replace('+233','0');
         // }
+<<<<<<< HEAD
         var api_endpoint = apiurl + 'getCustomer/' + access.code + '/'+ access.key + '/' + val;
+=======
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+>>>>>>> ea06945b728c23c9a948f2bd5103bc071317ac7c
         console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
@@ -398,7 +406,7 @@ async function postWithdrawal(val, callback) {
 }
 
 async function postChangePin(val, callback) {
-    var api_endpoint = apiurl + 'Change/' + access.code;
+    var api_endpoint = apiurl + 'Change/' + access.code + access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'

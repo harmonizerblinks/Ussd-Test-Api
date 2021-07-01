@@ -100,34 +100,35 @@ exports.profile = (req, res) => {
 // Change Password
 exports.changePassword = async(req, res) => {
     const id = req.user.mobile;
-    const oldpassword = req.body.password;
-    const password = req.body.newpassword;
+    const oldpassword = req.body.pin;
+    const password = req.body.newpin;
     await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-        var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
+        if (!use) {
+            return res.status(404).send({
+                message: "User not found with mobile " + id
+            });
+        }
+        var passwordIsValid = bcrypt.compareSync(req.body.pin, data.pin);
         if (passwordIsValid) {
-            user.password = bcrypt.hashSync(req.body.newpassword, 10);
-
-            User.findByIdAndUpdate(id, user, { new: true })
-                .then(use => {
-                    if (!use) {
-                        return res.status(404).send({
-                            message: "User not found with id " + req.params.userId
-                        });
-                    }
-                    res.send({
-                        message: "Password Changed successfully"
-                    });
-                }).catch(err => {
-                    if (err.kind === 'ObjectId') {
-                        return res.status(404).send({
-                            message: "Invalid User "
-                        });
-                    }
-                    console.log(err);
+            user.pin = bcrypt.hashSync(req.body.newpin, 10);
+            var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
+            var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
+            var req = unirest('POST', api_endpoint)
+            .headers({
+                'Content-Type': 'application/json'
+            })
+            .send(JSON.stringify(value))
+            .end( async(resp)=> { 
+                if (resp.error) {
                     return res.status(500).send({
-                        message: "Error updating user Password "
-                    });
+                    message: "Error updating user Password "
+                    });; 
+                }
+                // console.log(resp.raw_body);
+                res.send({
+                    message: "Password Changed successfully"
                 });
+            });
         } else {
             res.status(500).send({ success: false, message: 'Password is not correct' })
         }

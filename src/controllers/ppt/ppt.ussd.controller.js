@@ -49,7 +49,6 @@ menu.startState({
     run: async() => {
         // Fetch Customer information
         
-        //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active) {     
@@ -82,8 +81,6 @@ menu.startState({
 menu.state('Start', {
     run: async() => {
         // Fetch Customer information
-        
-        //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active) {     
@@ -94,9 +91,7 @@ menu.state('Start', {
                 '\n4. Withdrawal' +
                 '\n5. Contact us'
                 )
-        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
-            } else {
+            }else{
                 menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
             }
         });
@@ -757,7 +752,7 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.body);
+            console.log(resp.fullname);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
