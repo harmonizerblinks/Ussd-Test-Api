@@ -59,9 +59,14 @@ menu.state('code', {
                     if(data.active) {     
                         menu.con(`Dear ${data}, you are not registered on Peoples Pensions Trust. Dial *# to register.`)
                     }else{
-                        await postCustomer(menu.args.phoneNumber, async(data) => {
+                        let mobile = menu.args.phoneNumber;
+                        if (mobile && mobile.startsWith('+233')) {
+                            // Remove Bearer from string
+                            mobile = mobile.replace('+233', '0');
+                        }
+                        await postCustomer(mobile, async(data) => {
                             // console.log(2, "Second Check Done")
-                            let name = await menu.session.get('name');  
+                            // let name = await menu.session.get('name');  
                             if (data.error) {
                                 menu.con('Server Error. Please contact admin.')
                             } else {
@@ -74,7 +79,7 @@ menu.state('code', {
                     }
                 });
             }else{
-                menu.con(`Dear Customer, you are not registered on Peoples Pensions Trust. Dial *# to register.`)
+                menu.con(`Dear Customer, you are not registered on Peoples Pensions Trust. Dial *789*7879# to register.`)
             }
         })
     },
