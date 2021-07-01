@@ -220,7 +220,7 @@ menu.state('Deposit.send', {
             // console.log(result) 
             // menu.end(JSON.stringify(result)); 
         });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
 });
 
@@ -370,7 +370,7 @@ async function postDeposit(val, callback) {
         console.log(JSON.stringify(val));
         if (resp.error) { 
             console.log(resp.error);
-            await postDeposit(val);
+            // await postDeposit(val);
             await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
