@@ -335,12 +335,12 @@ menu.state('Withdrawal.view',{
         var charge = await amount * (1/100);
         // console.log(cust);
         if(account.balance >= (amount + charge)) {
-            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
+            menu.con(cust.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
             '\n1. Confirm' +
             '\n2. Cancel' +
             '\n#. Main Menu');
         } else {
-            menu.con('Not Enough Fund in Account. Enter zero(0) to continue')
+            menu.con('Insufficent Account Balance. Enter zero(0) to continue')
         }
     },
     next: {
