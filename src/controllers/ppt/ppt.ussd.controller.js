@@ -376,11 +376,11 @@ menu.state('Icare.firstname', {
         menu.con('Please enter Person\'s last name')
     },
     next: {
-        '*[a-zA-Z]+': 'Icare.gender'
+        '*[a-zA-Z]+': 'Icare.lastname'
     }
 })
 
-menu.state('Icare.gender', {
+menu.state('Icare.lastname', {
     run: () => {
         let lastname = menu.val;
         menu.session.set('lastname', lastname);
@@ -390,11 +390,11 @@ menu.state('Icare.gender', {
         )
     },
     next: {
-        '*\\d+': 'Icare.mobile'
+        '*\\d+': 'Icare.gender'
     }
 })
 
-menu.state('Icare.mobile', {
+menu.state('Icare.gender', {
     run: () => {
         var index = Number(menu.val);
         if (index > 2) {
@@ -407,38 +407,42 @@ menu.state('Icare.mobile', {
     },
     next: {
         '0': 'Icare.register',
-        '*\\d+': 'Icare.confirm'
+        '*\\d+': 'Icare.phone'
     },
     defaultNext: 'Icare.gender'
 })
 
-menu.state('Icare.confirm', {
+menu.state('Icare.phone', {
     run: async() => {
         let phonenumber = menu.val;
         menu.session.set('mobile', phonenumber);        
-        var Firstname = await menu.session.get('firstname');
-        var Lastname = await menu.session.get('lastname');
+        var firstname = await menu.session.get('firstname');
+        var lastname = await menu.session.get('lastname');
         var gender = await menu.session.get('gender');
-        var Mobile = await menu.session.get('mobile');
+        var mobile = await menu.session.get('mobile');
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }
+
         menu.con('Please confirm the registration details below to continue:' +
-        '\nFirst Name - ' + Firstname +
-        '\nLast Name - '+ Lastname + 
-        '\nMobile Number - '+ Mobile +
+        '\nFirst Name - ' + firstname +
+        '\nLast Name - '+ lastname + 
+        '\nMobile Number - '+ mobile +
         '\nGender: ' + gender +
         '\n\n0. Make Changes' +
         '\n1. Confirm')
     },
     next: {
         '0': 'Icare.register',
-        '1': 'Icare.pay',
+        '1': 'Icare.complete',
     }
 });
 
-menu.state('Icare.pay', {
+menu.state('Icare.complete', {
     run: async() => {
-        var name = await menu.session.get('firstname') + ' ' + await menu.session.get('lastname');
-        menu.session.set('name', name);
-
+        var firstname = await menu.session.get('firstname');
+        var lastname = await menu.session.get('lastname');
         // var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
@@ -447,13 +451,13 @@ menu.state('Icare.pay', {
             mobile = mobile.replace('+233', '0');
         }
         var data = {
-            fullname: name, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
         };
         await postCustomer(data, (data) => {
             if(data.active) {
-                menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu');
+                menu.con('Your account has been created successfully. Press 1 to continue payment');
             } else {
-                menu.end(data.message);
+                menu.con('Dear Customer, the number you entered is already registered. Press 0 to continue to the Main Menu');
             }
         })
 
@@ -483,7 +487,7 @@ menu.state('Icare.pay', {
     run: async() => {
         let mobile = menu.val;
         menu.session.set('mobile', mobile);
-        let name = await menu.session.get('firstname');
+        let name = await menu.session.get('name');
         menu.con(`Enter amount to pay for ${name}`)
     },
     next: {
@@ -566,10 +570,11 @@ menu.state('Pay.send', {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
+        var icareid = await menu.session.get('icareid');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
+        var data = { icareid: icareid,merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
         // console.log(data);
-        await postIcare(data, async(data) => {
+        await postDeposit(data, async(data) => {
             if (data.status == 0) {
                 menu.end('Request submitted successfully. You will receive a payment prompt shortly');
             } else {
@@ -813,6 +818,8 @@ function buyAirtime(phone, val) {
 
 async function postCustomer(val, callback) {
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
+    // console.log(1 ,api_endpoint);
+    // console.log(1 ,val);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -821,12 +828,20 @@ async function postCustomer(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
+                // console.log(resp.error);
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
+            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
+            if (response.active) {
+                menu.session.set('name', response.fullname);
+                menu.session.set('mobile', val);
+                menu.session.set('accounts', response.accounts);
+                menu.session.set('cust', response);
+                menu.session.set('pin', response.pin);
+                // menu.session.set('limit', response.result.limit);
+            }
             await callback(response);
         });
     return true
@@ -846,7 +861,7 @@ async function postIcareCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
+            // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
         });
@@ -869,7 +884,7 @@ async function fetchIcareCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.fullname);
+            // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
@@ -905,7 +920,7 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.fullname);
+            // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
@@ -943,29 +958,6 @@ async function fetchBalance(val, callback) {
         
         await callback(response);
     });
-}
-
-async function postIcare(val, callback) {
-    var api_endpoint = apiurl + 'CreateIcare/'+access.code+'/'+access.key;
-    var req = unirest('POST', api_endpoint)
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify(val))
-    .end( async(resp)=> { 
-        // console.log(JSON.stringify(val));
-        if (resp.error) { 
-            console.log(resp.error);
-            // await postDeposit(val);
-            await callback(resp);
-        }
-        // if (res.error) throw new Error(res.error); 
-        console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        console.log(response);
-        await callback(response);
-    });
-    return true
 }
 
 async function postDeposit(val, callback) {

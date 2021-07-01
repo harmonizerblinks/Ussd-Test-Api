@@ -220,7 +220,7 @@ async function fetchBalance(val, callback) {
 
 
 async function postDeposit(val, callback) {
-    var api_endpoint = apiurl + 'MomoPayment';
+    var api_endpoint = apiurl + 'MomoPayment/' + access.code + '/' + access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
