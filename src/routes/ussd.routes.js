@@ -23,14 +23,14 @@ module.exports = function(app) {
     // *789*7880#
     app.post('/leader', pptofficer.ussdApp);
     // *789*7878#
-    app.post('/', ahantamantest.ussdApp);
+    app.post('/', ahantaman.ussdApp);
 
     // Ecg Ussd 
     app.post('/api/ecg', ecg.ussdApp);
 
     // Ahantaman collections 
     app.post('/api/ahantaman', ahantaman.ussdApp);
-    app.post('/api/ahantaman/officer', ahantaman.ussdApp);
+    app.post('/api/ahantaman/officer', ahantamanofficer.ussdApp);
 
     // Aslan collections 
     app.post('/api/aslan', aslan.ussdApp);

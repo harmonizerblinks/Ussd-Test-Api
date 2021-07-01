@@ -5,13 +5,12 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../config/mongodb.config.js');
 let sessions = {};
-// let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-// let genderArray = ["", "Male", "Female"]
+let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5003/ussd/";
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "446785909", key: "164383692" };
