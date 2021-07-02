@@ -305,14 +305,14 @@ menu.state('Withdrawal.amount',{
         var account = accounts[index-1]
         // menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
-            // console.log(result) 
-            if(result.balance > 0) {
+            console.log(result) 
+            if(result.balance > 0 && result.balance != null) {
                 account.balance = result.balance;
                 menu.session.set('account', account);
                 menu.session.set('balance', result.balance);
                 menu.con('How much would you like to withdraw from account number '+account.code+'?');
             } else {
-                menu.end('Error Retrieving Account Balance with '+account.code+', please try again');
+                menu.end('Error Retrieving current Account Balance, please try again');
             }
         });
         // menu.con('How much would you like to withdraw from account number '+account.code+'?');
@@ -341,7 +341,7 @@ menu.state('Withdrawal.view',{
             '\n2. Cancel' +
             '\n#. Main Menu');
         } else {
-            menu.end('Insufficent Account Balance.')
+            menu.end('Insufficent Account Balance.');
         }
     },
     next: {
@@ -421,10 +421,13 @@ menu.state('CheckBalance.balance',{
         // menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
             console.log(result) 
-            if(result.balance != null) { account.balance = result.balance; }
-            menu.session.set('account', account);
-            menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+            if(result.balance != null) { 
+                account.balance = result.balance; 
+                menu.session.set('account', account);
+                menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+            } else {
+                menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+            }
         });
     },
     next: {
@@ -636,8 +639,8 @@ async function fetchCustomer(val, callback) {
 }
 
 async function fetchBalance(val, callback) {
-    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
-    // console.log(api_endpoint);
+    var api_endpoint = apiurl + 'getBalance/' + access.code +'/' + val;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
