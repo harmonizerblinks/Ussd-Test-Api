@@ -43,17 +43,7 @@ menu.on('error', (err) => {
 // Define menu states
 menu.startState({
     run: async() => {
-        // Fetch Customer information
-        
-        //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {     
-                menu.con('Enter Company Name')
-            } else {
-                menu.con('Dear Customer, you are not registered on Peoples Pensions Trust. Dial *789*7879# to register.');
-            }
-        });
+        menu.con('Enter Company Name')
     },
     // next object links to next state based on user input
     next: {
@@ -63,16 +53,7 @@ menu.startState({
 
 menu.state('Start', {
     run: async() => {
-        // Fetch Customer information
-        //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {     
-                menu.con('Enter Company Name')
-            } else {
-                menu.con('Dear Customer, you are not registered on Peoples Pensions Trust. Dial *789*7879# to register.');
-            }
-        });
+        menu.con('Enter Company Name')
     },
     // next object links to next state based on user input
     next: {
