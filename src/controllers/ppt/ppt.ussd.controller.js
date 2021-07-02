@@ -386,11 +386,11 @@ menu.state('Icare.next', {
             var nameArray = name.split(" ")
             // console.log(nameArray.length)
             if (nameArray.length > 2){
-                menu.session.set('firstname', nameArray[0])
-                menu.session.set('lastname', nameArray[1])
+                menu.session.set('firstname', capitalizeFirstLetter(nameArray[0]))
+                menu.session.set('lastname', capitalizeFirstLetter(nameArray[2]))
             }else{
-                menu.session.set('firstname', nameArray[0])
-                menu.session.set('lastname', nameArray[2])
+                menu.session.set('firstname', capitalizeFirstLetter(nameArray[0]))
+                menu.session.set('lastname', capitalizeFirstLetter(nameArray[1]))
             }
 
             menu.con(`Please confirm Person\'s details:
@@ -403,16 +403,16 @@ menu.state('Icare.next', {
     },
     next: {
         '0': 'Icare.change',
-        '1': 'Icare.gender',
+        '1': 'Icare.lastname',
     }
 });
 
-menu.state('Icare.start', {
+menu.state('Icare.change', {
     run: () => {
         menu.con('Please enter Person\'s first name')
     },
     next: {
-        '*[a-zA-Z]+': 'Icare.change'
+        '*[a-zA-Z]+': 'Icare.firstname'
     }
 });
 
@@ -442,42 +442,32 @@ menu.state('Icare.lastname', {
 })
 
 menu.state('Icare.gender', {
-    run: () => {
+    run: async() => {
         var index = Number(menu.val);
         if (index > 2) {
-            menu.con('Incorrect Pin. Enter zero(0) to retry again')
+            menu.con('Incorrect Selection. Enter zero(0) to retry again')
         } else {
             var gender = genderArray[index]
             menu.session.set('gender', gender);
-            menu.con('Enter Mobile Number of Person')  
-        }
-    },
-    next: {
-        '0': 'Icare.register',
-        '*\\d+': 'Icare.verify'
-    },
-    defaultNext: 'Icare.gender'
-})
-
-menu.state('Icare.verify', {
-    run: async() => {
-        var firstname = await menu.session.get('firstname');
-        var lastname = await menu.session.get('lastname');
-        var gender = await menu.session.get('gender');
-        var mobile = await menu.session.get('mobile');
-        menu.con('Please confirm the registration details below to continue:' +
-        '\nFirst Name - ' + firstname +
-        '\nLast Name - '+ lastname + 
-        '\nMobile Number - '+ mobile +
-        '\nGender: ' + gender +
-        '\n\n0. Make Changes' +
-        '\n1. Confirm')
+            var firstname = await menu.session.get('firstname');
+            var lastname = await menu.session.get('lastname');
+            var gender = await menu.session.get('gender');
+            var mobile = await menu.session.get('mobile');
+            menu.con('Please confirm the registration details below to continue:' +
+            '\nFirst Name - ' + firstname +
+            '\nLast Name - '+ lastname + 
+            '\nMobile Number - '+ mobile +
+            '\nGender: ' + gender +
+            '\n\n0. Make Changes' +
+            '\n1. Confirm')
+            }
     },
     next: {
         '0': 'Icare.register',
         '1': 'Icare.complete',
-    }
-});
+    },
+    defaultNext: 'Icare.gender'
+})
 
 menu.state('Icare.complete', {
     run: async() => {
@@ -1053,3 +1043,7 @@ async function getCharge(val, callback) {
     var amount = value 
     return true
 }
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
