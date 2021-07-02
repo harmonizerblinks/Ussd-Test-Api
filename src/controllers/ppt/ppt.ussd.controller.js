@@ -362,10 +362,57 @@ menu.state('Icare', {
 
 menu.state('Icare.register', {
     run: () => {
+        menu.con('Please enter Person\'s mobile number')
+    },
+    next: {
+        '*\\d+': 'Icare.next'
+    }
+});
+
+menu.state('Icare.next', {
+    run: async() => {
+        var network = await menu.session.get('network');
+        let mobile = menu.val;
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }
+        menu.session.set('mobile', mobile);        
+        var data = {
+            type: "Info", appId: access.code, appKey: access.key, mobile: mobile, network: network
+        }
+        await getInfo(data, async(data) =>{
+            var name = data.firstname;
+            var nameArray = name.split(" ")
+            // console.log(nameArray.length)
+            if (nameArray.length > 2){
+                menu.session.set('firstname', nameArray[0])
+                menu.session.set('lastname', nameArray[1])
+            }else{
+                menu.session.set('firstname', nameArray[0])
+                menu.session.set('lastname', nameArray[2])
+            }
+
+            menu.con(`Please confirm Person\'s details:
+            First Name: ${await menu.session.get('firstname')}
+            Last Name: ${await menu.session.get('lastname')}
+            
+            0. Make Changes
+            1. Confirm`)
+        })
+    },
+    next: {
+        '0': 'Icare.change',
+        '1': 'Icare.gender',
+    }
+});
+
+menu.state('Icare.start', {
+    run: () => {
         menu.con('Please enter Person\'s first name')
     },
     next: {
-        '*[a-zA-Z]+': 'Icare.firstname'
+        '*[a-zA-Z]+': 'Icare.change'
     }
 });
 
@@ -407,24 +454,17 @@ menu.state('Icare.gender', {
     },
     next: {
         '0': 'Icare.register',
-        '*\\d+': 'Icare.phone'
+        '*\\d+': 'Icare.verify'
     },
     defaultNext: 'Icare.gender'
 })
 
-menu.state('Icare.phone', {
+menu.state('Icare.verify', {
     run: async() => {
-        let phonenumber = menu.val;
-        menu.session.set('mobile', phonenumber);        
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }
-
         menu.con('Please confirm the registration details below to continue:' +
         '\nFirst Name - ' + firstname +
         '\nLast Name - '+ lastname + 
@@ -446,10 +486,6 @@ menu.state('Icare.complete', {
         // var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
         };
@@ -819,6 +855,27 @@ async function postCustomer(val, callback) {
                 menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
             }
+            await callback(response);
+        });
+    return true
+}
+
+async function getInfo(val, callback) {
+    var api_endpoint = apiurl + 'getInfo';
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
             await callback(response);
         });
     return true
