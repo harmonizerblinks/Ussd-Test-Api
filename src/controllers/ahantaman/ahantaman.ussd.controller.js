@@ -332,9 +332,10 @@ menu.state('Withdrawal.view',{
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
+        var balance = await menu.session.get('balance');
         var charge = await amount * (1/100);
         // console.log(cust);
-        if(account.balance >= (amount + charge)) {
+        if(balance >= (amount + charge)) {
             menu.con(cust.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
             '\n1. Confirm' +
             '\n2. Cancel' +
