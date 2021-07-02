@@ -464,7 +464,7 @@ menu.state('Icare.complete', {
     },
     next: {
         '0': 'exit',
-        '1': 'Icare.phonenumber',
+        '1': 'Icare.mobile',
     }
 })
 
