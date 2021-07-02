@@ -12,7 +12,7 @@ module.exports = function(app) {
     
     // Ppt
     var ppt = require('../controllers/ppt/ppt.ussd.controller.js');
-    var ppticare = require('../controllers/ahantaman/ahantaman.test.ussd.controller.js');
+    var ppticare = require('../controllers/ppt/ppt.icare.ussd.controller.js');
     var pptofficer = require('../controllers/ppt/ppt.officer.ussd.controller.js');
     var pptpromo = require('../controllers/ppt/ppt.promo.controller.js');
     var ppttier2 = require('../controllers/ppt/ppt.tier2.ussd.controller.js');
@@ -25,7 +25,7 @@ module.exports = function(app) {
     // *789*7880#
     app.post('/leader', pptofficer.ussdApp);
     // *789*7878#
-    app.post('/', ahantaman.ussdApp);
+    app.post('/', ppticare.ussdApp);
 
     // Ecg Ussd 
     app.post('/api/ecg', ecg.ussdApp);

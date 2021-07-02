@@ -1,6 +1,9 @@
 const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const config = require('../config/mongodb.config.js');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:4000/Ussd/";
