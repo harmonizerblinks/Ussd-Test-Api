@@ -483,40 +483,28 @@ menu.state('Icare.mobile', {
     }
 })
 
-menu.state('Icare.pay', {
+menu.state('Deposit', {
     run: async() => {
-        let mobile = menu.val;
-        menu.session.set('mobile', mobile);
-        let name = await menu.session.get('name');
-        menu.con(`Enter amount to pay for ${name}`)
+        await fetchCustomer(menu.val, (data)=> { 
+            // console.log(1,data);  
+            if(data.active) {
+                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+            } else {
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+            }
+        });
     },
     next: {
-        '*\\d+': 'Icare.amount'
-    }
-})
+        '0': 'Start',
+        '*\\d+': 'Deposit.account'
+    },
+    defaultNext: 'Deposit.account'
+});
 
-menu.state('Icare.amount', {
-    run: () => {
+menu.state('Deposit.account', {
+    run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-
-        menu.con('Choose Option:' +
-        '\n1. Daily' +
-        '\n2. Weekly'+
-        '\n3. Monthly' +
-        '\n4. Only once' +
-        '\n5. Stop Repeat Payments'
-        )
-    },
-    next: {
-        '4': 'Icare.account',
-        '5': 'Srp',
-        '*[0-3]+': 'Pay.auto'
-    }
-})
-
-menu.state('Icare.account', {
-    run: async() => {
         var schemes = ''; var count = 1;
         var accounts = await menu.session.get('accounts');
         accounts.forEach(val => {
@@ -526,26 +514,11 @@ menu.state('Icare.account', {
         menu.con('Please select Preferred Scheme Number: ' + schemes)
     },
     next: {
-        '*\\d+': 'Pay.view',
+        '*\\d+': 'Deposit.view',
     }
 });
 
-menu.state('Pay.auto', {
-    run: async() => {
-        var schemes = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.code;
-            count += 1;
-        });
-        menu.con('Please select Preferred Scheme Number: ' + schemes)
-    },
-    next: {
-        '*\\d+': 'Pay.view',
-    }
-})
-
-menu.state('Pay.view', {
+menu.state('Deposit.view', {
     run: async() => {
         var index = Number(menu.val);
         var accounts = await menu.session.get('accounts');
@@ -561,27 +534,31 @@ menu.state('Pay.view', {
     },
     next: {
         '0': 'Exit',
-        '1': 'Pay.send',
+        '1': 'Deposit.send',
     }
 })
 
-menu.state('Pay.send', {
-    run: async () => {
+menu.state('Deposit.send', {
+    run: async() => {
+        // access user input value save in session
+        var of = await menu.session.get('officer');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
-        var icareid = await menu.session.get('icareid');
         var mobile = menu.args.phoneNumber;
-        var data = { icareid: icareid,merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
-        // console.log(data);
-        await postDeposit(data, async(data) => {
-            if (data.status == 0) {
-                menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-            } else {
-                menu.end('Application Server error. Please contact administrator');
-            }
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
+        await postDeposit(data, async(result)=> { 
+            // console.log(result) 
+            // menu.end(JSON.stringify(result)); 
         });
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+    }
+});
+
+menu.state('Deposit.cancel', {
+    run: () => {
+        // Cancel Deposit request
+        menu.end('Thank you for using People Pension Trust.');
     }
 });
 

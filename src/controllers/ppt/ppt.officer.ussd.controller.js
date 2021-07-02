@@ -185,7 +185,6 @@ menu.state('Deposit.account', {
     }
 });
 
-
 menu.state('Deposit.view', {
     run: async() => {
         var index = Number(menu.val);
