@@ -818,17 +818,17 @@ function buyAirtime(phone, val) {
 
 async function postCustomer(val, callback) {
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
-    // console.log(1 ,api_endpoint);
-    // console.log(1 ,val);
+    console.log(1 ,api_endpoint);
+    console.log(2 ,val);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
         .send(JSON.stringify(val))
-        .end(async (resp) => {
+        .end(async(resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                // console.log(resp.error);
+                console.log(resp.error);
                 // return res;
                 await callback(resp);
             }

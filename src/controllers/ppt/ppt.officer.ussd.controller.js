@@ -155,7 +155,6 @@ menu.state('Deposit', {
         await fetchCustomer(menu.val, (data)=> { 
             // console.log(1,data);  
             if(data.active) {
-                
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
                 menu.con('Mobile Number not Registered. Enter (0) to Continue');

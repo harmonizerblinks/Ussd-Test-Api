@@ -2,9 +2,6 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({provider: 'hubtel'});
 var unirest = require('unirest');
 let sessions = {};
-let types = ["", "Current", "Savings", "Susu"];
-let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -117,10 +114,10 @@ menu.state('Tier2.confirm', {
 menu.state('Tier2.end', {
     run: async() => {
         var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
+        var name = await menu.session.get('name');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
         await postDeposit(data, async(data) => {
                 if (data) {
                     menu.end('Request submitted successfully. You will receive a payment prompt shortly');
