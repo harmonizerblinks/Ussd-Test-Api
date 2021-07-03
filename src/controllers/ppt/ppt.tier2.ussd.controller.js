@@ -79,7 +79,7 @@ menu.state('Tier2.confirm', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        var companyname = await menu.session.get('name');
+        var name = await menu.session.get('name');
         menu.con('Please confirm the details below to continue payment:' +
         '\nCompany Name - ' + companyname +
         '\nAmount - GHS '+ amount + 
