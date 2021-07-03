@@ -2,9 +2,6 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({provider: 'hubtel'});
 var unirest = require('unirest');
 let sessions = {};
-let types = ["", "Current", "Savings", "Susu"];
-let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -46,17 +43,7 @@ menu.on('error', (err) => {
 // Define menu states
 menu.startState({
     run: async() => {
-        // Fetch Customer information
-        
-        //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {     
-                menu.con('Enter Company Name')
-            } else {
-                menu.con('Dear Customer, you are not registered on Peoples Pensions Trust. Dial *789*7879# to register.');
-            }
-        });
+        menu.con('Enter Company Name')
     },
     // next object links to next state based on user input
     next: {
@@ -66,16 +53,7 @@ menu.startState({
 
 menu.state('Start', {
     run: async() => {
-        // Fetch Customer information
-        //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {     
-                menu.con('Enter Company Name')
-            } else {
-                menu.con('Dear Customer, you are not registered on Peoples Pensions Trust. Dial *789*7879# to register.');
-            }
-        });
+        menu.con('Enter Company Name')
     },
     // next object links to next state based on user input
     next: {
@@ -117,10 +95,10 @@ menu.state('Tier2.confirm', {
 menu.state('Tier2.end', {
     run: async() => {
         var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
+        var name = await menu.session.get('name');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
         await postDeposit(data, async(data) => {
                 if (data) {
                     menu.end('Request submitted successfully. You will receive a payment prompt shortly');
