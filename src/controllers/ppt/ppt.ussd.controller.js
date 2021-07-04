@@ -373,10 +373,6 @@ menu.state('Icare.next', {
     run: async() => {
         var network = await menu.session.get('network');
         let mobile = menu.val;
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }
         menu.session.set('mobile', mobile);        
         var data = {
             type: "Info", appId: access.code, appKey: access.key, mobile: mobile, network: network
@@ -453,6 +449,10 @@ menu.state('Icare.gender', {
             var lastname = await menu.session.get('lastname');
             var gender = await menu.session.get('gender');
             var mobile = await menu.session.get('mobile');
+            if (mobile && mobile.startsWith('+233')) {
+                // Remove Bearer from string
+                mobile = mobile.replace('+233', '0');
+            }    
             menu.con('Please confirm the registration details below to continue:' +
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
