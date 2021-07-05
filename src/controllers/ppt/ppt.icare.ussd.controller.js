@@ -129,10 +129,15 @@ menu.state('Icare.register', {
 
 menu.state('Icare.next', {
     run: async() => {
-        let mobile = menu.val;
+        let mobile = menu.args.phoneNumber;
+        console.log(mobile)
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }    
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            if(data.surname == null){
+            if(data.surname && data.surname == null || data.lastname && data.lastname == " "){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
                 // console.log(nameArray.length)
@@ -150,12 +155,10 @@ menu.state('Icare.next', {
 
             }else{
                 var firstname = data.firstname;
-                var lastname = data.surname;
+                var lastname = data.surname || data.lastname;
                 menu.session.set('firstname', firstname)
                 menu.session.set('lastname', lastname)
             }
-
-
             menu.con(`Please confirm Person\'s details:
             First Name: ${firstname}
             Last Name: ${lastname}
@@ -165,8 +168,8 @@ menu.state('Icare.next', {
         })
     },
     next: {
-        '0': 'Icare.change',
-        '1': 'Icare.autogender',
+        '0': 'Register.change',
+        '1': 'Register.autogender',
     }
 });
 
