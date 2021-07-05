@@ -688,7 +688,7 @@ async function postDeposit(val, callback) {
         console.log(JSON.stringify(val));
         if (resp.error) { 
             console.log(resp.error);
-            await postDeposit(val);
+            // await postDeposit(val);
             await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
@@ -708,6 +708,10 @@ async function postWithdrawal(val, callback) {
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            await callback(resp);
+        }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -724,6 +728,11 @@ async function postChangePin(val, callback) {
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            // await postDeposit(val);
+            await callback(resp);
+        }
         // if (resp.error) throw new Error(resp.error); 
         console.log(resp.raw_body);      
         var response = JSON.parse(resp.raw_body);
