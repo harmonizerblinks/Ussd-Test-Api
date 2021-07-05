@@ -1,6 +1,7 @@
 const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({provider: 'hubtel'});
 var unirest = require('unirest');
+var generator = require('generate-serial-number');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu"];
 let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
@@ -56,10 +57,10 @@ menu.startState({
                 '\n2. Pay for Someone'
                 )
             } else if(data.active && data.icareid == 0){
-                var data = {
-                    firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
+                var postdata = {
+                    name: data.fullname, mobile: menu.args.phoneNumber
                 };
-                await postIcareCustomer(data, (data) => {
+                await postIcareCustomer(postdata, (data) => {
                     menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
                     '\n1. Register for Someone' +
                     '\n2. Pay for Someone'
@@ -370,7 +371,7 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    console.log(args);
+    // console.log(args);
     menu.run(args, ussdResult => {
         menu.session.set('network', args.Operator);
         res.send(ussdResult);
@@ -443,7 +444,7 @@ async function postIcareCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
+            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
         });
