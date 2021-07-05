@@ -17,6 +17,9 @@ module.exports = function(app) {
     var pptpromo = require('../controllers/ppt/ppt.promo.controller.js');
     var ppttier2 = require('../controllers/ppt/ppt.tier2.ussd.controller.js');
 
+
+    var schoolbilling = require('../controllers/schoolbilling.ussd.controller.js');
+
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
@@ -52,5 +55,8 @@ module.exports = function(app) {
     app.post('/api/ppt/icare', ppticare.ussdApp);
     app.post('/api/ppt/promo', pptpromo.ussdApp);
     app.post('/api/ppt/tier2', ppttier2.ussdApp);
+
+
+    app.post('/api/schoolbilling', schoolbilling.ussdApp);
 
 }
