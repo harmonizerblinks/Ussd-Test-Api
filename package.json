@@ -40,5 +40,11 @@
     "ussd-menu-builder": "^1.2.0",
     "xss-clean": "^0.1.1"
   },
+<<<<<<< HEAD
   "devDependencies": {}
+=======
+  "devDependencies": {
+    "nodemon": "^2.0.9"
+  }
+>>>>>>> 6eb06762915497debc401f79c85114d6c9f9cac4
 }
