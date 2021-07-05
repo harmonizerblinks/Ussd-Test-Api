@@ -57,10 +57,9 @@ menu.startState({
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
-                '\n5. Contact us'
-                )
+                '\n5. Contact us')
         } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
             } else {
                 menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
             }
