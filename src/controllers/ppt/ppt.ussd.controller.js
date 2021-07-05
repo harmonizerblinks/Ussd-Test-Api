@@ -851,7 +851,7 @@ async function postCustomer(val, callback) {
 }
 
 async function getInfo(val, callback) {
-    var api_endpoint = apiurl + 'getInfo';
+    var api_endpoint = apiurl + 'MobileInfo';
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
