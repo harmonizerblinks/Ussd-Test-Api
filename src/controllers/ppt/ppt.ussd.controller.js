@@ -374,10 +374,7 @@ menu.state('Icare.next', {
         var network = await menu.session.get('network');
         let mobile = menu.val;
         menu.session.set('mobile', mobile);        
-        var data = {
-            type: "Info", appId: access.code, appKey: access.key, mobile: mobile, network: network
-        }
-        await getInfo(data, async(data) =>{
+        await getInfo(mobile, async(data) =>{
             var name = data.firstname;
             var nameArray = name.split(" ")
             // console.log(nameArray.length)
@@ -399,7 +396,7 @@ menu.state('Icare.next', {
     },
     next: {
         '0': 'Icare.change',
-        '1': 'Icare.lastname',
+        '1': 'Icare.autogender',
     }
 });
 
@@ -427,6 +424,18 @@ menu.state('Icare.lastname', {
     run: () => {
         let lastname = menu.val;
         menu.session.set('lastname', lastname);
+        menu.con('Select Person\'s gender:' +
+            '\n1. Male' +
+            '\n2. Female'
+        )
+    },
+    next: {
+        '*\\d+': 'Icare.gender'
+    }
+})
+
+menu.state('Icare.autogender', {
+    run: () => {
         menu.con('Select Person\'s gender:' +
             '\n1. Male' +
             '\n2. Female'
@@ -505,7 +514,7 @@ menu.state('Icare.mobile', {
         menu.con('Enter Mobile Number of Person')
     },
     next: {
-        '*\\d+': 'Icare.pay'
+        '*\\d+': 'Deposit'
     }
 })
 
@@ -851,8 +860,8 @@ async function postCustomer(val, callback) {
 }
 
 async function getInfo(val, callback) {
-    var api_endpoint = apiurl + 'MobileInfo';
-    var req = unirest('POST', api_endpoint)
+    var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
+    var req = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
