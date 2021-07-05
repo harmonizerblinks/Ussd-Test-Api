@@ -643,7 +643,7 @@ menu.state('CheckBalance.balance',{
             if(result.balance != null) { account.balance = result.balance; }
             menu.session.set('account', account);
             menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' Total Contribution is GHS '+ result.contribution+ '\nSaving is GHS '+result.savings +'.\nEnter zero(0) to continue');
+            menu.con('Your Balance is Savings: GHS '+result.savings+ '\nRetirement: GHS '+result.retirement +'.\nEnter zero(0) to continue');
         });
     },
     next: {

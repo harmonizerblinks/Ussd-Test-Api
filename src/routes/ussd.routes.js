@@ -28,7 +28,7 @@ module.exports = function(app) {
     // *789*7880#
     app.post('/leader', ppttier2.ussdApp);
     // *789*7878#
-    app.post('/', ppticare.ussdApp);
+    app.post('/', pptofficer.ussdApp);
 
     // Ecg Ussd 
     app.post('/api/ecg', ecg.ussdApp);
