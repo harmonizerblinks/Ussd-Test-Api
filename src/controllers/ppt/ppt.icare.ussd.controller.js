@@ -51,12 +51,12 @@ menu.startState({
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, async(data)=> { 
             // console.log(1,data); 
-            if(data.active && data.icareid !== 0) {
+            if(data.icareid !== 0) {
                 menu.con('Welcome to Icare for Peoples Pensions Trust. Choose your Preferred Option:' +
                 '\n1. Register for Someone' +
                 '\n2. Pay for Someone'
                 )
-            } else if(data.active && data.icareid == 0){
+            } else if(data.icareid == 0){
                 var postdata = {
                     name: data.fullname, mobile: menu.args.phoneNumber
                 };
@@ -86,12 +86,12 @@ menu.state('Start', {
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, async(data)=> { 
             // console.log(1,data); 
-            if(data.active && data.icareid !== 0) {
+            if(data.icareid !== 0) {
                 menu.con('Welcome to Icare for Peoples Pensions Trust. Choose your Preferred Option:' +
                 '\n1. Register for Someone' +
                 '\n2. Pay for Someone'
                 )
-            } else if(data.active && data.icareid == 0){
+            } else if(data.icareid == 0){
                 var data = {
                     firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
                 };
@@ -240,11 +240,11 @@ menu.state('Icare.complete', {
     run: async() => {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
-        // var name = await menu.session.get('name');
+        var icareId = await menu.session.get('icareid');
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {
@@ -444,8 +444,17 @@ async function postIcareCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.body);
+            // console.log(resp.resp.raw_body);
             var response = JSON.parse(resp.raw_body);
+            if (response.active) {
+                menu.session.set('name', response.fullname);
+                menu.session.set('mobile', val);
+                menu.session.set('accounts', response.accounts);
+                menu.session.set('cust', response);
+                menu.session.set('pin', response.pin);
+                menu.session.set('icareid', response.icareid)
+            }
+
             await callback(response);
         });
     return true
@@ -493,7 +502,7 @@ async function fetchCustomer(val, callback) {
         // Remove Bearer from string
         val = val.replace('+233', '0');
     }
-    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {

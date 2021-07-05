@@ -1,10 +1,10 @@
 var unirest = require('unirest');
 const UssdMenu = require('ussd-menu-builder');
-let menu = new UssdMenu({ provider: 'hubtel' });
+let menu = new UssdMenu();
 
 // var apiurl = 'https://localhost:5001/Integration/';
 // var apiurl = 'http://api-aslan.paynowafrica.com/api/services/app/'
-var apiurl = 'https://api.alias-solutions.net:8449/Integration/';
+// var apiurl = 'https://api.alias-solutions.net:8449/Integration/';
 var tenant = 2;
 let sessions = {};
 
@@ -39,19 +39,20 @@ menu.on('error', (err) => {
     console.log('Error', err);
 });
 
+
 // Define menu states
 menu.startState({
-    run: async() => {
-        await fetchAccount(menu.args.phoneNumber, (data)=> { 
+    run: () => {
+        // await fetchAccount(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             // use menu.con() to send response without terminating session 
-            if(data.code) { 
-                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for ECG Account Number '+data.number+' is GHS ' + data.amount + 
+            // if(data.code) { 
+                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for School Account Number '+data.number+' is GHS ' + data.amount + 
                     '\n\n1. Make Payment'); 
-            } else {
-                menu.con('Enter Mobile Number that received Bill or Bill Code.');
-            }
-        });
+        //     } else {
+        //         menu.con('Enter Mobile Number that received Bill or Bill Code.');
+        //     }
+        // });
         
     },
     // next object links to next state based on user input
@@ -70,7 +71,7 @@ menu.state('Menu', {
             // console.log(1,data); 
             // use menu.con() to send response without terminating session 
             if(data.code) { 
-                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for ECG Account Number '+data.number+' is GHS ' + data.amount + 
+                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for School Account Number '+data.number+' is GHS ' + data.amount + 
                     '\n\n1. Make Payment'); 
             } else {
                 // `menu.go('Number');
@@ -92,17 +93,17 @@ menu.state('Number.account', {
         // use menu.val to access user input value
         var account = menu.val;
         // save user input in session
-        await fetchAccount(account, (data)=> { 
+        // await fetchAccount(account, (data)=> { 
             // console.log(1,data); 
             // use menu.con() to send response without terminating session 
-            if(data.code) { 
-                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for ECG Account Number '+data.number+' is GHS ' + data.amount + 
+            // if(data.code) { 
+                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for School Account Number '+data.number+' is GHS ' + data.amount + 
                     '\n\n1. Make Payment'); 
-            } else {
+            // } else {
                 // `menu.go('Number');
-                menu.con('Enter Mobile Number that received Bill or Bill Code.');
-            }
-        });
+                // menu.con('Enter Mobile Number that received Bill or Bill Code.');
+            // }
+        // });
 
     },
     // next object links to next state based on user input
@@ -131,7 +132,7 @@ menu.state('Payment.amount', {
         var amount = Number(menu.val);
         menu.session.set('amount', amount);
         var data = await menu.session.get('account');
-        menu.con('You want to perform Bill payment of amount GHC '+amount+' to ECG Account Number '+data.number +
+        menu.con('You want to perform Bill payment of amount GHC '+amount+' to School Account Number '+data.number +
             '\n1. Confirm' +
             '\n2. Cancel');
         
@@ -153,10 +154,10 @@ menu.state('Payment.confirm', {
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = {code: account.code,name:account.name,email:'info@paynow.com',source:'USSD',network:network,mobile: mobile,amount: amount, reference: 'Bill Payment'};
-        await postPayment(data, async(result)=> { 
-            console.log(result) 
-            // menu.end(JSON.stringify(result)); 
-        });
+        // await postPayment(data, async(result)=> { 
+        //     console.log(result) 
+        //     // menu.end(JSON.stringify(result)); 
+        // });
         menu.end('Kindly Confirm Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
 });
@@ -170,21 +171,14 @@ menu.state('Payment.cancel', {
 
 
 // POST a Insurance
-exports.ussdApp = async(req, res) => {
-    // Create a
-    let args = req.body;
-    if (args.Type == 'initiation') {
-        args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
-    }
-    // await fetchAccount(menu.args.phoneNumber, (data)=> { 
-    //     console.log(data);
-    // });
-    menu.run(args, ussdResult => {
-        menu.session.set('network', args.Operator);
-        res.send(ussdResult);
-    });
-};
-
+module.exports.ussdApp = (req, res) => {
+    console.log(req.body);
+    menu.run(req.body, ussdResult => {
+            res.send(ussdResult);
+            // fetchAccount(req.body.phoneNumber);
+    })
+}
+    
 
 
 async function fetchAccount(val, callback) {
