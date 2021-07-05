@@ -40,11 +40,5 @@
     "ussd-menu-builder": "^1.2.0",
     "xss-clean": "^0.1.1"
   },
-<<<<<<< Updated upstream
   "devDependencies": {}
-=======
-  "devDependencies": {
-    "nodemon": "^2.0.9"
-  }
->>>>>>> Stashed changes
 }

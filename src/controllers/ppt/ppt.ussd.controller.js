@@ -178,62 +178,159 @@ menu.state('User.verifypin', {
 });
 
 menu.state('Register', {
-    run: () => {
-        menu.con('Enter your full name')
+    run: async() => {
+        let mobile = menu.args.phoneNumber;
+        console.log(mobile)
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }    
+        menu.session.set('mobile', mobile);        
+        await getInfo(mobile, async(data) =>{
+            if(data.surname && data.surname == null || data.lastname && data.lastname == " "){
+                var name = data.firstname;
+                var nameArray = name.split(" ")
+                // console.log(nameArray.length)
+                if (nameArray.length > 2){
+                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                    var lastname = capitalizeFirstLetter(nameArray[2]);
+                    menu.session.set('firstname', firstname)
+                    menu.session.set('lastname', lastname)
+                }else{
+                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                    var lastname = capitalizeFirstLetter(nameArray[1]);
+                    menu.session.set('firstname', firstname)
+                    menu.session.set('lastname', lastname)
+                }
+
+            }else{
+                var firstname = data.firstname;
+                var lastname = data.surname || data.lastname;
+                menu.session.set('firstname', firstname)
+                menu.session.set('lastname', lastname)
+            }
+            menu.con(`Please confirm Person\'s details:
+            First Name: ${firstname}
+            Last Name: ${lastname}
+            
+            0. Make Changes
+            1. Confirm`)
+        })
     },
     next: {
-        '*[a-zA-Z]+': 'Register.name'
+        '0': 'Register.change',
+        '1': 'Register.autogender',
     }
 });
 
-menu.state('Register.name', {
+
+menu.state('Register.change', {
     run: () => {
-        let name = menu.val;
-        menu.session.set('name', name);
-        menu.con('Select your gender:' +
+        menu.con('Please enter Person\'s first name')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Register.firstname'
+    }
+});
+
+menu.state('Register.firstname', {
+    run: () => {
+        let firstname = menu.val;
+        menu.session.set('firstname', firstname);
+        menu.con('Please enter Person\'s last name')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Register.lastname'
+    }
+})
+
+menu.state('Register.lastname', {
+    run: () => {
+        let lastname = menu.val;
+        menu.session.set('lastname', lastname);
+        menu.con('Select Person\'s gender:' +
             '\n1. Male' +
-            '\n2. Female')
+            '\n2. Female'
+        )
     },
     next: {
         '*\\d+': 'Register.gender'
     }
-});
+})
+
+menu.state('Register.autogender', {
+    run: () => {
+        menu.con('Select Person\'s gender:' +
+            '\n1. Male' +
+            '\n2. Female'
+        )
+    },
+    next: {
+        '*\\d+': 'Register.gender'
+    }
+})
 
 menu.state('Register.gender', {
     run: async() => {
         var index = Number(menu.val);
-        var gender = genderArray[index]
-        menu.session.set('gender', gender);
-        var mobile = menu.args.phoneNumber;
-        let name = await menu.session.get('name');  
-        if (mobile && mobile.startsWith('+233')) {
-            mobile = mobile.replace('+233', '0');
-        } else if (mobile && mobile.startsWith('233')) {
-            mobile = mobile.replace('233', '0');
-        }
-        var data = {
-            fullname: name, mobile: mobile, gender: gender, email: "peoplespensiontrust@gmail.com", type: 'Pension', source: "USSD"
-        };
+        if (index > 2) {
+            menu.con('Incorrect Selection. Enter zero(0) to retry again')
+        } else {
+            var gender = genderArray[index]
+            menu.session.set('gender', gender);
+            var firstname = await menu.session.get('firstname');
+            var lastname = await menu.session.get('lastname');
+            var gender = await menu.session.get('gender');
+            var mobile = await menu.session.get('mobile');
+            if (mobile && mobile.startsWith('+233')) {
+                // Remove Bearer from string
+                mobile = mobile.replace('+233', '0');
+            }    
+            menu.con('Please confirm the registration details below to continue:' +
+            '\nFirst Name - ' + firstname +
+            '\nLast Name - '+ lastname + 
+            '\nMobile Number - '+ mobile +
+            '\nGender: ' + gender +
+            '\n\n0. Make Changes' +
+            '\n1. Confirm')
+            }
+    },
+    next: {
+        '0': 'Register.register',
+        '1': 'Register.complete',
+    },
+    defaultNext: 'Register.gender'
+})
 
+menu.state('Register.complete', {
+    run: async() => {
+        var firstname = await menu.session.get('firstname');
+        var lastname = await menu.session.get('lastname');
+        var icareId = await menu.session.get('icareid');
+        var gender = await menu.session.get('gender');
+        var mobile = await menu.session.get('mobile');
+        var data = {
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD", icareid: icareId
+        };
         await postCustomer(data, (data) => {
-            // console.log(data.body);
-            if (data.status === 400) {
-                menu.con('Server Error. Please contact admin.')
-            } else {
+            if(data.schemenumber) {
                 menu.con('Dear '+ name + ', you have successfully register for the Peoples Pension Trust' + 
                 '\nWould you like to continue with payment?' +
                 '\n0. Exit' +
-                '\n1. Pay')        
+                '\n1. Pay');
+            } else {
+                menu.end('Dear Customer, the number you entered is already registered.');
             }
-        });  
+        })
+
     },
     next: {
-        '0': 'Exit',
-        '1': 'Register.pay',
+        '0': 'exit',
+        '1': 'Pay',
     }
-});
+})
 
-menu.state('Exit', {
+menu.state('exit', {
     run: () => {
         menu.end('')
     }
@@ -243,7 +340,7 @@ menu.state('Exit', {
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
 menu.state('Pay', {
     run: async() => {
-        let name = await menu.session.get('name');
+        let name = await menu.session.get('firstname') + ' ' + await menu.session.get('lastname');
         menu.con(`Dear ${name}, How much would you like to pay?`)
     },
     next: {
@@ -371,7 +468,6 @@ menu.state('Icare.register', {
 
 menu.state('Icare.next', {
     run: async() => {
-        var network = await menu.session.get('network');
         let mobile = menu.val;
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
@@ -498,14 +594,8 @@ menu.state('Icare.complete', {
 
     },
     next: {
-        '0': 'exit',
+        '0': 'Start',
         '1': 'Icare.mobile',
-    }
-})
-
-menu.state('exit', {
-    run: () => {
-        menu.end('')
     }
 })
 

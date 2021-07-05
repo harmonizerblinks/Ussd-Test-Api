@@ -129,24 +129,36 @@ menu.state('Icare.register', {
 
 menu.state('Icare.next', {
     run: async() => {
-        var network = await menu.session.get('network');
         let mobile = menu.val;
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            var name = data.firstname;
-            var nameArray = name.split(" ")
-            // console.log(nameArray.length)
-            if (nameArray.length > 2){
-                menu.session.set('firstname', capitalizeFirstLetter(nameArray[0]))
-                menu.session.set('lastname', capitalizeFirstLetter(nameArray[2]))
+            if(data.surname == null){
+                var name = data.firstname;
+                var nameArray = name.split(" ")
+                // console.log(nameArray.length)
+                if (nameArray.length > 2){
+                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                    var lastname = capitalizeFirstLetter(nameArray[2]);
+                    menu.session.set('firstname', firstname)
+                    menu.session.set('lastname', lastname)
+                }else{
+                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                    var lastname = capitalizeFirstLetter(nameArray[1]);
+                    menu.session.set('firstname', firstname)
+                    menu.session.set('lastname', lastname)
+                }
+
             }else{
-                menu.session.set('firstname', capitalizeFirstLetter(nameArray[0]))
-                menu.session.set('lastname', capitalizeFirstLetter(nameArray[1]))
+                var firstname = data.firstname;
+                var lastname = data.surname;
+                menu.session.set('firstname', firstname)
+                menu.session.set('lastname', lastname)
             }
 
+
             menu.con(`Please confirm Person\'s details:
-            First Name: ${await menu.session.get('firstname')}
-            Last Name: ${await menu.session.get('lastname')}
+            First Name: ${firstname}
+            Last Name: ${lastname}
             
             0. Make Changes
             1. Confirm`)
