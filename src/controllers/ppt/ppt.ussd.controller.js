@@ -612,37 +612,33 @@ menu.state('Deposit', {
     },
     next: {
         '0': 'Start',
-        '*\\d+': 'Deposit.account'
+        '*\\d+': 'Deposit.view'
     },
-    defaultNext: 'Deposit.account'
+    defaultNext: 'Deposit.view'
 });
 
-menu.state('Deposit.account', {
-    run: async() => {
-        let amount = menu.val;
-        menu.session.set('amount', amount);
-        var schemes = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.code;
-            count += 1;
-        });
-        menu.con('Please select Preferred Scheme Number: ' + schemes)
-    },
-    next: {
-        '*\\d+': 'Deposit.view',
-    }
-});
+// menu.state('Deposit.account', {
+//     run: async() => {
+//         var schemes = ''; var count = 1;
+//         var accounts = await menu.session.get('accounts');
+//         accounts.forEach(val => {
+//             schemes += '\n' + count + '. ' + val.code;
+//             count += 1;
+//         });
+//         menu.con('Please select Preferred Scheme Number: ' + schemes)
+//     },
+//     next: {
+//         '*\\d+': 'Deposit.view',
+//     }
+// });
 
 menu.state('Deposit.view', {
     run: async() => {
-        var index = Number(menu.val);
+        let amount = menu.val;
+        menu.session.set('amount', amount);
         var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        menu.session.set('account', account);
+        filterPersonalSchemeOnly(accounts);
 
-        let amount = await menu.session.get('amount'); 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
