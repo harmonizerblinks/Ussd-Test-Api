@@ -906,10 +906,10 @@ exports.ussdApp = async(req, res) => {
 };
 
 function filterPersonalSchemeOnly(accounts) {
-    var account = accounts.filter(obj => {
+    var account = accounts.find(obj => {
         return obj.type.includes('PERSONAL');
     });
-    menu.session.set('account', account[0]);
+    menu.session.set('account', account);
 }
 
 function buyAirtime(phone, val) {
