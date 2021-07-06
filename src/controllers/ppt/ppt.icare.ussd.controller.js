@@ -1,10 +1,7 @@
 const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({provider: 'hubtel'});
 var unirest = require('unirest');
-var generator = require('generate-serial-number');
 let sessions = {};
-let types = ["", "Current", "Savings", "Susu"];
-let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
@@ -572,4 +569,4 @@ async function postDeposit(val, callback) {
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
-  }
+}

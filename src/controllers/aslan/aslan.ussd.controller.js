@@ -4,7 +4,7 @@ var unirest = require('unirest');
 let sessions = {};
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Private", "Divorced", "Widow", "Widower", "Private"];
-// let genderArray = ["", "Male", "Female"]
+let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";

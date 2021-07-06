@@ -180,10 +180,6 @@ menu.state('Register', {
     run: async() => {
         let mobile = menu.args.phoneNumber;
         console.log(mobile)
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }    
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
             if(data.surname && data.surname == null || data.lastname && data.lastname == " "){
@@ -949,6 +945,11 @@ async function postCustomer(val, callback) {
 }
 
 async function getInfo(val, callback) {
+    if (mobile && mobile.startsWith('+233')) {
+        // Remove Bearer from string
+        mobile = mobile.replace('+233', '0');
+    }    
+
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
     var req = unirest('GET', api_endpoint)
         .headers({

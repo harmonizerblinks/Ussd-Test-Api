@@ -1,6 +1,6 @@
 var unirest = require('unirest');
 const UssdMenu = require('ussd-menu-builder');
-let menu = new UssdMenu();
+let menu = new UssdMenu({provider: 'hubtel'});
 
 // var apiurl = 'https://localhost:5001/Integration/';
 // var apiurl = 'http://api-aslan.paynowafrica.com/api/services/app/'
@@ -47,7 +47,7 @@ menu.startState({
             // console.log(1,data); 
             // use menu.con() to send response without terminating session 
             // if(data.code) { 
-                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for School Account Number '+data.number+' is GHS ' + data.amount + 
+                menu.con('Hello [Customer Name],' +'\nYour Current Debt Amount for School Account Number BBG023943942 is GHS [amount]' +
                     '\n\n1. Make Payment'); 
         //     } else {
         //         menu.con('Enter Mobile Number that received Bill or Bill Code.');
@@ -116,7 +116,7 @@ menu.state('Number.account', {
 menu.state('Payment', {
     run: async() => {
         var data = await menu.session.get('account');
-        menu.con('Debt Amount: GHS '+ data.amount +'. \nEnter amount to you want to Pay');
+        menu.con('Debt Amount: GHS 285.00 \nEnter amount to you want to Pay');
     },
     next: {
         '#': 'Menu',
@@ -129,10 +129,10 @@ menu.state('Payment', {
 menu.state('Payment.amount', {
     run: async() => {
         // use menu.val to access user input value
-        var amount = Number(menu.val);
-        menu.session.set('amount', amount);
-        var data = await menu.session.get('account');
-        menu.con('You want to perform Bill payment of amount GHC '+amount+' to School Account Number '+data.number +
+        // var amount = Number(menu.val);
+        // menu.session.set('amount', amount);
+        // var data = await menu.session.get('account');
+        menu.con('You want to perform Bill payment of amount GHC GHS 285.00 to School Account Number BBG023943942' +
             '\n1. Confirm' +
             '\n2. Cancel');
         
@@ -149,16 +149,16 @@ menu.state('Payment.amount', {
 menu.state('Payment.confirm', {
     run: async() => {
         // access user input value save in session
-        var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = {code: account.code,name:account.name,email:'info@paynow.com',source:'USSD',network:network,mobile: mobile,amount: amount, reference: 'Bill Payment'};
+        // var amount = await menu.session.get('amount');
+        // var account = await menu.session.get('account');
+        // var network = await menu.session.get('network');
+        // var mobile = menu.args.phoneNumber;
+        // var data = {code: account.code,name:account.name,email:'info@paynow.com',source:'USSD',network:network,mobile: mobile,amount: amount, reference: 'Bill Payment'};
         // await postPayment(data, async(result)=> { 
         //     console.log(result) 
         //     // menu.end(JSON.stringify(result)); 
         // });
-        menu.end('Kindly Confirm Payment request of amount GHC ' + amount + ' sent to your phone.');
+        menu.end('Kindly Confirm Payment request of amount GHC GHS 285.00 sent to your phone.');
     }
 });
 
