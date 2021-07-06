@@ -396,11 +396,7 @@ menu.state('Pay.amount', {
 menu.state('Pay.view', {
     run: async() => {
         var accounts = await menu.session.get('accounts');
-        var account = accounts.filter(obj => {
-            return obj.type.includes('PERSONAL')
-        })
-        menu.session.set('account', account);
-
+        filterPersonalSchemeOnly(accounts);
         let amount = await menu.session.get('amount'); 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -908,6 +904,13 @@ exports.ussdApp = async(req, res) => {
     //     res.send(resMsg);
     // });
 };
+
+function filterPersonalSchemeOnly(accounts) {
+    var account = accounts.filter(obj => {
+        return obj.type.includes('PERSONAL');
+    });
+    menu.session.set('account', account[0]);
+}
 
 function buyAirtime(phone, val) {
     return true
