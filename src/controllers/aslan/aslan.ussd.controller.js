@@ -207,8 +207,10 @@ menu.state('Register.name', {
 
 menu.state('Register.gender', {
     run: async () => {
+        let index = menu.val;
+        var gender = accounts[index]
         var name = await menu.session.get('name');
-        var gender = await menu.session.get('gender');
+        menu.session.set('gender', gender);
         menu.con('Please confirm your details to continue:' +
             '\n Full Name: ' + name +
             '\n Gender: ' + gender +
