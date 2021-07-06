@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "All Ussd integratin to Aslan portal",
   "main": "src/app.js",
+  "engines": {
+    "node": "6.11.1"
+  },
   "scripts": {
     "test": "test",
     "start": "node src/index.js",
     "start-watch": "nodemon src/index.js"
-  },
-  "engines": {
-    "node": "6.11.1"
   },
   "repository": {
     "type": "git",
@@ -42,8 +42,5 @@
     "unirest": "^0.6.0",
     "ussd-menu-builder": "^1.2.0",
     "xss-clean": "^0.1.1"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.9"
   }
 }
