@@ -1145,4 +1145,11 @@ async function getCharge(val, callback) {
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
-  }
+}
+
+// function filterPersonalScheme(schemes) {
+//     schemes.forEach(val => {
+//         val.
+//     });
+//     return string.charAt(0).toUpperCase() + string.slice(1);
+// }
