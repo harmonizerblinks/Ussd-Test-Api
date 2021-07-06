@@ -1,6 +1,6 @@
 var unirest = require('unirest');
 const UssdMenu = require('ussd-menu-builder');
-let menu = new UssdMenu({provider: 'hubtel'});
+let menu = new UssdMenu({provider: 'africasTalking'});
 
 // var apiurl = 'https://localhost:5001/Integration/';
 // var apiurl = 'http://api-aslan.paynowafrica.com/api/services/app/'
@@ -173,10 +173,10 @@ menu.state('Payment.cancel', {
 // POST a Insurance
 module.exports.ussdApp = (req, res) => {
     console.log(req.body);
-    menu.run(req.body, ussdResult => {
-            res.send(ussdResult);
-            // fetchAccount(req.body.phoneNumber);
-    })
+    // menu.run(req.body, ussdResult => {
+    //         res.send(ussdResult);
+    //         // fetchAccount(req.body.phoneNumber);
+    // })
 }
     
 

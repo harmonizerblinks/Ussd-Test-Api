@@ -163,9 +163,9 @@ menu.state('Deposit', {
     },
     next: {
         '0': 'Start',
-        '*\\d+': 'Deposit.account'
+        '*\\d+': 'Deposit.view'
     },
-    defaultNext: 'Deposit.account'
+    defaultNext: 'Deposit.view'
 });
 
 // menu.state('Deposit.account', {

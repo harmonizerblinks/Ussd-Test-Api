@@ -88,9 +88,10 @@ menu.state('Start', {
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
-                '\n5. Contact us'
-                )
-            }else{
+                '\n5. Contact us')
+        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+                menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
+            } else {
                 menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
             }
         });
@@ -98,10 +99,10 @@ menu.state('Start', {
     // next object links to next state based on user input
     next: {
         '0': 'Register',
-        '1': 'Deposit',
-        '2': 'Withdrawal',
+        '1': 'Pay',
+        '2': 'Icare',
         '3': 'CheckBalance',
-        '4': 'Other',
+        '4': 'Withdrawal',
         '5': 'Contact',
         '*[0-9]+': 'User.newpin'
     },
@@ -686,35 +687,10 @@ menu.state('Srp', {
 
 menu.state('CheckBalance',{
     run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        // if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please select Preferred Scheme Number: ' + accts)
-        // } else {
-        //     menu.con('Incorrect Pin. Enter zero(0) to continue')
-        // }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'CheckBalance.balance'
-    },
-    defaultNext: 'CheckBalance'
-})
-
-menu.state('CheckBalance.balance',{
-    run: async() => {
-        var index = Number(menu.val);
         var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        // menu.session.set('account', account);
+        filterPersonalSchemeOnly(accounts);
+
+        let account = await menu.session.get('account');
         await fetchBalance(account.code, async(result)=> { 
             console.log(result) 
             if(result.balance != null) { account.balance = result.balance; }
@@ -726,37 +702,17 @@ menu.state('CheckBalance.balance',{
     next: {
         '0': 'Start',
     },
-    defaultNext: 'CheckBalance.amount'
+    defaultNext: 'CheckBalance'
 });
 
 ///////////////--------------WITHDRAWAL ROUTE STARTS--------------////////////////
 
 menu.state('Withdrawal',{
     run: async() => {
-        // var custpin = Number(menu.val);
-        console.info(pin, menu.val);
-        var accts = ''; var count = 1;
         var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            accts += '\n'+count+'. '+val.code;
-            count +=1;
-        });
-        menu.con('Please select Preferred Scheme Number: ' + accts)
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'Withdrawal.amount'
-    },
-    defaultNext: 'Withdrawal'
-})
+        filterPersonalSchemeOnly(accounts);
 
-menu.state('Withdrawal.amount',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        menu.session.set('account', account);
+        let account = await menu.session.get('account');
         await fetchBalance(account.code, async(result)=> { 
             // console.log(result) 
             if(result.balance > 0) {
@@ -773,7 +729,7 @@ menu.state('Withdrawal.amount',{
     next: {
         '*\\d+': 'Withdrawal.view',
     },
-    defaultNext: 'Withdrawal.amount'
+    defaultNext: 'Withdrawal'
 })
 
 menu.state('Withdrawal.view',{
