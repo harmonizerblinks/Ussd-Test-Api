@@ -335,7 +335,7 @@ menu.state('exit', {
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
 menu.state('Pay', {
     run: async() => {
-        let name = await menu.session.get('firstname') + ' ' + await menu.session.get('lastname');
+        let name = await menu.session.get('name');
         menu.con(`Dear ${name}, How much would you like to pay?`)
     },
     next: {
@@ -359,46 +359,46 @@ menu.state('Pay.amount', {
     next: {
         '4': 'Pay.account',
         '5': 'Srp',
-        '*[0-3]+': 'Pay.auto'
+        '*[0-3]+': 'Pay.view'
     }
 })
 
-menu.state('Pay.account', {
-    run: async() => {
-        var schemes = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.code;
-            count += 1;
-        });
-        menu.con('Please select Preferred Scheme Number: ' + schemes)
-    },
-    next: {
-        '*\\d+': 'Pay.view',
-    }
-});
+// menu.state('Pay.account', {
+//     run: async() => {
+//         var schemes = ''; var count = 1;
+//         var accounts = await menu.session.get('accounts');
+//         accounts.forEach(val => {
+//             schemes += '\n' + count + '. ' + val.code;
+//             count += 1;
+//         });        
+//         menu.con('Please select Preferred Scheme Number: ' + schemes)
+//     },
+//     next: {
+//         '*\\d+': 'Pay.view',
+//     }
+// });
 
-menu.state('Pay.auto', {
-    run: async() => {
-        var schemes = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.code;
-            count += 1;
-        });
-        menu.con('Please select Preferred Scheme Number: ' + schemes)
-    },
-    next: {
-        '*\\d+': 'Pay.view',
-    }
-})
+// menu.state('Pay.auto', {
+//     run: async() => {
+//         var schemes = ''; var count = 1;
+//         accounts.forEach(val => {
+//             schemes += '\n' + count + '. ' + val.code;
+//             count += 1;
+//         });
+//         console.log(account);
+//         menu.con('Please select Preferred Scheme Number: ' + schemes)
+//     },
+//     next: {
+//         '*\\d+': 'Pay.view',
+//     }
+// })
 
 menu.state('Pay.view', {
     run: async() => {
-        var index = Number(menu.val);
         var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
+        var account = accounts.filter(obj => {
+            return obj.type.includes('PERSONAL')
+        })
         menu.session.set('account', account);
 
         let amount = await menu.session.get('amount'); 
@@ -1043,7 +1043,7 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
+            // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
@@ -1149,7 +1149,7 @@ function capitalizeFirstLetter(string) {
 
 // function filterPersonalScheme(schemes) {
 //     schemes.forEach(val => {
-//         val.
+//         val.type.includes('PERSONAL') ? menu.session.set('account', val) : ' ';
 //     });
-//     return string.charAt(0).toUpperCase() + string.slice(1);
+//     // return string.charAt(0).toUpperCase() + string.slice(1);
 // }
