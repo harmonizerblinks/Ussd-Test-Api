@@ -9,7 +9,7 @@
     "start-watch": "nodemon src/index.js"
   },
   "engines": {
-    "node": "6.11.1"
+    "node": "10.20.1"
   },
   "repository": {
     "type": "git",
