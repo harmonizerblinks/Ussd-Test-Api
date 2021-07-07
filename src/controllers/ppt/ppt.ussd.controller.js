@@ -900,9 +900,9 @@ async function postCustomer(val, callback) {
 }
 
 async function getInfo(val, callback) {
-    if (mobile && mobile.startsWith('+233')) {
+    if (val && val.startsWith('+233')) {
         // Remove Bearer from string
-        mobile = mobile.replace('+233', '0');
+        val = val.replace('+233', '0');
     }    
 
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;

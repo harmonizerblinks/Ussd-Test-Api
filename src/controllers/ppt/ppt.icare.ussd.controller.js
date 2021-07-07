@@ -127,7 +127,7 @@ menu.state('Icare.register', {
 menu.state('Icare.next', {
     run: async() => {
         let mobile = menu.args.phoneNumber;
-        console.log(mobile)
+        // console.log(mobile)
         if (mobile && mobile.startsWith('+233')) {
             // Remove Bearer from string
             mobile = mobile.replace('+233', '0');
