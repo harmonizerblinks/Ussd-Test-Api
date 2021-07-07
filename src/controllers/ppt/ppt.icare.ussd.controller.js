@@ -493,7 +493,7 @@ async function postCustomer(val, callback) {
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
-                menu.session.set('name', response.fullname);
+                menu.session.set('name', response.name);
                 menu.session.set('mobile', val);
                 menu.session.set('accounts', response.accounts);
                 menu.session.set('cust', response);

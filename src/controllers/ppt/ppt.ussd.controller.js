@@ -5,6 +5,7 @@ let sessions = {};
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
+let optionArray = ["", "Daily", "Weekly", "Monthly"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -51,15 +52,13 @@ menu.startState({
         
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
+            if(data.active) {     
                 menu.con('Welcome to People\'s Pensions Trust' + 
                 '\n1. Pay' +
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
                 '\n5. Contact us')
-        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to People\'s Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
             } else {
                 menu.con('Welcome to People\'s Pensions Trust, kindly follow the steps to Onboard \n0. Register');
             }
@@ -347,8 +346,13 @@ menu.state('exit', {
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
 menu.state('Pay', {
     run: async() => {
-        let name = await menu.session.get('name');
-        menu.con(`Dear ${name}, How much would you like to pay?`)
+        await fetchCustomer(menu.val, (data)=> {
+            if (data.active) {
+                menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
+            }else{
+                menu.end(`Error in Retrieving Customer Details.`)        
+            }
+        })
     },
     next: {
         '*\\d+': 'Pay.amount'
@@ -364,21 +368,23 @@ menu.state('Pay.amount', {
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
-        '\n4. Only once' +
-        '\n5. Stop Repeat Payments'
-        )
+        '\n4. Only once')
     },
     next: {
         '4': 'Pay.account',
-        '5': 'Srp',
         '*[0-3]+': 'Pay.view'
     }
 })
 
-// menu.state('Pay.account', {
+// menu.state('Pay.view', {
 //     run: async() => {
-//         var schemes = ''; var count = 1;
-//         var accounts = await menu.session.get('accounts');
+//     var index = Number(menu.val);
+        // if (index > 2) {
+        //     menu.con('Incorrect Selection. Enter zero(0) to retry again')
+        // } else {
+        //     var option = optionArray[index]
+        // }
+
 //         accounts.forEach(val => {
 //             schemes += '\n' + count + '. ' + val.code;
 //             count += 1;
@@ -405,7 +411,7 @@ menu.state('Pay.amount', {
 //     }
 // })
 
-menu.state('Pay.view', {
+menu.state('Pay.account', {
     run: async() => {
         var accounts = await menu.session.get('accounts');
         filterPersonalSchemeOnly(accounts);
@@ -440,11 +446,6 @@ menu.state('Pay.send', {
     }
 });
 
-menu.state('Srp', {
-    run: () => {
-        menu.end('You have successfully cancelled your Repeat Payments')
-    }
-});
 
 ///////////////--------------ICARE ROUTE STARTS--------------////////////////
 
@@ -920,7 +921,7 @@ async function postCustomer(val, callback) {
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
-                menu.session.set('name', response.fullname);
+                menu.session.set('name', response.name);
                 menu.session.set('mobile', val);
                 menu.session.set('accounts', response.accounts);
                 menu.session.set('cust', response);
