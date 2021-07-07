@@ -307,7 +307,10 @@ menu.state('Icare.gender', {
             if (mobile && mobile.startsWith('+233')) {
                 // Remove Bearer from string
                 mobile = mobile.replace('+233', '0');
-            }    
+            }else if(mobile && mobile.startsWith('233')) {
+                // Remove Bearer from string
+                mobile = mobile.replace('233', '0');
+            }       
             menu.con('Please confirm the registration details below to continue:' +
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
@@ -331,6 +334,13 @@ menu.state('Icare.complete', {
         var icareId = await menu.session.get('icareid');
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('233', '0');
+        }    
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD", icareid: icareId
         };

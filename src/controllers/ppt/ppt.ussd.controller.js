@@ -281,6 +281,9 @@ menu.state('Register.gender', {
             if (mobile && mobile.startsWith('+233')) {
                 // Remove Bearer from string
                 mobile = mobile.replace('+233', '0');
+            }else if(mobile && mobile.startsWith('233')) {
+                // Remove Bearer from string
+                mobile = mobile.replace('233', '0');
             }    
             menu.con('Please confirm the registration details below to continue:' +
             '\nFirst Name - ' + firstname +
