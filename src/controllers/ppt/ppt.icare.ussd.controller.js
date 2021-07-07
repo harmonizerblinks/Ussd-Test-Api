@@ -47,7 +47,7 @@ menu.startState({
         
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, async(data)=> { 
-            // console.log(1,data); 
+            console.log(1,data.body); 
             if(data.icareid !== 0) {
                 menu.con('Welcome to Icare for Peoples Pensions Trust. Choose your Preferred Option:' +
                 '\n1. Register for Someone' +
@@ -57,6 +57,7 @@ menu.startState({
                 var postdata = {
                     name: data.fullname, mobile: menu.args.phoneNumber
                 };
+                console.log(postdata);
                 await postIcareCustomer(postdata, (data) => {
                     menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
                     '\n1. Register for Someone' +
@@ -126,7 +127,7 @@ menu.state('Icare.register', {
 
 menu.state('Icare.next', {
     run: async() => {
-        let mobile = menu.args.phoneNumber;
+        let mobile = menu.val;
         // console.log(mobile)
         if (mobile && mobile.startsWith('+233')) {
             // Remove Bearer from string
@@ -134,7 +135,7 @@ menu.state('Icare.next', {
         }    
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            if(data.surname && data.surname == null || data.lastname && data.lastname == " "){
+            if(data.surname && data.surname == null || data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
                 // console.log(nameArray.length)
@@ -156,17 +157,17 @@ menu.state('Icare.next', {
                 menu.session.set('firstname', firstname)
                 menu.session.set('lastname', lastname)
             }
-            menu.con(`Please confirm Person\'s details:
-            First Name: ${firstname}
-            Last Name: ${lastname}
+            menu.con('Please confirm Person\'s details:' +
+            '\nFirst Name: ' + firstname +
+            '\nLast Name: ' + lastname +
             
-            0. Make Changes
-            1. Confirm`)
+            '\n\n0. Make Changes' +
+            '\n1. Confirm')
         })
     },
     next: {
-        '0': 'Register.change',
-        '1': 'Register.autogender',
+        '0': 'Icare.change',
+        '1': 'Icare.autogender',
     }
 });
 
@@ -454,7 +455,7 @@ async function postIcareCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.resp.raw_body);
+            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);

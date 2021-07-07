@@ -51,7 +51,7 @@ menu.startState({
         
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active) {     
+            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
                 menu.con('Welcome to Peoples Pensions Trust' + 
                 '\n1. Pay' +
                 '\n2. iCare (Pay for Someone)' +
@@ -82,14 +82,14 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active) {     
+            if(data.active == true && (data.pin !== null || data.pin !== '' || data.pin !== '1234')) {     
                 menu.con('Welcome to Peoples Pensions Trust' + 
                 '\n1. Pay' +
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
                 '\n5. Contact us')
-        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+        } else if(data.active !== true && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
             } else {
                 menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
@@ -180,10 +180,10 @@ menu.state('User.verifypin', {
 menu.state('Register', {
     run: async() => {
         let mobile = menu.args.phoneNumber;
-        console.log(mobile)
+        // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            if(data.surname && data.surname == null || data.lastname && data.lastname == " "){
+            if(data.surname && data.surname == null || data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
                 // console.log(nameArray.length)
@@ -205,12 +205,12 @@ menu.state('Register', {
                 menu.session.set('firstname', firstname)
                 menu.session.set('lastname', lastname)
             }
-            menu.con(`Please confirm Person\'s details:
-            First Name: ${firstname}
-            Last Name: ${lastname}
+            menu.con('Please confirm Person\'s details:' +
+            '\nFirst Name: ' + firstname +
+            '\nLast Name: ' + lastname +
             
-            0. Make Changes
-            1. Confirm`)
+            '\n\n0. Make Changes' +
+            '\n1. Confirm')
         })
     },
     next: {
@@ -310,12 +310,12 @@ menu.state('Register.complete', {
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {
-                menu.con('Dear '+ name + ', you have successfully register for the Peoples Pension Trust' + 
+                menu.con('Dear '+ data.fullname + ', you have successfully register for the Peoples Pension Trust' + 
                 '\nWould you like to continue with payment?' +
                 '\n0. Exit' +
                 '\n1. Pay');
             } else {
-                menu.end('Dear Customer, the number you entered is already registered.');
+                menu.end(data.message || 'Dear Customer, the number you entered is already registered.');
             }
         })
 
@@ -461,25 +461,37 @@ menu.state('Icare.register', {
 menu.state('Icare.next', {
     run: async() => {
         let mobile = menu.val;
+        // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            var name = data.firstname;
-            var nameArray = name.split(" ")
-            // console.log(nameArray.length)
-            if (nameArray.length > 2){
-                menu.session.set('firstname', capitalizeFirstLetter(nameArray[0]))
-                menu.session.set('lastname', capitalizeFirstLetter(nameArray[2]))
-            }else{
-                menu.session.set('firstname', capitalizeFirstLetter(nameArray[0]))
-                menu.session.set('lastname', capitalizeFirstLetter(nameArray[1]))
-            }
+            if(data.surname && data.surname == null || data.lastname == null){
+                var name = data.firstname;
+                var nameArray = name.split(" ")
+                // console.log(name)
+                if (nameArray.length > 2){
+                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                    var lastname = capitalizeFirstLetter(nameArray[2]);
+                    menu.session.set('firstname', firstname)
+                    menu.session.set('lastname', lastname)
+                }else{
+                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                    var lastname = capitalizeFirstLetter(nameArray[1]);
+                    menu.session.set('firstname', firstname)
+                    menu.session.set('lastname', lastname)
+                }
 
-            menu.con(`Please confirm Person\'s details:
-            First Name: ${await menu.session.get('firstname')}
-            Last Name: ${await menu.session.get('lastname')}
+            }else{
+                var firstname = data.firstname;
+                var lastname = data.surname || data.lastname;
+                menu.session.set('firstname', firstname)
+                menu.session.set('lastname', lastname)
+            }
+            menu.con('Please confirm Person\'s details:' +
+            '\nFirst Name: ' + firstname +
+            '\nLast Name: ' + lastname +
             
-            0. Make Changes
-            1. Confirm`)
+            '\n\n0. Make Changes' +
+            '\n1. Confirm')
         })
     },
     next: {
@@ -884,7 +896,7 @@ async function postCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.raw_body);
+            // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
