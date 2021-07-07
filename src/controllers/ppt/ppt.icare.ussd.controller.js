@@ -46,32 +46,74 @@ menu.startState({
         // Fetch Customer information
         
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
-        await fetchCustomer(menu.args.phoneNumber, async(data)=> { 
-            console.log(1,data.body); 
-            if(data.icareid !== 0) {
+        await fetchIcareCustomer(menu.args.phoneNumber, async(data)=> { 
+            // console.log(1,data.body); 
+            if(data.icareid) {
                 menu.con('Welcome to Icare for Peoples Pensions Trust. Choose your Preferred Option:' +
                 '\n1. Register for Someone' +
                 '\n2. Pay for Someone'
-                )
-            } else if(data.icareid == 0){
-                var postdata = {
-                    name: data.fullname, mobile: menu.args.phoneNumber
-                };
-                console.log(postdata);
-                await postIcareCustomer(postdata, (data) => {
-                    menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
-                    '\n1. Register for Someone' +
-                    '\n2. Pay for Someone'
-                    )
-                })
+                )                
             } 
             else {
-                menu.con('Dear Customer, you are not registered on Peoples Pensions Trust. Dial *789*7879# to register.');
+                await fetchCustomer(menu.args.phoneNumber, async(data) =>{
+                    // console.log(data);
+                    if(data.code)
+                    {
+                        var postIcare = {
+                            name: data.fullname, mobile: menu.args.phoneNumber
+                        };
+                        await postIcareCustomer(postIcare, (data) => {
+                            menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
+                            '\n1. Register for Someone' +
+                            '\n2. Pay for Someone'
+                            )
+                        })
+                    } else {
+                        let mobile = menu.val;
+                        // console.log(mobile)
+                        if (mobile && mobile.startsWith('+233')) {
+                            // Remove Bearer from string
+                            mobile = mobile.replace('+233', '0');
+                        }    
+                        menu.session.set('mobile', mobile);        
+                        await getInfo(mobile, async(data) =>{
+                            if(data.surname && data.surname == null || data.lastname == null){
+                                var name = data.firstname;
+                                var nameArray = name.split(" ")
+                                // console.log(nameArray.length)
+                                if (nameArray.length > 2){
+                                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                                    var lastname = capitalizeFirstLetter(nameArray[2]);
+                                    menu.session.set('firstname', firstname)
+                                    menu.session.set('lastname', lastname)
+                                }else{
+                                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                                    var lastname = capitalizeFirstLetter(nameArray[1]);
+                                    menu.session.set('firstname', firstname)
+                                    menu.session.set('lastname', lastname)
+                                }
+                
+                            }else{
+                                var firstname = data.firstname;
+                                var lastname = data.surname || data.lastname;
+                                menu.session.set('firstname', firstname)
+                                menu.session.set('lastname', lastname)
+                            }
+                            menu.con('Please confirm Person\'s details:' +
+                            '\nFirst Name: ' + firstname +
+                            '\nLast Name: ' + lastname +
+                            
+                            '\n\n0. Make Changes' +
+                            '\n1. Confirm')
+                        })
+                    }
+                })
             }
         });
     },
     // next object links to next state based on user input
     next: {
+        '0': 'changes',
         '1': 'Icare.register',
         '2': 'Icare.phonenumber',
     }
@@ -113,6 +155,39 @@ menu.state('Start', {
     defaultNext: 'Start'
 });
 
+
+///////////////--------------CONFIRM ROUTE STARTS--------------////////////////
+
+menu.state('register', {
+    run: async() => {
+        var firstname = await menu.session.get('firstname');
+        var lastname = await menu.session.get('lastname');
+        var mobile = await menu.session.get('mobile');
+        var data = {
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD", icareid: icareId
+        };
+        await postCustomer(data, async(data) => {
+            if(data.schemenumber) {
+                var postIcare = {
+                    name: data.fullname, mobile: menu.args.phoneNumber
+                };
+                await postIcareCustomer(postIcare, (data) => {
+                    menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
+                    '\n1. Register for Someone' +
+                    '\n2. Pay for Someone'
+                    )
+                })
+                // menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu');
+            } else {
+                menu.con('Dear Customer, the number you entered is already registered. Press 0 to continue to the Main Menu');
+            }
+        })
+        
+    },
+    next: {
+        '0': 'Start',
+    }
+});
 
 ///////////////--------------ICARE > REGISTER ROUTE STARTS--------------////////////////
 
@@ -471,13 +546,16 @@ async function postIcareCustomer(val, callback) {
     return true
 }
 
-async function fetchIcareCustomer(val, callback) {
+async function fetchCustomer(val, callback) {
     // try {
     if (val && val.startsWith('+233')) {
         // Remove Bearer from string
         val = val.replace('+233', '0');
-    }
-    var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
+    }else if(val && val.startsWith('233')) {
+        // Remove Bearer from string
+        val = val.replace('233', '0');
+    }    
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -487,7 +565,7 @@ async function fetchIcareCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
+            // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
@@ -507,12 +585,15 @@ async function fetchIcareCustomer(val, callback) {
     // }
 }
 
-async function fetchCustomer(val, callback) {
+async function fetchIcareCustomer(val, callback) {
     // try {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }
+        if (val && val.startsWith('+233')) {
+            // Remove Bearer from string
+            val = val.replace('+233', '0');
+        }else if(val && val.startsWith('233')) {
+            // Remove Bearer from string
+            val = val.replace('233', '0');
+        }    
     var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)

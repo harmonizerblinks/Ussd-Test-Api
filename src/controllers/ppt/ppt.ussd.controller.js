@@ -52,16 +52,16 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
-                menu.con('Welcome to Peoples Pensions Trust' + 
+                menu.con('Welcome to People\'s Pensions Trust' + 
                 '\n1. Pay' +
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
                 '\n5. Contact us')
         } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
+                menu.con('Welcome to People\'s Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
             } else {
-                menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
+                menu.con('Welcome to People\'s Pensions Trust, kindly follow the steps to Onboard \n0. Register');
             }
         });
     },
@@ -82,17 +82,17 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active == true && (data.pin !== null || data.pin !== '' || data.pin !== '1234')) {     
-                menu.con('Welcome to Peoples Pensions Trust' + 
+            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
+                menu.con('Welcome to People\'s Pensions Trust' + 
                 '\n1. Pay' +
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
                 '\n5. Contact us')
-        } else if(data.active !== true && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to Peoples Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
+        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+                menu.con('Welcome to People\'s Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
             } else {
-                menu.con('Welcome to Peoples Pensions Trust, kindly follow the steps to Onboard \n0. Register');
+                menu.con('Welcome to People\'s Pensions Trust, kindly follow the steps to Onboard \n0. Register');
             }
         });
     },
@@ -305,12 +305,20 @@ menu.state('Register.complete', {
         var icareId = await menu.session.get('icareid');
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('233', '0');
+        }    
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
         await postCustomer(data, (data) => {
+            console.log(data)
             if(data.schemenumber) {
-                menu.con('Dear '+ data.fullname + ', you have successfully register for the Peoples Pension Trust' + 
+                menu.con('Dear '+ data.name + ', you have successfully registered for the Peoples Pension Trust' + 
                 '\nWould you like to continue with payment?' +
                 '\n0. Exit' +
                 '\n1. Pay');
@@ -561,6 +569,9 @@ menu.state('Icare.gender', {
             if (mobile && mobile.startsWith('+233')) {
                 // Remove Bearer from string
                 mobile = mobile.replace('+233', '0');
+            }else if(mobile && mobile.startsWith('233')) {
+                // Remove Bearer from string
+                mobile = mobile.replace('233', '0');
             }    
             menu.con('Please confirm the registration details below to continue:' +
             '\nFirst Name - ' + firstname +
@@ -585,6 +596,13 @@ menu.state('Icare.complete', {
         // var name = await menu.session.get('name');
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('233', '0');
+        }    
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
         };
@@ -915,6 +933,9 @@ async function getInfo(val, callback) {
     if (val && val.startsWith('+233')) {
         // Remove Bearer from string
         val = val.replace('+233', '0');
+    }else if(val && val.startsWith('233')) {
+        // Remove Bearer from string
+        val = val.replace('233', '0');
     }    
 
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
@@ -996,10 +1017,13 @@ async function fetchIcareCustomer(val, callback) {
 
 async function fetchCustomer(val, callback) {
     // try {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }
+        if (val && val.startsWith('+233')) {
+            // Remove Bearer from string
+            val = val.replace('+233', '0');
+        }else if(val && val.startsWith('233')) {
+            // Remove Bearer from string
+            val = val.replace('233', '0');
+        }    
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
