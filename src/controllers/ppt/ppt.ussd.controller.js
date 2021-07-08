@@ -457,7 +457,7 @@ menu.state('Icare', {
     },
     next: {
         '1': 'Icare.register',
-        '2': 'Icare.mobile',
+        '2': 'Icare.Deposit',
     }
 });
 
@@ -625,16 +625,16 @@ menu.state('Icare.complete', {
     }
 })
 
-menu.state('Icare.mobile', {
+menu.state('Icare.Deposit', {
     run: () => {
         menu.con('Enter Mobile Number of Person')
     },
     next: {
-        '*\\d+': 'Deposit'
+        '*\\d+': 'Icare.Deposit.mobile'
     }
 })
 
-menu.state('Deposit', {
+menu.state('Icare.Deposit.mobile', {
     run: async() => {
         await fetchCustomer(menu.val, (data)=> { 
             // console.log(1,data);  
