@@ -47,7 +47,7 @@ menu.startState({
         
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchIcareCustomer(menu.args.phoneNumber, async(data)=> { 
-            console.log('Fetch Icare Started', data.body); 
+            // console.log('Fetch Icare Started', data.body); 
             if(data.icareid) {
                 menu.con('Welcome to Icare for Peoples Pensions Trust. Choose your Preferred Option:' +
                 '\n1. Register for Someone' +
@@ -56,21 +56,25 @@ menu.startState({
             } 
             else {
                 await fetchCustomer(menu.args.phoneNumber, async(data) =>{
-                    console.log('Fetch Customer Started'); 
+                    // console.log('Fetch Customer Started'); 
                     if(data.code)
                     {
+                        let mobile = menu.args.phoneNumber;
+                        if (mobile && mobile.startsWith('+233')) {
+                            // Remove Bearer from string
+                            mobile = mobile.replace('+233', '0');
+                        }
                         var postIcare = {
-                            name: data.fullname, mobile: menu.args.phoneNumber
+                            name: data.fullname, mobile: mobile
                         };
                         await postIcareCustomer(postIcare, (data) => {
-                            console.log('Post Icare Started'); 
                             menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
                             '\n1. Register for Someone' +
                             '\n2. Pay for Someone'
                             )
                         })
                     } else {
-                        let mobile = menu.val;
+                        let mobile = menu.args.phoneNumber;
                         // console.log(mobile)
                         if (mobile && mobile.startsWith('+233')) {
                             // Remove Bearer from string
@@ -78,7 +82,7 @@ menu.startState({
                         }    
                         menu.session.set('mobile', mobile);        
                         await getInfo(mobile, async(data) =>{
-                            console.log('Get Info Started'); 
+                            // console.log('Get Info Started'); 
                             if(data.surname && data.surname == null || data.lastname == null){
                                 var name = data.firstname;
                                 var nameArray = name.split(" ")
