@@ -434,7 +434,7 @@ menu.state('Pay.send', {
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
-        // console.log(data);
+        console.log(data);
         await postDeposit(data, async(data) => {
             if (data.status == 0) {
                 menu.end('Request submitted successfully. You will receive a payment prompt shortly');
@@ -881,7 +881,7 @@ exports.ussdApp = async(req, res) => {
     }
     // console.log(args);
     menu.run(args, ussdResult => {
-        menu.session.set('network', args.Operator);
+        if(args.Operator) {menu.session.set('network', args.Operator); }
         res.send(ussdResult);
     });
     // let args = {
@@ -1096,9 +1096,7 @@ async function postDeposit(val, callback) {
             await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
-        console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        console.log(response);
         await callback(response);
     });
     return true
