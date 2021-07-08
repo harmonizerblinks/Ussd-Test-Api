@@ -81,7 +81,7 @@ menu.state('Tier2.confirm', {
         menu.session.set('amount', amount);
         var name = await menu.session.get('name');
         menu.con('Please confirm the details below to continue payment:' +
-        '\nCompany Name - ' + companyname +
+        '\nCompany Name - ' + name +
         '\nAmount - GHS '+ amount + 
         '\n\n0. Make Changes' +
         '\n1. Confirm')

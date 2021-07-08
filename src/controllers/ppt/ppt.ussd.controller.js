@@ -60,7 +60,7 @@ menu.startState({
                 '\n4. Withdrawal' +
                 '\n5. Contact us')
             } else {
-                menu.con('Welcome to People\'s Pensions Trust, kindly follow the steps to Onboard \n0. Register');
+                menu.con('Welcome to People\'s Pensions Trust, Press 0 (zero) to confirm your registration details. \n0. Register');
             }
         });
     },
@@ -81,17 +81,15 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
+            if(data.active) {     
                 menu.con('Welcome to People\'s Pensions Trust' + 
                 '\n1. Pay' +
                 '\n2. iCare (Pay for Someone)' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
                 '\n5. Contact us')
-        } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to People\'s Pensions Trust. Please create a PIN before continuing' + '\nEnter 4 digits.');
             } else {
-                menu.con('Welcome to People\'s Pensions Trust, kindly follow the steps to Onboard \n0. Register');
+                menu.con('Welcome to People\'s Pensions Trust, Press 0 (zero) to confirm your registration details. \n0. Register');
             }
         });
     },
@@ -321,9 +319,9 @@ menu.state('Register.complete', {
             console.log(data)
             if(data.schemenumber) {
                 menu.con('Dear '+ data.name + ', you have successfully registered for the Peoples Pension Trust' + 
-                '\nWould you like to continue with payment?' +
-                '\n0. Exit' +
-                '\n1. Pay');
+                '\nPress zero(0) to continue to payment' +
+                '\n1. Exit' +
+                '\n0. Pay');
             } else {
                 menu.end(data.message || 'Dear Customer, the number you entered is already registered.');
             }
@@ -331,8 +329,8 @@ menu.state('Register.complete', {
 
     },
     next: {
-        '0': 'exit',
-        '1': 'Pay',
+        '1': 'exit',
+        '0': 'Pay',
     }
 })
 
@@ -363,7 +361,7 @@ menu.state('Pay.amount', {
     run: () => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-
+        
         menu.con('Choose Option:' +
         '\n1. Daily' +
         '\n2. Weekly'+
