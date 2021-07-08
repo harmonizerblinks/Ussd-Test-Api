@@ -318,7 +318,7 @@ menu.state('Register.complete', {
         await postCustomer(data, (data) => {
             console.log(data)
             if(data.schemenumber) {
-                menu.con('Dear '+ data.name + ', you have successfully registered for the Peoples Pension Trust' + 
+                menu.con('Dear '+ data.name + ', you have successfully registered for the People\'s Pension Trust' + 
                 '\nPress zero(0) to continue to payment' +
                 '\n1. Exit' +
                 '\n0. Pay');
@@ -344,7 +344,7 @@ menu.state('exit', {
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
 menu.state('Pay', {
     run: async() => {
-        await fetchCustomer(menu.val, (data)=> {
+        await fetchCustomer(menu.args.phoneNumber, (data)=> {
             if (data.active) {
                 menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
             }else{
@@ -1036,7 +1036,7 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
+            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
