@@ -412,9 +412,8 @@ menu.state('Pay.amount', {
 menu.state('Pay.account', {
     run: async() => {
         var accounts = await menu.session.get('accounts');
-        await filterPersonalSchemeOnly(accounts, (account) => {
-            menu.session.set('account', account);
-        });
+        let account = await filterPersonalSchemeOnly(accounts);
+        menu.session.set('account', account);
         let amount = await menu.session.get('amount'); 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -431,6 +430,7 @@ menu.state('Pay.send', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
+        console.log(account);
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
@@ -672,9 +672,8 @@ menu.state('Deposit.view', {
         let amount = menu.val;
         menu.session.set('amount', amount);
         var accounts = await menu.session.get('accounts');
-        await filterPersonalSchemeOnly(accounts, (account) => {
-            menu.session.set('account', account);
-        });
+        let account = await filterPersonalSchemeOnly(accounts);
+        menu.session.set('account', account);
 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -724,11 +723,9 @@ menu.state('Srp', {
 menu.state('CheckBalance',{
     run: async() => {
         var accounts = await menu.session.get('accounts');
-        await filterPersonalSchemeOnly(accounts, (account) => {
-            menu.session.set('account', account);
-        });
+        let account = await filterPersonalSchemeOnly(accounts);
+        menu.session.set('account', account);
 
-        let account = await menu.session.get('account');
         await fetchBalance(account.code, async(result)=> { 
             console.log(result) 
             if(result.balance != null) { account.balance = result.balance; }
@@ -748,11 +745,12 @@ menu.state('CheckBalance',{
 menu.state('Withdrawal',{
     run: async() => {
         var accounts = await menu.session.get('accounts');
-        await filterPersonalSchemeOnly(accounts, (account) => {
-            menu.session.set('account', account);
-        });
+        // await filterPersonalSchemeOnly(accounts, (account) => {
+        //     menu.session.set('account', account);
+        // });
 
-        let account = await menu.session.get('account');
+        let account = await filterPersonalSchemeOnly(accounts);
+        menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
             // console.log(result) 
             if(result.balance > 0) {
@@ -898,7 +896,7 @@ exports.ussdApp = async(req, res) => {
 };
 
 async function filterPersonalSchemeOnly(accounts) {
-    accounts.find(obj => {
+    return accounts.find(obj => {
         return obj.type.includes('PERSONAL');
     });
 }
