@@ -412,7 +412,9 @@ menu.state('Pay.amount', {
 menu.state('Pay.account', {
     run: async() => {
         var accounts = await menu.session.get('accounts');
-        filterPersonalSchemeOnly(accounts);
+        await filterPersonalSchemeOnly(accounts, (account) => {
+            menu.session.set('account', account);
+        });
         let amount = await menu.session.get('amount'); 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -670,7 +672,9 @@ menu.state('Deposit.view', {
         let amount = menu.val;
         menu.session.set('amount', amount);
         var accounts = await menu.session.get('accounts');
-        filterPersonalSchemeOnly(accounts);
+        await filterPersonalSchemeOnly(accounts, (account) => {
+            menu.session.set('account', account);
+        });
 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -720,7 +724,9 @@ menu.state('Srp', {
 menu.state('CheckBalance',{
     run: async() => {
         var accounts = await menu.session.get('accounts');
-        filterPersonalSchemeOnly(accounts);
+        await filterPersonalSchemeOnly(accounts, (account) => {
+            menu.session.set('account', account);
+        });
 
         let account = await menu.session.get('account');
         await fetchBalance(account.code, async(result)=> { 
@@ -742,7 +748,9 @@ menu.state('CheckBalance',{
 menu.state('Withdrawal',{
     run: async() => {
         var accounts = await menu.session.get('accounts');
-        filterPersonalSchemeOnly(accounts);
+        await filterPersonalSchemeOnly(accounts, (account) => {
+            menu.session.set('account', account);
+        });
 
         let account = await menu.session.get('account');
         await fetchBalance(account.code, async(result)=> { 
@@ -889,11 +897,10 @@ exports.ussdApp = async(req, res) => {
     // });
 };
 
-function filterPersonalSchemeOnly(accounts) {
-    var account = accounts.find(obj => {
+async function filterPersonalSchemeOnly(accounts) {
+    accounts.find(obj => {
         return obj.type.includes('PERSONAL');
     });
-    menu.session.set('account', account);
 }
 
 function buyAirtime(phone, val) {

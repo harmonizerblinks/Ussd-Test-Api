@@ -27,13 +27,8 @@ module.exports = function(app) {
     app.post('/group', ppt.ussdApp);
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
     app.post('/leader', ppttier2.ussdApp);
-<<<<<<< HEAD
-    // *789*7878#
-    app.post('/', ppticare.ussdApp);
-=======
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
     app.post('/', pptofficer.ussdApp);
->>>>>>> b98d34942c768bfe367f1a0a433e28f362547054
 
     // Ecg Ussd 
     app.post('/api/ecg', ecg.ussdApp);

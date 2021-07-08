@@ -416,7 +416,9 @@ menu.state('Deposit.view', {
         let amount = menu.val;
         menu.session.set('amount', amount);
         var accounts = await menu.session.get('accounts');
-        filterPersonalSchemeOnly(accounts);
+        await filterPersonalSchemeOnly(accounts, (account) => {
+            menu.session.set('account', account);
+        });
 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -663,9 +665,8 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-function filterPersonalSchemeOnly(accounts) {
-    var account = accounts.find(obj => {
+async function filterPersonalSchemeOnly(accounts) {
+    accounts.find(obj => {
         return obj.type.includes('PERSONAL');
     });
-    menu.session.set('account', account);
 }
