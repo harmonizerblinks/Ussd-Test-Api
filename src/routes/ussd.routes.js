@@ -5,6 +5,10 @@ module.exports = function(app) {
     var ahantaman = require('../controllers/ahantaman/ahantaman.ussd.controller.js');
     var ahantamantest = require('../controllers/ahantaman/ahantaman.test.ussd.controller.js');
     var ahantamanofficer = require('../controllers/ahantaman/ahantaman.officer.ussd.controller.js');
+    // Leverage
+    var leverage = require('../controllers/leverage/leverage.ussd.controller.js');
+    var leveragetest = require('../controllers/leverage/leverage.test.ussd.controller.js');
+    var leverageofficer = require('../controllers/leverage/leverage.officer.ussd.controller.js');
     // Aslan
     var aslan = require('../controllers/aslan/aslan.ussd.controller.js');
     // ECG 
@@ -48,6 +52,10 @@ module.exports = function(app) {
     // GPRTU Collection
     app.post('/api/gprtu', ahantaman.ussdApp);
     app.post('/api/gprtu/officer', ppt.ussdApp);
+    
+    // LEVERAGE Collection
+    app.post('/api/leverage', leverage.ussdApp);
+    app.post('/api/leverage/officer', leverageofficer.ussdApp);
 
     // PPT Collection
     app.post('/api/ppt', ppt.ussdApp);
