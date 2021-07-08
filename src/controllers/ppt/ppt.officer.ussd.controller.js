@@ -190,7 +190,9 @@ menu.state('Deposit.view', {
         let amount = menu.val;
         menu.session.set('amount', amount);
         var accounts = await menu.session.get('accounts');
-        filterPersonalSchemeOnly(accounts);
+        await filterPersonalSchemeOnly(accounts, (account) => {
+            menu.session.set('account', account);
+        });
 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -409,8 +411,13 @@ async function postChangePin(val, callback) {
     return true
 }
 
-
 async function getCharge(val, callback) {
     var amount = value 
     return true
+}
+
+async function filterPersonalSchemeOnly(accounts) {
+    accounts.find(obj => {
+        return obj.type.includes('PERSONAL');
+    });
 }

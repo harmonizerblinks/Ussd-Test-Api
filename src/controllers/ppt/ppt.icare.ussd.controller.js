@@ -47,7 +47,7 @@ menu.startState({
         
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchIcareCustomer(menu.args.phoneNumber, async(data)=> { 
-            // console.log(1,data.body); 
+            console.log('Fetch Icare Started', data.body); 
             if(data.icareid) {
                 menu.con('Welcome to Icare for Peoples Pensions Trust. Choose your Preferred Option:' +
                 '\n1. Register for Someone' +
@@ -56,13 +56,14 @@ menu.startState({
             } 
             else {
                 await fetchCustomer(menu.args.phoneNumber, async(data) =>{
-                    // console.log(data);
+                    console.log('Fetch Customer Started'); 
                     if(data.code)
                     {
                         var postIcare = {
                             name: data.fullname, mobile: menu.args.phoneNumber
                         };
                         await postIcareCustomer(postIcare, (data) => {
+                            console.log('Post Icare Started'); 
                             menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
                             '\n1. Register for Someone' +
                             '\n2. Pay for Someone'
@@ -77,6 +78,7 @@ menu.startState({
                         }    
                         menu.session.set('mobile', mobile);        
                         await getInfo(mobile, async(data) =>{
+                            console.log('Get Info Started'); 
                             if(data.surname && data.surname == null || data.lastname == null){
                                 var name = data.firstname;
                                 var nameArray = name.split(" ")
@@ -414,7 +416,9 @@ menu.state('Deposit.view', {
         let amount = menu.val;
         menu.session.set('amount', amount);
         var accounts = await menu.session.get('accounts');
-        filterPersonalSchemeOnly(accounts);
+        await filterPersonalSchemeOnly(accounts, (account) => {
+            menu.session.set('account', account);
+        });
 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -661,9 +665,8 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-function filterPersonalSchemeOnly(accounts) {
-    var account = accounts.find(obj => {
+async function filterPersonalSchemeOnly(accounts) {
+    accounts.find(obj => {
         return obj.type.includes('PERSONAL');
     });
-    menu.session.set('account', account);
 }
