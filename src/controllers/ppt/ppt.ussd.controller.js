@@ -445,15 +445,9 @@ menu.state('Pay.send', {
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code};
-        console.log(data);
-        await postDeposit(data, async(data) => {
-            console.log(data);
-            if (data.status == 0) {
-                menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-            } else {
-                menu.end('Application Server error. Please contact administrator');
-            }
-        });
+        await postDeposit(data, async(result)=> { 
+            // menu.end(JSON.stringify(result)); 
+        }); 
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
 });
