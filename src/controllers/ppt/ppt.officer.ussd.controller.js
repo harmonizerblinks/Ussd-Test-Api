@@ -190,9 +190,8 @@ menu.state('Deposit.view', {
         let amount = menu.val;
         menu.session.set('amount', amount);
         var accounts = await menu.session.get('accounts');
-        await filterPersonalSchemeOnly(accounts, (account) => {
-            menu.session.set('account', account);
-        });
+        let account = await filterPersonalSchemeOnly(accounts);
+        menu.session.set('account', account);
 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -200,7 +199,7 @@ menu.state('Deposit.view', {
         )
     },
     next: {
-        '0': 'Exit',
+        '0': 'Deposit.cancel',
         '1': 'Deposit.send',
     }
 })
@@ -263,7 +262,7 @@ async function fetchOfficer(val, callback) {
             val = val.replace('+233','0');
         }
         var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
-        console.log(api_endpoint);
+        // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
             if (resp.error) { 
@@ -272,7 +271,7 @@ async function fetchOfficer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.body);
+            // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if(response.active)
             {
@@ -292,7 +291,7 @@ async function fetchCustomer(val, callback) {
         //     val = val.replace('+233','0');
         // }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-        console.log(api_endpoint);
+        // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
             if (resp.error) { 
@@ -365,7 +364,7 @@ async function postDeposit(val, callback) {
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
-        console.log(JSON.stringify(val));
+        // console.log(JSON.stringify(val));
         if (resp.error) { 
             console.log(resp.error);
             // await postDeposit(val);
