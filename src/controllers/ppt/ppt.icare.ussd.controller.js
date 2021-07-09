@@ -390,7 +390,7 @@ menu.state('Icare.complete', {
     },
     next: {
         '0': 'exit',
-        '1': 'Icare.mobile',
+        '1': 'Icare.frequency',
     }
 })
 
@@ -400,6 +400,22 @@ menu.state('exit', {
     }
 })
 
+
+menu.state('Icare.frequency', {
+    run: () => {
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. Only once')
+    },
+    next: {
+        '4': 'Deposit.Once',
+        '*[0-3]+': 'Pay.view'
+    }
+})
+
+
 menu.state('Icare.mobile', {
     run: () => {
         menu.con('Enter Mobile Number of Person')
@@ -408,6 +424,17 @@ menu.state('Icare.mobile', {
         '*\\d+': 'Deposit'
     }
 })
+
+menu.state('Deposit.Once', {
+    run: async() => {
+        let name = await menu.session.get('name')
+        menu.con('You are making a payment for ' + name +'. How much would you like to pay?')
+    },
+    next: {
+        '*\\d+': 'Pay.Confirm.Amount'
+    }
+});
+
 
 menu.state('Deposit', {
     run: async() => {
@@ -426,6 +453,42 @@ menu.state('Deposit', {
     }
 });
 
+menu.state('Pay.view', {
+    run: async() => {
+    var index = Number(menu.val);
+        if (index > 3) {
+            menu.con('Incorrect Selection. Enter zero(0) to retry again')
+        } else {
+            var option = optionArray[index];
+            menu.session.set('paymentoption', option);
+            var accounts = await menu.session.get('accounts');
+            let account = await filterPersonalSchemeOnly(accounts);
+            menu.session.set('account', account);
+            let name = await menu.session.get('name')
+            menu.con(`Dear ${name}, How much would you like to pay?`)        
+        }
+    },
+    next: {
+        '*\\d+': 'Pay.Option.Amount',
+    }
+});
+
+menu.state('Pay.Option.Amount', {
+    run: () => {
+        let amount = menu.val;
+        menu.session.set('amount', amount); 
+        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+        '\n1. Proceed' +
+        '\n0. Exit'
+        )
+},
+    next: {
+        '1': 'Deposit.send',
+        '0': 'Deposit.cancel'
+    }
+})
+
+
 // menu.state('Deposit.account', {
 //     run: async() => {
 //         let amount = menu.val;
@@ -443,23 +506,39 @@ menu.state('Deposit', {
 //     }
 // });
 
-menu.state('Pay.amount', {
-    run: () => {
+// menu.state('Pay.amount', {
+//     run: () => {
+//         menu.con('Choose Option:' +
+//         '\n1. Daily' +
+//         '\n2. Weekly'+
+//         '\n3. Monthly' +
+//         '\n4. Only once')
+//     },
+//     next: {
+//         '4': 'Deposit.view',
+//         '*[0-3]+': 'Pay.view'
+//     }
+// })
+
+
+menu.state('Pay.Confirm.Amount', {
+    run: async() => {
         let amount = menu.val;
-        menu.session.set('amount', amount);
-        
-        menu.con('Choose Option:' +
-        '\n1. Daily' +
-        '\n2. Weekly'+
-        '\n3. Monthly' +
-        '\n4. Only once')
+        menu.session.get('amount', amount);
+        var accounts = await menu.session.get('accounts');
+        let account = await filterPersonalSchemeOnly(accounts);
+        menu.session.set('account', account);
+
+        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+        '\n1. Proceed' +
+        '\n0. Exit'
+        )
     },
     next: {
-        '4': 'Deposit.view',
-        '*[0-3]+': 'Pay.view'
+        '0': 'Exit',
+        '1': 'Deposit.send',
     }
 })
-
 
 menu.state('Deposit.view', {
     run: async() => {
