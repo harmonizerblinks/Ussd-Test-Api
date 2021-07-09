@@ -105,15 +105,12 @@ menu.state('Tier2.end', {
             // Remove Bearer from string
             mobile = mobile.replace('233', '0');
         }    
-    var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
-        await postDeposit(data, async(data) => {
-            if (data) {
-                menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-            } else {
-                menu.end('Application Server error. Please contact administrator');
-            }
-            menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-        });
+        var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        await postDeposit(data, async(result)=> { 
+            // console.log(result) 
+            // menu.end(JSON.stringify(result)); 
+        }); 
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
 
     }
 })
