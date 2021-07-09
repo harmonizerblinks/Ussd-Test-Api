@@ -50,7 +50,7 @@ menu.startState({
     run: async() => {
         // Fetch Customer information
         
-        // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
+        menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
