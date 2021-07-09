@@ -63,7 +63,7 @@ menu.state('code', {
         await fetchOfficer(referralcode, async(data) => {
             // console.log(data)
             if(data.active) {     
-                menu.con('Dear Customer, please confirm Officer\'s Details: ' + '\n' + data.name + '\n\n1. Confirm \n0. Back')
+                menu.con('Dear Customer, please confirm Refferer\'s Details: ' + '\n' + data.name + '\n\n1. Confirm \n0. Back')
             }else{
                 menu.end('Dear Customer, your referral code is invalid.')
             }
@@ -191,7 +191,7 @@ menu.state('Register.complete', {
             mobile = mobile.replace('233', '0');
         }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD", referer_code: officer.code
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", referer_code: officer.code
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {

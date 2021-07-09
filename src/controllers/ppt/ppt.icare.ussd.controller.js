@@ -234,7 +234,7 @@ menu.state('register', {
         var lastname = await menu.session.get('lastname');
         var mobile = await menu.session.get('mobile');
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD", icareid: icareId
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", icareid: icareId
         };
         await postCustomer(data, async(data) => {
             if(data.schemenumber) {
@@ -377,7 +377,7 @@ menu.state('Icare.complete', {
             mobile = mobile.replace('233', '0');
         }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD", icareid: icareId
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {

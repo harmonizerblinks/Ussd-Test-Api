@@ -276,7 +276,7 @@ menu.state('Register.complete', {
             mobile = mobile.replace('233', '0');
         }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD", icareid: icareId
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", icareid: icareId
         };
         await postCustomer(data, (data) => {
             // console.log(data)
@@ -306,6 +306,20 @@ menu.state('exit', {
 
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
 menu.state('Pay', {
+    run: () => {
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. Only once')
+    },
+    next: {
+        '4': 'Pay.account',
+        '*[0-3]+': 'Pay.view'
+    }
+})
+
+menu.state('Pay.account', {
     run: async() => {
         await fetchCustomer(menu.args.phoneNumber, (data)=> {
             if (data.active) {
@@ -316,24 +330,7 @@ menu.state('Pay', {
         })
     },
     next: {
-        '*\\d+': 'Pay.amount'
-    }
-})
-
-menu.state('Pay.amount', {
-    run: () => {
-        let amount = menu.val;
-        menu.session.set('amount', amount);
-        
-        menu.con('Choose Option:' +
-        '\n1. Daily' +
-        '\n2. Weekly'+
-        '\n3. Monthly' +
-        '\n4. Only once')
-    },
-    next: {
-        '4': 'Pay.account',
-        '*[0-3]+': 'Pay.view'
+        '*\\d+': 'Pay.Option.Amount'
     }
 })
 
@@ -348,19 +345,37 @@ menu.state('Pay.view', {
             var accounts = await menu.session.get('accounts');
             let account = await filterPersonalSchemeOnly(accounts);
             menu.session.set('account', account);
-            let amount = await menu.session.get('amount'); 
-            menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
-            '\n1. Proceed' +
-            '\n0. Exit'
-            )
-    
+            await fetchCustomer(menu.args.phoneNumber, (data)=> {
+                if (data.active) {
+                    menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
+                }else{
+                    menu.end(`Error in Retrieving Customer Details.`)        
+                }
+            })     
         }
     },
     next: {
-        '*\\d+': 'Pay.Option.Complete',
+        '*\\d+': 'Pay.Option.Amount',
         '0': 'Pay'
     }
 });
+
+menu.state('Pay.Option.Amount', {
+    run: () => {
+        let amount = menu.val;
+        menu.session.set('amount', amount); 
+        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+        '\n1. Proceed' +
+        '\n0. Exit'
+        )
+},
+    next: {
+        '4': 'Pay.account',
+        '*[0-3]+': 'Pay.view'
+    }
+})
+
+
 
 menu.state('Pay.Option.Complete', {
     run: async () => {
@@ -540,7 +555,7 @@ menu.state('Icare.complete', {
             mobile = mobile.replace('233', '0');
         }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD"
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD"
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {
