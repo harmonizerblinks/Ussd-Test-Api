@@ -316,7 +316,7 @@ menu.state('Register.complete', {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
         await postCustomer(data, (data) => {
-            console.log(data)
+            // console.log(data)
             if(data.schemenumber) {
                 menu.con('Dear '+ data.name + ', you have successfully registered for the People\'s Pension Trust' + 
                 '\nPress zero(0) to continue to payment' +
