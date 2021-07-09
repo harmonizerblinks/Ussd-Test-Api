@@ -2,7 +2,6 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({provider: 'hubtel'});
 var unirest = require('unirest');
 let sessions = {};
-let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -235,7 +234,7 @@ menu.state('register', {
         var lastname = await menu.session.get('lastname');
         var mobile = await menu.session.get('mobile');
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD", icareid: icareId
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
         await postCustomer(data, async(data) => {
             if(data.schemenumber) {
@@ -369,11 +368,8 @@ menu.state('Icare.gender', {
         if (index > 2) {
             menu.con('Incorrect Selection. Enter zero(0) to retry again')
         } else {
-            var gender = genderArray[index]
-            menu.session.set('gender', gender);
             var firstname = await menu.session.get('firstname');
             var lastname = await menu.session.get('lastname');
-            var gender = await menu.session.get('gender');
             var mobile = await menu.session.get('mobile');
             if (mobile && mobile.startsWith('+233')) {
                 // Remove Bearer from string
@@ -386,7 +382,6 @@ menu.state('Icare.gender', {
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
             '\nMobile Number - '+ mobile +
-            '\nGender: ' + gender +
             '\n\n0. Make Changes' +
             '\n1. Confirm')
             }
@@ -402,7 +397,6 @@ menu.state('Icare.complete', {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         var icareId = await menu.session.get('icareid');
-        var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
         if (mobile && mobile.startsWith('+233')) {
             // Remove Bearer from string
@@ -412,7 +406,7 @@ menu.state('Icare.complete', {
             mobile = mobile.replace('233', '0');
         }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD", icareid: icareId
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {
@@ -457,9 +451,8 @@ menu.state('Deposit', {
     },
     next: {
         '0': 'Start',
-        '*\\d+': 'Deposit.view'
-    },
-    defaultNext: 'Deposit.view'
+        '*\\d+': 'Pay.amount'
+    }
 });
 
 // menu.state('Deposit.account', {
@@ -478,6 +471,24 @@ menu.state('Deposit', {
 //         '*\\d+': 'Deposit.view',
 //     }
 // });
+
+menu.state('Pay.amount', {
+    run: () => {
+        let amount = menu.val;
+        menu.session.set('amount', amount);
+        
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. Only once')
+    },
+    next: {
+        '4': 'Deposit.view',
+        '*[0-3]+': 'Pay.view'
+    }
+})
+
 
 menu.state('Deposit.view', {
     run: async() => {

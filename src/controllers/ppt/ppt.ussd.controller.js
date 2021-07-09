@@ -4,7 +4,6 @@ var unirest = require('unirest');
 let sessions = {};
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-let genderArray = ["", "Male", "Female"]
 let optionArray = ["", "Daily", "Weekly", "Monthly"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
@@ -269,11 +268,8 @@ menu.state('Register.gender', {
         if (index > 2) {
             menu.con('Incorrect Selection. Enter zero(0) to retry again')
         } else {
-            var gender = genderArray[index]
-            menu.session.set('gender', gender);
             var firstname = await menu.session.get('firstname');
             var lastname = await menu.session.get('lastname');
-            var gender = await menu.session.get('gender');
             var mobile = await menu.session.get('mobile');
             if (mobile && mobile.startsWith('+233')) {
                 // Remove Bearer from string
@@ -286,7 +282,6 @@ menu.state('Register.gender', {
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
             '\nMobile Number - '+ mobile +
-            '\nGender: ' + gender +
             '\n\n0. Make Changes' +
             '\n1. Confirm')
             }
@@ -303,7 +298,6 @@ menu.state('Register.complete', {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         var icareId = await menu.session.get('icareid');
-        var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
         if (mobile && mobile.startsWith('+233')) {
             // Remove Bearer from string
@@ -313,7 +307,7 @@ menu.state('Register.complete', {
             mobile = mobile.replace('233', '0');
         }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD", icareid: icareId
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
         await postCustomer(data, (data) => {
             // console.log(data)
@@ -570,11 +564,8 @@ menu.state('Icare.gender', {
         if (index > 2) {
             menu.con('Incorrect Selection. Enter zero(0) to retry again')
         } else {
-            var gender = genderArray[index]
-            menu.session.set('gender', gender);
             var firstname = await menu.session.get('firstname');
             var lastname = await menu.session.get('lastname');
-            var gender = await menu.session.get('gender');
             var mobile = await menu.session.get('mobile');
             if (mobile && mobile.startsWith('+233')) {
                 // Remove Bearer from string
@@ -587,7 +578,6 @@ menu.state('Icare.gender', {
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
             '\nMobile Number - '+ mobile +
-            '\nGender: ' + gender +
             '\n\n0. Make Changes' +
             '\n1. Confirm')
             }
@@ -604,7 +594,6 @@ menu.state('Icare.complete', {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         // var name = await menu.session.get('name');
-        var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
         if (mobile && mobile.startsWith('+233')) {
             // Remove Bearer from string
@@ -614,7 +603,7 @@ menu.state('Icare.complete', {
             mobile = mobile.replace('233', '0');
         }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD"
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {
