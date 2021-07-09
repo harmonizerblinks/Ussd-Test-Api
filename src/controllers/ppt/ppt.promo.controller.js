@@ -128,7 +128,7 @@ menu.state('Confirm.officer', {
     next: {
         '*\\d+': 'pay',
         '0': 'Register.change',
-        '1': 'Register.autogender',
+        '1': 'Register.complete',
     }
 })
 
@@ -153,64 +153,28 @@ menu.state('Register.firstname', {
 })
 
 menu.state('Register.lastname', {
-    run: () => {
-        let lastname = menu.val;
-        menu.session.set('lastname', lastname);
-        menu.con('Select Person\'s gender:' +
-            '\n1. Male' +
-            '\n2. Female'
-        )
-    },
-    next: {
-        '*\\d+': 'Register.gender'
-    }
-})
-
-menu.state('Register.autogender', {
-    run: () => {
-        menu.con('Select Person\'s gender:' +
-            '\n1. Male' +
-            '\n2. Female'
-        )
-    },
-    next: {
-        '*\\d+': 'Register.gender'
-    }
-})
-
-menu.state('Register.gender', {
     run: async() => {
-        var index = Number(menu.val);
-        if (index > 2) {
-            menu.con('Incorrect Selection. Enter zero(0) to retry again')
-        } else {
-            var gender = genderArray[index]
-            menu.session.set('gender', gender);
-            var firstname = await menu.session.get('firstname');
-            var lastname = await menu.session.get('lastname');
-            var gender = await menu.session.get('gender');
-            var mobile = await menu.session.get('mobile');
-            if (mobile && mobile.startsWith('+233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('+233', '0');
-            }else if(mobile && mobile.startsWith('233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('233', '0');
-            }    
-            menu.con('Please confirm the registration details below to continue:' +
-            '\nFirst Name - ' + firstname +
-            '\nLast Name - '+ lastname + 
-            '\nMobile Number - '+ mobile +
-            '\nGender: ' + gender +
-            '\n\n0. Make Changes' +
-            '\n1. Confirm')
-            }
+        let lastname = menu.val;
+        menu.session.set('lastname', lastname);    
+        var firstname = await menu.session.get('firstname');
+        var mobile = await menu.session.get('mobile');
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('233', '0');
+        }    
+        menu.con('Please confirm the registration details below to continue:' +
+        '\nFirst Name - ' + firstname +
+        '\nLast Name - '+ lastname + 
+        '\nMobile Number - '+ mobile +
+        '\n\n0. Make Changes' +
+        '\n1. Confirm')
     },
     next: {
-        '0': 'Register.register',
-        '1': 'Register.complete',
-    },
-    defaultNext: 'Register.gender'
+        '*\\d+': 'Register.complete'
+    }
 })
 
 menu.state('Register.complete', {
@@ -218,7 +182,6 @@ menu.state('Register.complete', {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         var officer = await menu.session.get('officer');
-        var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
         if (mobile && mobile.startsWith('+233')) {
             // Remove Bearer from string
@@ -228,7 +191,7 @@ menu.state('Register.complete', {
             mobile = mobile.replace('233', '0');
         }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD", referer_code: officer.code
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", source: "USSD", referer_code: officer.code
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {
@@ -293,10 +256,10 @@ menu.state('Pay.send', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        // console.log(account);
+        var officer = await menu.session.get('officer');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code};
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code, officerid: officer.officerid};
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
         }); 

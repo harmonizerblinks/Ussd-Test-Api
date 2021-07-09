@@ -128,7 +128,7 @@ menu.startState({
         '0': 'Icare.change',
         '1': 'Icare.register',
         '2': 'Icare.mobile',
-        '1#': 'Icare.autogender'
+        '1#': 'Icare.complete'
     }
 });
 
@@ -220,7 +220,7 @@ menu.state('Start', {
         '0': 'Icare.change',
         '1': 'Icare.register',
         '2': 'Icare.mobile',
-        '1#': 'Icare.autogender'
+        '1#': 'Icare.complete'
     },
     defaultNext: 'Start'
 });
@@ -312,7 +312,7 @@ menu.state('Icare.next', {
     },
     next: {
         '0': 'Icare.change',
-        '1': 'Icare.autogender',
+        '1': 'Icare.complete',
     }
 });
 
@@ -336,40 +336,12 @@ menu.state('Icare.firstname', {
     }
 })
 
+
 menu.state('Icare.lastname', {
-    run: () => {
-        let lastname = menu.val;
-        menu.session.set('lastname', lastname);
-        menu.con('Select Person\'s gender:' +
-            '\n1. Male' +
-            '\n2. Female'
-        )
-    },
-    next: {
-        '*\\d+': 'Icare.gender'
-    }
-})
-
-menu.state('Icare.autogender', {
-    run: () => {
-        menu.con('Select Person\'s gender:' +
-            '\n1. Male' +
-            '\n2. Female'
-        )
-    },
-    next: {
-        '*\\d+': 'Icare.gender'
-    }
-})
-
-menu.state('Icare.gender', {
     run: async() => {
-        var index = Number(menu.val);
-        if (index > 2) {
-            menu.con('Incorrect Selection. Enter zero(0) to retry again')
-        } else {
+            let lastname = menu.val;
+            menu.session.set('lastname', lastname);
             var firstname = await menu.session.get('firstname');
-            var lastname = await menu.session.get('lastname');
             var mobile = await menu.session.get('mobile');
             if (mobile && mobile.startsWith('+233')) {
                 // Remove Bearer from string
@@ -384,7 +356,6 @@ menu.state('Icare.gender', {
             '\nMobile Number - '+ mobile +
             '\n\n0. Make Changes' +
             '\n1. Confirm')
-            }
     },
     next: {
         '0': 'Icare.register',
