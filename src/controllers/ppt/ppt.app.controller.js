@@ -51,10 +51,6 @@ exports.setPassword = async(req, res) => {
 
 };
 
-exports.changePassword = async(req, res) => {
-    
-};
-
 exports.getMember = async(req, res) => {
 
 };
