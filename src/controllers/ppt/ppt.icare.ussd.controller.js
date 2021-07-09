@@ -394,8 +394,7 @@ menu.state('Icare.gender', {
     next: {
         '0': 'Icare.register',
         '1': 'Icare.complete',
-    },
-    defaultNext: 'Icare.gender'
+    }
 })
 
 menu.state('Icare.complete', {
