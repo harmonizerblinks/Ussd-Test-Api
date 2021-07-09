@@ -65,7 +65,7 @@ menu.state('code', {
             if(data.active) {     
                 menu.con('Dear Customer, please confirm Officer\'s Details: ' + '\n' + data.name + '\n\n1. Confirm \n0. Back')
             }else{
-                menu.con('Dear Customer, your referral code is invalid.')
+                menu.end('Dear Customer, your referral code is invalid.')
             }
         })
     },
@@ -382,3 +382,29 @@ async function fetchOfficer(val, callback) {
         });
 }
 
+async function filterPersonalSchemeOnly(accounts) {
+    return accounts.find(obj => {
+        return obj.type.includes('PERSONAL');
+    });
+}
+
+async function postDeposit(val, callback) {
+    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        // console.log(JSON.stringify(val));
+        if (resp.error) { 
+            console.log(resp.error);
+            // await postDeposit(val);
+            await callback(resp);
+        }
+        // if (res.error) throw new Error(res.error); 
+        var response = JSON.parse(resp.raw_body);
+        await callback(response);
+    });
+    return true
+}

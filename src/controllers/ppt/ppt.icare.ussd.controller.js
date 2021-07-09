@@ -46,7 +46,7 @@ menu.startState({
         
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchIcareCustomer(menu.args.phoneNumber, async(data)=> { 
-            console.log('Fetch Icare Started', data); 
+            // console.log('Fetch Icare Started', data); 
             if(data.icareid) {
                 menu.con('Welcome to Icare for Peoples Pensions Trust. Choose your Preferred Option:' +
                 '\n1. Register for Someone' +
