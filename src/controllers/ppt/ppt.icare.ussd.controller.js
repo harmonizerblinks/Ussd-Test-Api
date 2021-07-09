@@ -126,9 +126,10 @@ menu.startState({
     },
     // next object links to next state based on user input
     next: {
-        '0': 'changes',
+        '0': 'Icare.change',
         '1': 'Icare.register',
-        '2': 'Icare.phonenumber',
+        '2': 'Icare.mobile',
+        '1#': 'Icare.autogender'
     }
 });
 
@@ -219,7 +220,7 @@ menu.state('Start', {
     next: {
         '0': 'Icare.change',
         '1': 'Icare.register',
-        '2': 'Icare.phonenumber',
+        '2': 'Icare.mobile',
         '1#': 'Icare.autogender'
     },
     defaultNext: 'Start'

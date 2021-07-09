@@ -37,8 +37,17 @@ menu.on('error', (err) => {
 });
 
 
-///////////////---------------------PROMO ROUTE STARTS----------------------////////////////
+///////////////---------------------MENU ROUTE STARTS----------------------////////////////
 menu.startState({
+    run: () => {
+        menu.con('Enter Referral Code')
+    },
+    next: {
+        '*\\d+': 'code'
+    }
+})
+
+menu.state('Start', {
     run: () => {
         menu.con('Enter Referral Code')
     },
@@ -51,43 +60,54 @@ menu.state('code', {
     run: async() => {
         let referralcode = menu.val;
         // console.log(1, 'Referral code: ' + referralcode)
-        await fetchCustomer(referralcode, async(data) => {
+        await fetchOfficer(referralcode, async(data) => {
             // console.log(data)
             if(data.active) {     
-                await fetchCustomer(menu.args.phoneNumber, async(data) => {
-                    // console.log(1, "First Check Done")
-                    if(data.active) {     
-                        menu.con(`Dear ${data.fullname}, you are not registered on Peoples Pensions Trust. Dial *789*7# to register.`)
-                    }else{
-                        let mobile = menu.args.phoneNumber;
-                        if (mobile && mobile.startsWith('+233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('+233', '0');
-                        }else if(mobile && mobile.startsWith('233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('233', '0');
-                        }    
-                        await postCustomer(mobile, async(data) => {
-                            // console.log(2, "Second Check Done")
-                            // let name = await menu.session.get('name');  
-                            if (data.error) {
-                                menu.con('Server Error. Please contact admin.')
-                            } else {
-                                menu.con('Dear '+ data.name + ', you have successfully register for the Peoples Pension Trust' + 
-                                '\nWould you like to continue with payment?' +
-                                '\n0. Exit' +
-                                '\n1. Pay')        
-                            }
-                        })
-                    }
-                });
+                menu.con('Dear Customer, please confirm Officer\'s Details: ' + '\n' + data.name + '\n\n1. Confirm \n0. Back')
             }else{
-                menu.con(`Dear Customer, you are not registered on Peoples Pensions Trust. Dial *789*7879# to register.`)
+                menu.con('Dear Customer, your referral code is invalid.')
             }
         })
     },
     next: {
-        '*\\d+': 'pay'
+        '1': 'Confirm.officer',
+    },
+    defaultNext: 'Start'
+})
+
+menu.state('Confirm.officer', {
+    run: async() => {
+        await fetchCustomer(menu.args.phoneNumber, async(data) => {
+            // console.log(1, "First Check Done")
+            if(data.active) {     
+                menu.con(`Dear ${data.fullname}, you are not registered on Peoples Pensions Trust. Dial *789*111# to register.`)
+            }else{
+                let mobile = menu.args.phoneNumber;
+                if (mobile && mobile.startsWith('+233')) {
+                    // Remove Bearer from string
+                    mobile = mobile.replace('+233', '0');
+                }else if(mobile && mobile.startsWith('233')) {
+                    // Remove Bearer from string
+                    mobile = mobile.replace('233', '0');
+                }    
+                await postCustomer(mobile, async(data) => {
+                    // console.log(2, "Second Check Done")
+                    // let name = await menu.session.get('name');  
+                    if (data.error) {
+                        menu.con('Server Error. Please contact admin.')
+                    } else {
+                        menu.con('Dear '+ data.name + ', you have successfully register for the Peoples Pension Trust' + 
+                        '\nWould you like to continue with payment?' +
+                        '\n0. Exit' +
+                        '\n1. Pay')        
+                    }
+                })
+            }
+        });
+    },
+    next: {
+        '4': 'Pay.account',
+        '*[0-3]+': 'Pay.view'
     }
 })
 
@@ -172,7 +192,6 @@ exports.ussdApp = async(req, res) => {
     // });
 };
 
-
 async function fetchCustomer(val, callback) {
     // try {
     if (val && val.startsWith('+233')) {
@@ -229,3 +248,33 @@ async function postCustomer(val, callback) {
         });
     return true
 }
+
+async function fetchOfficer(val, callback) {
+    // try {
+        if (val && val.startsWith('+233')) {
+            // Remove Bearer from string
+            val = val.replace('+233','0');
+        }
+        var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
+        // console.log(api_endpoint);
+        var request = unirest('GET', api_endpoint)
+        .end(async(resp)=> { 
+            if (resp.error) { 
+                console.log(resp.error);
+                // var response = JSON.parse(res);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.body);
+            var response = JSON.parse(resp.raw_body);
+            if(response.active)
+            {
+                menu.session.set('officer', response);
+                menu.session.set('pin', response.pin);
+                // menu.session.set('limit', response.result.limit);
+            }
+            
+            await callback(response);
+        });
+}
+
