@@ -180,10 +180,10 @@ menu.state('Register', {
         // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
+            console.log(data.body)
             if(data.surname && data.surname == null || data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
-                // console.log(nameArray.length)
                 if (nameArray.length > 2){
                     var firstname = capitalizeFirstLetter(nameArray[0]);
                     var lastname = capitalizeFirstLetter(nameArray[2]);
@@ -374,40 +374,51 @@ menu.state('Pay.amount', {
     }
 })
 
-// menu.state('Pay.view', {
-//     run: async() => {
-//     var index = Number(menu.val);
-        // if (index > 2) {
-        //     menu.con('Incorrect Selection. Enter zero(0) to retry again')
-        // } else {
-        //     var option = optionArray[index]
-        // }
+menu.state('Pay.view', {
+    run: async() => {
+    var index = Number(menu.val);
+        if (index > 3) {
+            menu.con('Incorrect Selection. Enter zero(0) to retry again')
+        } else {
+            var option = optionArray[index];
+            menu.session.set('paymentoption', option);
+            var accounts = await menu.session.get('accounts');
+            let account = await filterPersonalSchemeOnly(accounts);
+            menu.session.set('account', account);
+            let amount = await menu.session.get('amount'); 
+            menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+            '\n1. Proceed' +
+            '\n0. Exit'
+            )
+    
+        }
+    },
+    next: {
+        '*\\d+': 'Pay.Option.Complete',
+        '0': 'Pay'
+    },
+    defaultNext: 'Register.gender'
+});
 
-//         accounts.forEach(val => {
-//             schemes += '\n' + count + '. ' + val.code;
-//             count += 1;
-//         });        
-//         menu.con('Please select Preferred Scheme Number: ' + schemes)
-//     },
-//     next: {
-//         '*\\d+': 'Pay.view',
-//     }
-// });
-
-// menu.state('Pay.auto', {
-//     run: async() => {
-//         var schemes = ''; var count = 1;
-//         accounts.forEach(val => {
-//             schemes += '\n' + count + '. ' + val.code;
-//             count += 1;
-//         });
-//         console.log(account);
-//         menu.con('Please select Preferred Scheme Number: ' + schemes)
-//     },
-//     next: {
-//         '*\\d+': 'Pay.view',
-//     }
-// })
+menu.state('Pay.Option.Complete', {
+    run: async () => {
+        var amount = await menu.session.get('amount');
+        var account = await menu.session.get('account');
+        var paymentoption = await menu.session.get('paymentoption');
+        var network = await menu.session.get('network');
+        var mobile = menu.args.phoneNumber;
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid};
+        // console.log(data);
+        await postAutoDeposit(data, async(data) => {
+            if (data.status == 0) {
+                menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+            } else {
+                menu.end('Application Server error. Please contact administrator');
+            }
+        });
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+    }
+})
 
 menu.state('Pay.account', {
     run: async() => {
@@ -430,12 +441,13 @@ menu.state('Pay.send', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        console.log(account);
+        // console.log(account);
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code};
         console.log(data);
         await postDeposit(data, async(data) => {
+            console.log(data);
             if (data.status == 0) {
                 menu.end('Request submitted successfully. You will receive a payment prompt shortly');
             } else {
@@ -693,7 +705,7 @@ menu.state('Deposit.send', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
         await postDeposit(data, async(result)=> { 
             // console.log(result) 
             // menu.end(JSON.stringify(result)); 
@@ -1078,6 +1090,27 @@ async function fetchBalance(val, callback) {
         
         await callback(response);
     });
+}
+
+async function postAutoDeposit(val, callback) {
+    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        // console.log(JSON.stringify(val));
+        if (resp.error) { 
+            console.log(resp.error);
+            // await postDeposit(val);
+            await callback(resp);
+        }
+        // if (res.error) throw new Error(res.error); 
+        var response = JSON.parse(resp.raw_body);
+        await callback(response);
+    });
+    return true
 }
 
 async function postDeposit(val, callback) {

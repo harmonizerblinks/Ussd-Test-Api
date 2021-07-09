@@ -98,14 +98,22 @@ menu.state('Tier2.end', {
         var name = await menu.session.get('name');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('233', '0');
+        }    
+    var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
         await postDeposit(data, async(data) => {
-                if (data) {
-                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-                } else {
-                    menu.end('Application Server error. Please contact administrator');
-                }
-            });
+            if (data) {
+                menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+            } else {
+                menu.end('Application Server error. Please contact administrator');
+            }
+            menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+        });
 
     }
 })

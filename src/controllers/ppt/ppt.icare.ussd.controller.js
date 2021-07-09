@@ -60,14 +60,18 @@ menu.startState({
                     if(data.code)
                     {
                         let mobile = menu.args.phoneNumber;
-                        if (mobile && mobile.startsWith('+233')) {
+                        if (val && val.startsWith('+233')) {
                             // Remove Bearer from string
-                            mobile = mobile.replace('+233', '0');
-                        }
+                            val = val.replace('+233', '0');
+                        }else if(val && val.startsWith('233')) {
+                            // Remove Bearer from string
+                            val = val.replace('233', '0');
+                        }    
                         var postIcare = {
                             name: data.fullname, mobile: mobile
                         };
                         await postIcareCustomer(postIcare, (data) => {
+                            console.log(data)
                             menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
                             '\n1. Register for Someone' +
                             '\n2. Pay for Someone'
@@ -79,6 +83,9 @@ menu.startState({
                         if (mobile && mobile.startsWith('+233')) {
                             // Remove Bearer from string
                             mobile = mobile.replace('+233', '0');
+                        }else if(mobile && mobile.startsWith('233')) {
+                            // Remove Bearer from string
+                            mobile = mobile.replace('233', '0');
                         }    
                         menu.session.set('mobile', mobile);        
                         await getInfo(mobile, async(data) =>{
