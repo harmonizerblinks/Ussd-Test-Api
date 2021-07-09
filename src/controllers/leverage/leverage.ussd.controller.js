@@ -8,9 +8,9 @@ let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
-let access = { code: "ARB", key: "10198553" };
+let access = { code: "L005", key: "546787787" };
 // let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
@@ -54,7 +54,7 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to Leverage Micro Finance.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -62,9 +62,9 @@ menu.startState({
                 '\n4. Other' +
                 '\n5. Contact');
             } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to Leverage Micro Finance. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.end('Mobile Number not Registered, kindly Open an Account with Ahantaman Rural Bank.');
+                menu.end('Mobile Number not Registered, kindly Open an Account with Leverage Micro Finance.');
             }
         });
     },
@@ -85,7 +85,7 @@ menu.state('Start', {
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && (data.pin != '' || data.pin == null)) {     
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to Leverage Micro Finance.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -93,7 +93,7 @@ menu.state('Start', {
                 '\n4. Other' +
                 '\n5. Contact');
             } else if(data.active && (data.pin != '' || data.pin == null)) {
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to Leverage Micro Finance. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Mobile Number not Registered');
             }
@@ -262,7 +262,7 @@ menu.state('Deposit.confirm', {
 menu.state('Deposit.cancel', {
     run: () => {
         // Cancel Deposit request
-        menu.end('Thank you for using Ahantaman Rural Bank.');
+        menu.end('Thank you for using Leverage Micro Finance.');
     }
 });
 
@@ -452,7 +452,7 @@ menu.state('Other',{
 
 menu.state('Account',{
     run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
+        menu.con('Please contact Leverage Micro Finance on +233(0)312091033 for assistance with account opening. Thank you' +	
         '\n\n0.	Return to Main Menu')
     },
     next: {
@@ -549,7 +549,7 @@ menu.state('AutoDebit', {
 menu.state('Contact.name', {
     run: () => {
         // Cancel Savings request
-        menu.end('Ahantaman Rural Bank Limited.');
+        menu.end('Leverage Micro Finance Limited.');
     }
 });
 
