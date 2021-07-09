@@ -693,7 +693,7 @@ menu.state('Deposit.view', {
         )
     },
     next: {
-        '0': 'Exit',
+        '0': 'Deposit.cancel',
         '1': 'Deposit.send',
     }
 })

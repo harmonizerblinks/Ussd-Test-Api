@@ -105,9 +105,9 @@ menu.state('Tier2.end', {
             // Remove Bearer from string
             mobile = mobile.replace('233', '0');
         }    
-        var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit'};
+        console.log(data) 
         await postDeposit(data, async(result)=> { 
-            // console.log(result) 
             // menu.end(JSON.stringify(result)); 
         }); 
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
@@ -162,7 +162,7 @@ async function fetchCustomer(val, callback) {
                 await callback(resp);
             }
             var response = JSON.parse(resp.raw_body);
-            console.log(response);
+            // console.log(response);
             if (response.active) {
                 menu.session.set('name', response.fullname);
                 menu.session.set('mobile', val);
