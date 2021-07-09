@@ -463,8 +463,6 @@ menu.state('Pay.amount', {
 
 menu.state('Deposit.view', {
     run: async() => {
-        let amount = menu.val;
-        menu.session.set('amount', amount);
         var accounts = await menu.session.get('accounts');
         let account = await filterPersonalSchemeOnly(accounts);
         menu.session.set('account', account);
