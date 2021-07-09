@@ -417,7 +417,7 @@ async function getCharge(val, callback) {
 }
 
 async function filterPersonalSchemeOnly(accounts) {
-    accounts.find(obj => {
+    return accounts.find(obj => {
         return obj.type.includes('PERSONAL');
     });
 }
