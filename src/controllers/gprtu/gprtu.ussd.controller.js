@@ -48,14 +48,12 @@ menu.startState({
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && data.pin != '') {     
-                menu.con('Welcome to GPRTU Collections.' + 
+            if(data.active) {     
+                menu.con('Welcome to GPRTU Enidasoa Payment.' + 
                 '\nSelect an Option.' + 
-                '\n1. Make Payment' + 
+                '\n1. Pay' + 
                 '\n2. Check Balance'+ 
-                '\n3. Other');
-            } else if(data.active && (data.pin ==null || data.pin == '')) {
-                menu.con('Welcome to GPRTU Collections. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                '\n3. Contact Us');
             } else {
                 menu.end('Mobile Number not Registered');
             }
@@ -65,9 +63,7 @@ menu.startState({
     next: {
         '1': 'Deposit',
         '2': 'CheckBalance',
-        '3': 'Other',
-        '4': 'Contact',
-        '*[0-9]+': 'User.newpin'
+        '3': 'Contact'
     }
 });
 
@@ -76,14 +72,12 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && data.pin != '') {     
-                menu.con('Welcome to GPRTU Collections.' + 
+            if(data.active) {     
+                menu.con('Welcome to GPRTU Enidasoa Payment.' + 
                 '\nSelect an Option.' + 
-                '\n1. Make Payment' + 
+                '\n1. Pay' + 
                 '\n2. Check Balance'+ 
-                '\n3. Other');
-            } else if(data.active && (data.pin ==null || data.pin == '')) {
-                menu.con('Welcome to GPRTU Collections. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                '\n3. Contact Us');
             } else {
                 menu.end('Mobile Number not Registered');
             }
@@ -93,86 +87,13 @@ menu.state('Start', {
     next: {
         '1': 'Deposit',
         '2': 'CheckBalance',
-        '3': 'Other',
-        '4': 'Contact',
-        '*[0-9]+': 'User.newpin'
-    },
-    defaultNext: 'Start'
-});
-
-
-menu.state('User.account',{
-    run: () => {
-        menu.con('Enter your current 4 digits PIN')
-    },
-    next: {
-        '*\\d+': 'User.pin'
-    }
-});
-
-menu.state('User.pin',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        if(menu.val === pin) {
-            // var newpin = Number(menu.val);
-            // menu.session.set('newpin', newpin);
-            menu.con('Enter new 4 digits PIN');
-        } else {
-            menu.end('Incorrect Pin. Enter zero(0) to continue');
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'User.newpin'
-    },
-    defaultNext: 'Start'
-});
-
-menu.state('User.newpin',{
-    run: () => {
-        if(menu.val.length == 4) {
-            var newpin = menu.val;
-            menu.session.set('newpin', newpin);
-            menu.con('Re-enter the 4 digits');
-        } else {
-            menu.end('Pin must be 4 digits');
-        }
-    },
-    next: {
-        '*\\d+': 'User.verifypin'
-    },
-    defaultNext: 'Start'
-})
-
-menu.state('User.verifypin', {
-    run: async() => {
-        var pin = await menu.session.get('newpin');
-        if(menu.val === pin) {
-            var newpin = Number(menu.val);
-            // var cust = await menu.session.get('cust');
-            // console.log(cust);
-            // var cus = JSON.parse(cust);
-            var mobile = await menu.session.get('mobile');
-            // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
-            var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
-            await postChangePin(value, (data)=> { 
-                // console.log(1,data); 
-                menu.session.set('pin', newpin);
-                menu.con(data.message);
-            });
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start'
+        '3': 'Contact'
     },
     defaultNext: 'Start'
 });
 
 menu.state('Deposit', {
     run: async() => {
-        
         var index = 1;
         var accounts = await menu.session.get('accounts');
         var account = accounts[index-1]
@@ -218,41 +139,8 @@ menu.state('Deposit.cancel', {
     }
 });
 
+
 menu.state('CheckBalance',{
-    run: () => {
-        menu.con('Enter your PIN to check balance');
-    },
-    next: {
-        '*\\d+': 'CheckBalance.account'
-    },
-    defaultNext: 'CheckBalance'
-});
-
-menu.state('CheckBalance.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'CheckBalance.balance'
-    },
-    defaultNext: 'CheckBalance'
-})
-
-menu.state('CheckBalance.balance',{
     run: async() => {
         var index = Number(menu.val);
         var accounts = await menu.session.get('accounts');
@@ -260,11 +148,11 @@ menu.state('CheckBalance.balance',{
         var account = accounts[index-1]
         // menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
-            console.log(result) 
+            // console.log(result) 
             if(result.balance != null) { account.balance = result.balance; }
             menu.session.set('account', account);
             menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
+            menu.con('Your total payment balance for thiis month is GHS '+ account.balance+ '\nEnter zero(0) to continue');
         });
     },
     next: {
@@ -273,54 +161,17 @@ menu.state('CheckBalance.balance',{
     defaultNext: 'CheckBalance.amount'
 });
 
-menu.state('Other',{
-    run: () => {
-        menu.con('1. Change Pin' + '\n2. Mini Satement')
-    },
-    next: {
-        '1': 'User.account',
-        '2': 'Statement',
-    }
-});
+// menu.state('Other',{
+//     run: () => {
+//         menu.con('1. Change Pin' + '\n2. Mini Satement')
+//     },
+//     next: {
+//         '1': 'User.account',
+//         '2': 'Statement',
+//     }
+// });
 
 
-menu.state('Statement',{
-    run: () => {
-        menu.con('Enter your PIN to check Account Mini statement');
-    },
-    next: {
-        '*\\d+': 'Statement.account'
-    },
-    defaultNext: 'Statement'
-});
-
-menu.state('Statement.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            var account = accounts[index-1]
-            await fetchStatement(account.code, async(data)=> { 
-                console.log(data)
-                var accts = ''; var count = 1;
-                await data.forEach(async(val) => {
-                    // console.log(val);
-                    accts += '\n'+count+'. '+ new Date(val.date).toLocaleDateString() +' '+val.type.toUpperCase() + '- GHC ' +val.amount;
-                    count +=1;
-                });
-                menu.con('Payment Details' + accts)
-            });
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start'
-    },
-    defaultNext: 'Statement'
-})
 
 
 menu.state('Contact', {

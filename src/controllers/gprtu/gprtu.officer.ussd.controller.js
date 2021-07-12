@@ -48,17 +48,22 @@ menu.startState({
         // Fetch Customer information
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
-            if(data.active) { 
-                menu.con('Welcome to GPRTU Agent Collections' + 
-                    '\nEnter Member Phone Number.');
+            if(data.active) {     
+                menu.con('Welcome to GPRTU Enidasoa Payment.' + 
+                '\nSelect an Option.' + 
+                '\n1. Pay' + 
+                '\n2. Check Balance'+ 
+                '\n3. Contact Us');
             } else {
-                menu.con('You are not a Field Officer');
+                menu.end('You are not a Field Officer');
             }
         });
     },
     // next object links to next state based on user input
     next: {
-        '*[0-9]+': 'Deposit'
+        '1': 'Deposit',
+        '2': 'CheckBalance',
+        '3': 'Contact'
     }
 });
 
@@ -67,92 +72,107 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
-            if(data.active) { 
-                menu.con('Welcome to GPRTU Agent Collections' + 
-                    '\nEnter Member Phone Number.');
+            if(data.active) {     
+                menu.con('Welcome to GPRTU Enidasoa Payment.' + 
+                '\nSelect an Option.' + 
+                '\n1. Pay' + 
+                '\n2. Check Balance'+ 
+                '\n3. Contact Us');
             } else {
-                menu.con('You are not an Field Officer');
+                menu.end('You are not a Field Officer');
             }
         });
     },
     // next object links to next state based on user input
     next: {
-        '*[0-9]+': 'Deposit'
+        '1': 'Deposit',
+        '2': 'CheckBalance',
+        '3': 'Contact'
     },
     defaultNext: 'Start'
 });
 
 
-menu.state('User.account',{
+// menu.state('User.account',{
+//     run: () => {
+//         menu.con('Enter your current 4 digits PIN')
+//     },
+//     next: {
+//         '*\\d+': 'User.pin'
+//     }
+// });
+
+// menu.state('User.pin',{
+//     run: async() => {
+//         var pin = await menu.session.get('pin');
+//         if(menu.val === pin) {
+//             // var newpin = Number(menu.val);
+//             // menu.session.set('newpin', newpin);
+//             menu.con('Enter new 4 digits PIN');
+//         } else {
+//             menu.end('Incorrect Pin. Enter zero(0) to continue');
+//         }
+//     },
+//     next: {
+//         '0': 'Start',
+//         '*\\d+': 'User.newpin'
+//     },
+//     defaultNext: 'Start'
+// });
+
+// menu.state('User.newpin',{
+//     run: () => {
+//         if(menu.val.length == 4) {
+//             var newpin = menu.val;
+//             menu.session.set('newpin', newpin);
+//             menu.con('Re-enter the 4 digits');
+//         } else {
+//             menu.end('Pin must be 4 digits');
+//         }
+//     },
+//     next: {
+//         '*\\d+': 'User.verifypin'
+//     },
+//     defaultNext: 'Start'
+// })
+
+// menu.state('User.verifypin', {
+//     run: async() => {
+//         var pin = await menu.session.get('newpin');
+//         if(menu.val === pin) {
+//             var newpin = Number(menu.val);
+//             // var cust = await menu.session.get('cust');
+//             // console.log(cust);
+//             // var cus = JSON.parse(cust);
+//             var mobile = await menu.session.get('mobile');
+//             // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
+//             var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
+//             await postChangePin(value, (data)=> { 
+//                 // console.log(1,data); 
+//                 menu.session.set('pin', newpin);
+//                 menu.con(data.message);
+//             });
+//         } else {
+//             menu.con('Incorrect Pin. Enter zero(0) to continue')
+//         }
+//     },
+//     next: {
+//         '0': 'Start'
+//     },
+//     defaultNext: 'Start'
+// });
+
+menu.state('Deposit',{
     run: () => {
-        menu.con('Enter your current 4 digits PIN')
+        menu.con('Enter Driver\'s Phone Number')
     },
     next: {
-        '*\\d+': 'User.pin'
+        '*\\d+': 'Deposit.account'
     }
 });
 
-menu.state('User.pin',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        if(menu.val === pin) {
-            // var newpin = Number(menu.val);
-            // menu.session.set('newpin', newpin);
-            menu.con('Enter new 4 digits PIN');
-        } else {
-            menu.end('Incorrect Pin. Enter zero(0) to continue');
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'User.newpin'
-    },
-    defaultNext: 'Start'
-});
 
-menu.state('User.newpin',{
-    run: () => {
-        if(menu.val.length == 4) {
-            var newpin = menu.val;
-            menu.session.set('newpin', newpin);
-            menu.con('Re-enter the 4 digits');
-        } else {
-            menu.end('Pin must be 4 digits');
-        }
-    },
-    next: {
-        '*\\d+': 'User.verifypin'
-    },
-    defaultNext: 'Start'
-})
-
-menu.state('User.verifypin', {
-    run: async() => {
-        var pin = await menu.session.get('newpin');
-        if(menu.val === pin) {
-            var newpin = Number(menu.val);
-            // var cust = await menu.session.get('cust');
-            // console.log(cust);
-            // var cus = JSON.parse(cust);
-            var mobile = await menu.session.get('mobile');
-            // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
-            var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
-            await postChangePin(value, (data)=> { 
-                // console.log(1,data); 
-                menu.session.set('pin', newpin);
-                menu.con(data.message);
-            });
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start'
-    },
-    defaultNext: 'Start'
-});
-
-menu.state('Deposit', {
+menu.state('Deposit.account', {
     run: async() => {
         await fetchCustomer(menu.val, (data)=> { 
             // console.log(1,data); 
@@ -178,7 +198,7 @@ menu.state('Deposit', {
         '1': 'Deposit.confirm',
         '2': 'Deposit.cancel',
     },
-    defaultNext: 'Deposit.amount'
+    defaultNext: 'Deposit'
 });
 
 menu.state('Deposit.confirm', {
@@ -204,6 +224,82 @@ menu.state('Deposit.cancel', {
         menu.end('Thank you for using Ahantaman Rural Bank.');
     }
 });
+
+menu.state('CheckBalance',{
+    run: async() => {
+        var index = Number(menu.val);
+        var accounts = await menu.session.get('accounts');
+        // console.log(accounts);
+        var account = accounts[index-1]
+        // menu.session.set('account', account);
+        await fetchBalance(account.code, async(result)=> { 
+            console.log(result) 
+            if(result.balance != null) { account.balance = result.balance; }
+            menu.session.set('account', account);
+            menu.session.set('balance', result.balance);
+            menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
+        });
+    },
+    next: {
+        '0': 'Start',
+    },
+    defaultNext: 'CheckBalance'
+});
+
+menu.state('Contact', {
+    run: () => {
+        // use menu.con() to send response without terminating session      
+        menu.con('1. Stop auto-debit' +
+            '\n2. Name' +
+            '\n3. Email' +
+            '\n4. Mobile' +
+            '\n5. Website');
+    },
+    // next object links to next state based on user input
+    next: {
+        '1': 'AutoDebit',
+        '2': 'Contact.name',
+        '3': 'Contact.email',
+        '4': 'Contact.mobile',
+        '5': 'Contact.website'
+    }
+});
+
+menu.state('AutoDebit', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('Auto Debit disabled successfully.');
+    }
+});
+
+menu.state('Contact.name', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('Ahantaman Rural Bank Limited.');
+    }
+});
+
+menu.state('Contact.email', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('info@ahantamanbank.com.gh.');
+    }
+});
+
+menu.state('Contact.mobile', {
+    run: () => {
+        // Contact Mobile
+        menu.end('+233 (0) 31 209 1033');
+    }
+});
+
+menu.state('Contact.website', {
+    run: () => {
+        // Contact Website
+        menu.end('http://www.ahantamanbank.com.gh');
+    }
+});
+
 
 // Pension USSD
 exports.ussdApp = async(req, res) => {

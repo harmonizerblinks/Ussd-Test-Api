@@ -50,8 +50,8 @@ module.exports = function(app) {
     app.post('/api/sikasoft/officer', ppt.ussdApp);
     
     // GPRTU Collection
-    app.post('/api/gprtu', ahantaman.ussdApp);
-    app.post('/api/gprtu/officer', ppt.ussdApp);
+    app.post('/api/gprtu', gprtu.ussdApp);
+    app.post('/api/gprtu/officer', gprtuofficer.ussdApp);
     
     // LEVERAGE Collection
     app.post('/api/leverage', leverage.ussdApp);
