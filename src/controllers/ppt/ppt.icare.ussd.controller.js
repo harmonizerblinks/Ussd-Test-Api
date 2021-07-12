@@ -380,17 +380,20 @@ menu.state('Icare.complete', {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
         await postCustomer(data, (data) => {
-            if(data.schemenumber) {
-                menu.con('Your account has been created successfully. Press 1 to continue payment');
-            } else {
-                menu.con('Dear Customer, the number you entered is already registered. Press 0 to continue to the Main Menu');
-            }
+            menu.con('Choose Option:' +
+            '\n1. Daily' +
+            '\n2. Weekly'+
+            '\n3. Monthly' +
+            '\n4. Only once' + 
+            '\n5. Stop Repeat Payment')
         })
 
     },
     next: {
-        '0': 'exit',
-        '1': 'Icare.frequency',
+        '4': 'Deposit.Registration.Once',
+        '5': 'Srp',
+        '*[0-3]+': 'Pay.view'
+
     }
 })
 
@@ -436,6 +439,24 @@ menu.state('Deposit.Once', {
         '*\\d+': 'Pay.Confirm.Amount'
     }
 });
+
+menu.state('Deposit.Registration.Once', {
+    run: async() => {
+        var mobile = await menu.session.get('mobile');        
+        await fetchCustomer(mobile, (data)=> { 
+            // console.log(1,data);  
+            if(data.active) {
+                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+            } else {
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+            }
+        });
+    },
+    next: {
+        '*\\d+': 'Pay.Confirm.Amount'
+    }
+});
+
 
 
 menu.state('Deposit', {

@@ -280,20 +280,20 @@ menu.state('Register.complete', {
         };
         await postCustomer(data, (data) => {
             // console.log(data)
-            if(data.schemenumber) {
-                menu.con('Dear '+ data.name + ', you have successfully registered for the People\'s Pension Trust' + 
-                '\nPress zero(0) to continue to payment' +
-                '\n1. Exit' +
-                '\n0. Pay');
-            } else {
-                menu.end(data.message || 'Dear Customer, the number you entered is already registered.');
-            }
+            menu.con('Choose Option:' +
+            '\n1. Daily' +
+            '\n2. Weekly'+
+            '\n3. Monthly' +
+            '\n4. Only once' + 
+            '\n5. Stop Repeat Payment')
+    
         })
 
     },
     next: {
-        '1': 'exit',
-        '0': 'Pay',
+        '4': 'Pay.account',
+        '5': 'Srp',
+        '*[0-3]+': 'Pay.view'
     }
 })
 
@@ -560,19 +560,43 @@ menu.state('Icare.complete', {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD"
         };
         await postCustomer(data, (data) => {
-            if(data.schemenumber) {
-                menu.con('Your account has been created successfully. Press 1 to continue payment');
-            } else {
-                menu.con('Dear Customer, the number you entered is already registered. Press 0 to continue to the Main Menu');
-            }
-        })
+            menu.con('Choose Option:' +
+            '\n1. Daily' +
+            '\n2. Weekly'+
+            '\n3. Monthly' +
+            '\n4. Only once' + 
+            '\n5. Stop Repeat Payment')
+            })
 
     },
     next: {
-        '0': 'Start',
-        '1': 'Icare.mobile',
+        '4': 'Icare.mobile',
+        '5': 'Srp',
+        '*[0-3]+': 'Pay.view'
+
     }
 })
+
+menu.state('Icare.mobile', {
+    run: async() => {
+        var mobile = await menu.session.get('mobile');        
+        await fetchCustomer(mobile, (data)=> { 
+            // console.log(1,data);  
+            if(data.active) {
+                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+            } else {
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+            }
+        });
+    },
+    next: {
+        '0': 'Start',
+        '*\\d+': 'Deposit.view'
+    },
+    defaultNext: 'Deposit.view'
+});
+
+
 
 menu.state('Icare.Deposit', {
     run: () => {
