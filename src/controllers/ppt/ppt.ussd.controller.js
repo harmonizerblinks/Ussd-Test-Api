@@ -372,7 +372,7 @@ menu.state('Pay.Option.Amount', {
         )
 },
     next: {
-        '4': 'Pay.account',
+        '4': 'Pay.Option.account',
         '*[0-3]+': 'Pay.view'
     }
 })
@@ -399,7 +399,7 @@ menu.state('Pay.Option.Complete', {
     }
 })
 
-menu.state('Pay.account', {
+menu.state('Pay.Option.account', {
     run: async() => {
         var accounts = await menu.session.get('accounts');
         let account = await filterPersonalSchemeOnly(accounts);
