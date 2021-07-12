@@ -55,7 +55,7 @@ menu.startState({
             } 
             else {
                 await fetchCustomer(menu.args.phoneNumber, async(data) =>{
-                    console.log('Fetch Customer Started' ); 
+                    // console.log('Fetch Customer Started' ); 
                     if(data.code)
                     {
                         let mobile = menu.args.phoneNumber;
@@ -70,7 +70,7 @@ menu.startState({
                             name: data.fullname, mobile: mobile
                         };
                         await postIcareCustomer(postIcare, (data) => {
-                            console.log(data.body)
+                            // console.log(data.body)
                             menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
                             '\n1. Register for Someone' +
                             '\n2. Pay for Someone'
