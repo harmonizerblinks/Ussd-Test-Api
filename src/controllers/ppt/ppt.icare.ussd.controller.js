@@ -275,11 +275,14 @@ menu.state('Icare.register', {
 menu.state('Icare.next', {
     run: async() => {
         let mobile = menu.val;
-        // console.log(mobile)
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }    
+        console.log(mobile)
+        // if (mobile && mobile.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('+233', '0');
+        // }else if(mobile && mobile.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('233', '0');
+        // }    
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
             if(data.surname && data.surname == null || data.lastname == null){
@@ -314,7 +317,7 @@ menu.state('Icare.next', {
     },
     next: {
         '0': 'Icare.change',
-        '1': 'Icare.complete',
+        '1#': 'Icare.complete',
     }
 });
 
@@ -434,8 +437,10 @@ menu.state('Icare.mobile', {
 
 menu.state('Deposit.Once', {
     run: async() => {
-        let name = await menu.session.get('name')
-        menu.con('You are making a payment for ' + name +'. How much would you like to pay?')
+        let moblie = await menu.session.get('mobile');
+        await fetchCustomer(mobile, (data) => {
+            menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+        })
     },
     next: {
         '*\\d+': 'Pay.Confirm.Amount'
@@ -474,7 +479,7 @@ menu.state('Deposit', {
     },
     next: {
         '0': 'Start',
-        '*\\d+': 'Pay.amount'
+        '*\\d+': 'Pay.Confirm.Amount'
     }
 });
 

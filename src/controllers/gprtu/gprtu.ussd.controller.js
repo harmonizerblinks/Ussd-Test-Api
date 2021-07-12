@@ -145,7 +145,7 @@ menu.state('Deposit.cancel', {
 
 menu.state('CheckBalance',{
     run: async() => {
-        var index = Number(menu.val);
+        var index = 1;
         var accounts = await menu.session.get('accounts');
         // console.log(accounts);
         var account = accounts[index-1]
@@ -155,7 +155,7 @@ menu.state('CheckBalance',{
             if(result.balance != null) { account.balance = result.balance; }
             menu.session.set('account', account);
             menu.session.set('balance', result.balance);
-            menu.con('Your total payment balance for thiis month is GHS '+ account.balance+ '\nEnter zero(0) to continue');
+            menu.con('Your total payment balance for this month is GHS '+ account.balance+ '\nEnter zero(0) to continue');
         });
     },
     next: {

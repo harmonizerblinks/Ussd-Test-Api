@@ -337,7 +337,7 @@ menu.state('Withdrawal.view',{
         var account = await menu.session.get('account');
         var balance = await menu.session.get('balance');
         var charge = await amount * (1/100);
-        // console.log(cust);
+        console.log(amount + charge);
         if(balance >= (amount + charge)) {
             menu.con(cust.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
             '\n1. Confirm' +
@@ -366,7 +366,7 @@ menu.state('Withdrawal.confirm', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' from mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
-            console.log(result) 
+            // console.log(result.message) 
             // menu.end(JSON.stringify(result)); 
             menu.end(result.message);
         });
@@ -582,9 +582,9 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    console.log(args);
+    // console.log(args);
     menu.run(args, ussdResult => {
-        menu.session.set('network', args.Operator);
+        if(args.Operator) {menu.session.set('network', args.Operator); }
         res.send(ussdResult);
     });
     // let args = {
