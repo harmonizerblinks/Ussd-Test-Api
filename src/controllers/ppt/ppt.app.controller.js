@@ -4,6 +4,7 @@ var unirest = require('unirest');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../../config/mongodb.config.js');
+const { response } = require('express');
 let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
@@ -16,61 +17,234 @@ let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 let access = { code: "446785909", key: "164383692" };
 
 // POST a User
-exports.createUser = async(req, res) => {
+exports.Register = async(req, res) => {
     console.log(req.body);
     const user = new User(req.body);
     user.password = bcrypt.hashSync(req.body.password, 10);
     user.email = req.body.email.toLowerCase();
 
-    user.save()
-        .then(async(data) => {
-            console.info('saved successfully');
+};
+
+exports.sendOtp = async(req, res) => {
+    var val = req.body;
+       
+    var api_endpoint = apiurl1  + val.mobile + '/' + val.type + '?id=' + val.source;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ success: false, message: 'Unable to sent Otp' });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        res.send({
+            success: true, message: response.message
+        });
+    });
+}
+
+exports.verifyOtp = async(req, res) => {
+    const val = req.body;
+       
+    var api_endpoint = apiurl1 + 'verify/' + val.mobile + '/' + val.otp + '?id=' + val.source;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ success: false, register: false, message: 'Code Not Valid' });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        res.send({
+            success: true, message: response.message
+        });
+    });
+}
+
+exports.setPassword = async(req, res) => {
+    const mobile = req.body.mobile;
+    const newpin = bcrypt.hashSync(req.body.newpin, 10);
+    if (mobile == null || req.body.newpin == null) {
+        return res.status(500).send({
+            message: "Mobile Number and Pin is Required"
+        });; 
+    }
+    var value = { type: 'Customer', mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(value))
+        .end( async(resp)=> { 
+            if (resp.error) {
+                return res.status(500).send({
+                message: "Error updating user Password "
+                });; 
+            }
+            // console.log(resp.raw_body);
+            res.send({
+                message: "Password Set successfully"
+            });
+        });
+};
+
+exports.getMember = async(req, res) => {
+    const val = req.params.mobile;
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233', '0');
+    }else if(val && val.startsWith('233')) {
+        // Remove Bearer from string
+        val = val.replace('233', '0');
+    }    
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Mobile Number does not Exist' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        if (response.active && response.pin == null) {
+            res.send({
+                success: true, register: true, pin: false
+            });
+        }
+    });
+};
+
+
+exports.getScheme = async(req, res) => {
+    const val = req.params.scheme;   
+    var api_endpoint = apiurl + 'Schemeinfo/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Current Password is not correct' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        response.pin = null;
+        res.send(response.payments);
+    });
+};
+
+exports.getSchemeinfo = async(req, res) => {
+    const val = req.params.scheme;   
+    var api_endpoint = apiurl + 'Schemeinfo/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Current Password is not correct' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        response.pin = null;
+        res.send(response);
+    });
+};
+
+exports.getMemberinfo = async(req, res) => {
+    const val = req.user.mobile;
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233', '0');
+    }else if(val && val.startsWith('233')) {
+        // Remove Bearer from string
+        val = val.replace('233', '0');
+    }    
+    var api_endpoint = apiurl + 'Memberinfo/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'User Record not Found' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        response.pin = null;
+        res.send(response);
+    });
+};
+
+// Login user
+
+exports.login = (req, res) => {
+    const val = req.body.mobile;
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233', '0');
+    }else if(val && val.startsWith('233')) {
+        // Remove Bearer from string
+        val = val.replace('233', '0');
+    }    
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Password is not correct' 
+            });
+        }
+        
+        var data = JSON.parse(resp.raw_body);
+        if (data.active && data.pin == null) {
+            res.send({
+                success: true, register: true, pin: false
+            });
+        }
+        var passwordIsValid = bcrypt.compareSync(req.body.pin, data.pin);
+        if (passwordIsValid) {
             const token = jwt.sign({
                 type: 'user',
                 data: {
-                    id: data._id,
+                    id: data.code,
                     fullname: data.fullname,
-                    isAdmin: data.isAdmin,
-                    mmobile: data.mobile,
-                    email: user.email
+                    mobile: data.mobile,
+                    email: data.email,
+                    scheme: data.accounts[0].code
                 },
             }, config.secret, {
                 expiresIn: 684800
             });
             console.log(token);
             res.send({ success: true, access_token: token, date: Date.now });
-            // res.send(data);
-        }).catch(err => {
-            res.status(500).send({
-                message: err.message
-            });
-        });
-};
-
-exports.setPassword = async(req, res) => {
-
-};
-
-exports.getMember = async(req, res) => {
-
+        } else {
+            res.status(500).send({ success: false, message: 'Password is not correct' });
+        }
+        // console.log(resp.body);
+        // var response = JSON.parse(resp.raw_body);
+        // res.send(response);
+    });
 };
 
 // Logout user
 exports.logout = (req, res) => {
     if (req.user) {
-        User.findById(req.user.id)
-            .then(user => {
-
-                user.isLogin = true;
-                user.access_token = null;
-                User.findByIdAndUpdate(user._id, user, { new: true });
-                res.send({ output: 'Logout', mesaage: 'you have been logout successfully' });
-            }).catch(err => {
-                return res.status(200).send({
-                    message: "you have been logout successfully"
-                });
-            });
-        // res.send(req.user);
+        
+        res.send({
+            message: "Logout succesful"
+        });
     } else {
         res.status(401).send({
             message: "Authentication not Valid"
@@ -95,18 +269,18 @@ exports.profile = (req, res) => {
 
 // Change Password
 exports.changePassword = async(req, res) => {
-    const id = req.user.mobile;
-    const oldpassword = req.body.pin;
-    const password = req.body.newpin;
-    await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-        if (!use) {
+    const mobile = req.user.mobile;
+    const pin = req.body.pin;
+    // const newpin = req.body.newpin;
+    await fetchCustomer(mobile, (data)=> { 
+        if (!data || !data.active) {
             return res.status(404).send({
-                message: "User not found with mobile " + id
+                message: "User not found with mobile " + mobile
             });
         }
         var passwordIsValid = bcrypt.compareSync(req.body.pin, data.pin);
         if (passwordIsValid) {
-            user.pin = bcrypt.hashSync(req.body.newpin, 10);
+            const newpin = bcrypt.hashSync(req.body.newpin, 10);
             var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
             var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
             var req = unirest('POST', api_endpoint)
@@ -126,58 +300,68 @@ exports.changePassword = async(req, res) => {
                 });
             });
         } else {
-            res.status(500).send({ success: false, message: 'Password is not correct' })
+            res.status(500).send({ success: false, message: 'Current Password is not correct' });
         }
     }).catch(err => {
-        if (err.kind === 'ObjectId') {
-            return res.status(404).send({
-                message: "User not found with username " + username
-            });
-        }
         return res.status(500).send({
-            message: "Error retrieving User with username " + username
+            message: "Error retrieving Member with mobile " + mobile
         });
     });
 };
 
+// Post Statement
+exports.Statement = (req, res) => {
+    const val = req.body;
+    
+    val.appid = access.code; val.appkey = access.key;
+
+    var api_endpoint = apiurl + 'Statement/';
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            // if (response.error) throw new Error(response.error);
+            return res.status(500).send({
+                message: resp.error
+            });
+        }
+        // if (res.error) throw new Error(res.error); 
+        var response = JSON.parse(resp.raw_body);
+        // await callback(response);
+        res.send(response.payments);
+    });
+};
+
+
 // Post Payment
-exports.Makepayment = (req, res) => {
-    // var req = unirest('POST', 'http://api.alias-solutions.net:8443/chatbotapi/paynow/merchant/payment')
-    var request = unirest('POST', req.body.payment.apiurl)
-        .headers({
-            'Content-Type': ['application/json', 'application/json']
-        })
-        .send(JSON.stringify(req.body.payment))
-        .end(function(response) {
-            if (response.error) throw new Error(response.error);
-            console.log(response.raw_body);
-            var body = req.body;
-            // console.log(body)
-            body.response = JSON.parse(response.raw_body);
-            body.updated = new Date();
-            // Find insurance and update it
-            Insurance.findByIdAndUpdate(body._id, body, { new: true })
-                .then(insurance => {
-                    if (!insurance) {
-                        return res.status(404).send({
-                            message: "Insurance not found with id " + req.params.insuranceId
-                        });
-                    }
-                    console.log(body.response);
-                    setTimeout(() => { getCallBack(insurance, body.response.transaction_no); }, 100000);
-                    // var callback = setTimeout(getCallBack(insurance, body.response.transaction_no), 100000);
-                    res.send({ output: 'Payment Request Sent', message: "Kindly Confirm Payment Prompt on your phone", insure: insurance });
-                }).catch(err => {
-                    if (err.kind === 'ObjectId') {
-                        return res.status(404).send({
-                            message: "Insurance not found with id " + req.params.insuranceId
-                        });
-                    }
-                    return res.status(500).send({
-                        message: "Error updating insurance with id " + req.params.insuranceId
-                    });
-                });
-        });
+exports.Deposit = (req, res) => {
+    const val = req.body;
+    
+    var value = { merchant:access.code,account:val.code,type:'Deposit',network:val.network,mobile:val.mobile,amount:amount,method:val.method,source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+val.code,merchantid:val.merchantid};
+
+    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            // if (response.error) throw new Error(response.error);
+            return res.status(500).send({
+                message: resp.error
+            });
+        }
+        // if (res.error) throw new Error(res.error); 
+        var response = JSON.parse(resp.raw_body);
+        // await callback(response);
+        res.send({ output: 'Payment Request Sent', message: response.message });
+    });
 };
 
 // Pension USSD
@@ -201,6 +385,66 @@ function buyAirtime(phone, val) {
 
 async function postCustomer(val, callback) {
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
+    // console.log(1 ,api_endpoint);
+    // console.log(2 ,val);
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async(resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            if (response.active) {
+                menu.session.set('name', response.name);
+                menu.session.set('mobile', val);
+                menu.session.set('accounts', response.accounts);
+                menu.session.set('cust', response);
+                menu.session.set('pin', response.pin);
+                // menu.session.set('limit', response.result.limit);
+            }
+            await callback(response);
+        });
+    return true
+}
+
+async function getInfo(val, callback) {
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233', '0');
+    }else if(val && val.startsWith('233')) {
+        // Remove Bearer from string
+        val = val.replace('233', '0');
+    }    
+
+    var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        });
+    return true
+}
+
+async function postIcareCustomer(val, callback) {
+    var api_endpoint = apiurl + 'CreateIcare/' + access.code + '/' + access.key;
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -213,19 +457,52 @@ async function postCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.raw_body);
+            // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
         });
     return true
 }
 
-async function fetchCustomer(val, callback) {
-    // try {
+async function fetchIcareCustomer(val, callback) { 
     if (val && val.startsWith('+233')) {
         // Remove Bearer from string
         val = val.replace('+233', '0');
     }
+    var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.error);
+                // var response = JSON.parse(res);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            if (response.active) {
+                // menu.session.set('name', response.fullname);
+                // menu.session.set('mobile', val);
+                // menu.session.set('accounts', response.accounts);
+                // menu.session.set('cust', response);
+                // menu.session.set('pin', response.pin);
+                // menu.session.set('limit', response.result.limit);
+            }
+
+            await callback(response);
+        });
+}
+
+async function fetchCustomer(val, callback) {
+    // try {
+        if (val && val.startsWith('+233')) {
+            // Remove Bearer from string
+            val = val.replace('+233', '0');
+        }else if(val && val.startsWith('233')) {
+            // Remove Bearer from string
+            val = val.replace('233', '0');
+        }    
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -236,14 +513,14 @@ async function fetchCustomer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.body);
+            // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
-                menu.session.set('name', response.fullname);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('pin', response.pin);
+                // menu.session.set('name', response.fullname);
+                // menu.session.set('mobile', val);
+                // menu.session.set('accounts', response.accounts);
+                // menu.session.set('cust', response);
+                // menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
             }
 
@@ -257,7 +534,7 @@ async function fetchCustomer(val, callback) {
 }
 
 async function fetchBalance(val, callback) {
-    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
+    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
@@ -276,6 +553,26 @@ async function fetchBalance(val, callback) {
     });
 }
 
+async function postAutoDeposit(val, callback) {
+    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        // console.log(JSON.stringify(val));
+        if (resp.error) { 
+            console.log(resp.error);
+            // await postDeposit(val);
+            await callback(resp);
+        }
+        // if (res.error) throw new Error(res.error); 
+        var response = JSON.parse(resp.raw_body);
+        await callback(response);
+    });
+    return true
+}
 
 async function postDeposit(val, callback) {
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
@@ -288,13 +585,11 @@ async function postDeposit(val, callback) {
         // console.log(JSON.stringify(val));
         if (resp.error) { 
             console.log(resp.error);
-            await postDeposit(val);
+            // await postDeposit(val);
             await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
-        // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        console.log(response);
         await callback(response);
     });
     return true

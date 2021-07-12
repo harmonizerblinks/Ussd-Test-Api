@@ -1,30 +1,39 @@
 module.exports = function(app) {
 
     var apps = require('../controllers/ppt/ppt.app.controller.js');
-    var contact = require('../controllers/mail.controller.js');
+    // var contact = require('../controllers/mail.controller.js');
     var ussd = require('../controllers/ussd.controller.js');
     const verify = require('../middleware/verifyJwtToken.middleware.js');
-    const user = require('../middleware/verifysignup.middleware.js');
+    // const user = require('../middleware/verifysignup.middleware.js');
 
     // Register 
-    app.post('/api/register', user.checkDuplicateUserNameOrEmail, verify.verifyToken, apps.createUser);
+    // app.post('/api/register', apps.createUser);
 
     // App user Login
-    app.post('/api/login', apps.login);
+    app.post('/app/login', apps.login);
 
     // Logout
-    app.get('/api/logout', verify.verifyToken, apps.logout);
+    app.get('/app/logout', verify.verifyToken, apps.logout);
 
+    app.post('/app/send-otp', apps.sendOtp);
+    app.post('/app/verify-otp', apps.verifyOtp);
     // Change Password
-    app.post('/api/set-pin', verify.verifyToken, apps.setPassword);
+    app.post('/app/set-pin', apps.setPassword);
     
     // Change Password
-    app.post('/api/change-pin', verify.verifyToken, apps.changePassword);
+    app.post('/app/change-pin', verify.verifyToken, apps.changePassword);
 
     // Retrieve user Detail
-    app.get('/api/profile', verify.verifyToken, apps.profile);
+    app.get('/app/getMember/:mobile', apps.getMember);
+    app.get('/app/getMemberinfo', verify.verifyToken, apps.getMemberinfo);
+    app.get('/app/getScheme/:scheme', verify.verifyToken, apps.getScheme);
+    app.get('/app/getSchemeinfo/:scheme', verify.verifyToken, apps.getSchemeinfo);
+    app.get('/app/getMiniStatement/:scheme', verify.verifyToken, apps.getMemberinfo);
+    app.get('/app/getStatement/:scheme', verify.verifyToken, apps.getMemberinfo);
+    // Retrieve user Detail
+    app.get('/app/profile', verify.verifyToken, apps.profile);
     
-    // Ussd Endpoint
-    app.get('/api/ussd', ussd.ussdApp);
+    // Payment
+    app.get('/app/payment', verify.verifyToken, apps.Deposit);
 
 }
