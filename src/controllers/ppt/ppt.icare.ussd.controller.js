@@ -55,7 +55,7 @@ menu.startState({
             } 
             else {
                 await fetchCustomer(menu.args.phoneNumber, async(data) =>{
-                    // console.log('Fetch Customer Started'); 
+                    console.log('Fetch Customer Started' ); 
                     if(data.code)
                     {
                         let mobile = menu.args.phoneNumber;
@@ -116,7 +116,7 @@ menu.startState({
                             '\nLast Name: ' + lastname +
                             
                             '\n\n0. Make Changes' +
-                            '\n1. Confirm')
+                            '\n1#. Confirm')
                         })
                     }
                 })
@@ -256,6 +256,8 @@ menu.state('register', {
     },
     next: {
         '0': 'Start',
+        '1': 'Icare.register',
+        '2': 'Icare.mobile'
     }
 });
 
@@ -307,7 +309,7 @@ menu.state('Icare.next', {
             '\nLast Name: ' + lastname +
             
             '\n\n0. Make Changes' +
-            '\n1. Confirm')
+            '\n1#. Confirm')
         })
     },
     next: {
