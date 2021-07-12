@@ -556,21 +556,21 @@ menu.state('Contact.name', {
 menu.state('Contact.email', {
     run: () => {
         // Cancel Savings request
-        menu.end('info@ahantamanbank.com.gh.');
+        menu.end('info@leveragefinance.com');
     }
 });
 
 menu.state('Contact.mobile', {
     run: () => {
         // Contact Mobile
-        menu.end('+233 (0) 31 209 1033');
+        menu.end('+233 (0) 30 393 3698');
     }
 });
 
 menu.state('Contact.website', {
     run: () => {
         // Contact Website
-        menu.end('http://www.ahantamanbank.com.gh');
+        menu.end('www.leveragemicrofinancelimited.com');
     }
 });
 

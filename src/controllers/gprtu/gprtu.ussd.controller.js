@@ -6,9 +6,11 @@ let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
 // let apiurl = "http://godfreddavidson-002-site25.ftempurl.com/ussd/";
-let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
+let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
-let access = { code: "test", key: "VWJ1bnR1IENhcGl0YWwgTWljci4gTHRk" };
+// let access = { code: "test", key: "VWJ1bnR1IENhcGl0YWwgTWljci4gTHRk" };
+let access = { code: "ACU001", key: "1029398" };
+
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -96,13 +98,14 @@ menu.state('Deposit', {
     run: async() => {
         var index = 1;
         var accounts = await menu.session.get('accounts');
+        console.log(accounts);
         var account = accounts[index-1]
         menu.session.set('account', account);
         var amount = 3;
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         
-        menu.con(cust.fullname +', you are making a payment of GHS ' + amount +' into your account' +
+        menu.con('Dear ' + cust.fullname +', you are making a payment of GHS ' + amount +' into your account' +
         '\n1. Confirm' +
         '\n2. Cancel' +
         '\n#. Main Menu')
@@ -262,8 +265,8 @@ async function fetchCustomer(val, callback) {
             // Remove Bearer from string
             val = val.replace('+233','0');
         }
-        var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + val;
-        console.log(api_endpoint);
+        var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
+        // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
             if (resp.error) { 
@@ -279,6 +282,7 @@ async function fetchCustomer(val, callback) {
                 menu.session.set('name', response.name);
                 menu.session.set('mobile', val);
                 menu.session.set('accounts', response.accounts);
+                // console.log(response.accounts);
                 menu.session.set('cust', response);
                 menu.session.set('type', response.type);
                 menu.session.set('pin', response.pin);
