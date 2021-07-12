@@ -315,7 +315,7 @@ exports.Statement = (req, res) => {
     
     val.appid = access.code; val.appkey = access.key;
 
-    var api_endpoint = apiurl + 'Statement/';
+    var api_endpoint = apiurl + 'Statement';
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
