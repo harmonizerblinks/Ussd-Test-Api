@@ -311,10 +311,12 @@ menu.state('Pay', {
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
-        '\n4. Only once')
+        '\n4. Only once' + 
+        '\n5. Stop Repeat Payment')
     },
     next: {
         '4': 'Pay.account',
+        '5': 'Srp',
         '*[0-3]+': 'Pay.view'
     }
 })

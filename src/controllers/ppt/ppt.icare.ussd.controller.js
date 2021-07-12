@@ -407,10 +407,12 @@ menu.state('Icare.frequency', {
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
-        '\n4. Only once')
+        '\n4. Only once' + 
+        '\n5. Stop Repeat Payment')
     },
     next: {
         '4': 'Deposit.Once',
+        '5': 'Srp',
         '*[0-3]+': 'Pay.view'
     }
 })
@@ -508,15 +510,17 @@ menu.state('Pay.Option.Amount', {
 
 // menu.state('Pay.amount', {
 //     run: () => {
-//         menu.con('Choose Option:' +
-//         '\n1. Daily' +
-//         '\n2. Weekly'+
-//         '\n3. Monthly' +
-//         '\n4. Only once')
+    // menu.con('Choose Option:' +
+    // '\n1. Daily' +
+    // '\n2. Weekly'+
+    // '\n3. Monthly' +
+    // '\n4. Only once' + 
+    // '\n5. Stop Repeat Payment')
 //     },
 //     next: {
-//         '4': 'Deposit.view',
-//         '*[0-3]+': 'Pay.view'
+    // '4': 'Deposit.Once',
+    // '5': 'Srp',
+    // '*[0-3]+': 'Pay.view'
 //     }
 // })
 

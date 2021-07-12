@@ -225,12 +225,14 @@ menu.state('pay', {
             '\n1. Daily' +
             '\n2. Weekly'+
             '\n3. Monthly' +
-            '\n4. Only once')
+            '\n4. Only once' + 
+            '\n5. Stop Repeat Payment')
         })
 
     },
     next: {
         '4': 'Pay.account',
+        '5': 'Srp',
         '*[0-3]+': 'Pay.view'
     }
 })
@@ -267,7 +269,7 @@ menu.state('Pay.send', {
     }
 });
 
-menu.state('srp', {
+menu.state('Srp', {
     run: () => {
         menu.end('You have successfully cancelled your Repeat Payments')
     }
