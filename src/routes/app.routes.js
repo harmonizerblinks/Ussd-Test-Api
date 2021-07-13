@@ -29,7 +29,7 @@ module.exports = function(app) {
     app.get('/app/getScheme/:scheme', verify.verifyToken, apps.getScheme);
     app.get('/app/getSchemeinfo/:scheme', verify.verifyToken, apps.getSchemeinfo);
     app.get('/app/getMiniStatement/:scheme', verify.verifyToken, apps.getMemberinfo);
-    app.post('/app/Statement/:scheme', verify.verifyToken, apps.Statement);
+    app.post('/app/Statement', verify.verifyToken, apps.Statement);
     // Retrieve user Detail
     app.get('/app/profile', verify.verifyToken, apps.profile);
     

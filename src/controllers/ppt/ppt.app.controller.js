@@ -315,7 +315,7 @@ exports.Statement = (req, res) => {
     
     val.appid = access.code; val.appkey = access.key;
 
-    var api_endpoint = apiurl + 'Statement/';
+    var api_endpoint = apiurl + 'Statement';
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -554,7 +554,7 @@ async function fetchBalance(val, callback) {
 }
 
 async function postAutoDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    var api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
