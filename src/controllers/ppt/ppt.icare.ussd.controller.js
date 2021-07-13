@@ -310,7 +310,7 @@ menu.state('Icare.next', {
     },
     next: {
         '0': 'Icare.change',
-        '1#': 'Icare.complete',
+        '1': 'Icare.complete',
     }
 });
 

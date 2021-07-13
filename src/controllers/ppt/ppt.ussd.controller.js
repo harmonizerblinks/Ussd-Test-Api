@@ -443,7 +443,7 @@ menu.state('Icare', {
     },
     next: {
         '1': 'Icare.register',
-        '2': 'Icare.Deposit',
+        '2': 'Icare.options',
     }
 });
 
@@ -597,6 +597,21 @@ menu.state('Icare.mobile', {
     defaultNext: 'Deposit.view'
 });
 
+menu.state('Icare.options', {
+    run: () => {
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. Only once' + 
+        '\n5. Stop Repeat Payment')
+    },
+    next: {
+        '4': 'Icare.Deposit',
+        '5': 'Srp',
+        '*[0-3]+': 'Pay.view'
+    }
+})
 
 
 menu.state('Icare.Deposit', {
