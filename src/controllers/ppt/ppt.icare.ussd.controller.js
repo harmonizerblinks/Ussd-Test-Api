@@ -639,6 +639,12 @@ menu.state('Srp', {
     }
 });
 
+menu.state('Exit', {
+    run: () => {
+        menu.end('')
+    }
+});
+
 
 /////////////////------------------USSD SESSION STARTS------------------/////////////////////
 // Pension USSD
