@@ -127,7 +127,7 @@ menu.startState({
     next: {
         '0': 'Icare.change',
         '1': 'Icare.register',
-        '2': 'Icare.mobile',
+        '2': 'Icare.options',
         '1#': 'Icare.complete'
     }
 });
@@ -219,7 +219,7 @@ menu.state('Start', {
     next: {
         '0': 'Icare.change',
         '1': 'Icare.register',
-        '2': 'Icare.mobile',
+        '2': 'Icare.options',
         '1#': 'Icare.complete'
     },
     defaultNext: 'Start'
@@ -256,7 +256,7 @@ menu.state('register', {
     },
     next: {
         '0': 'Start',
-        '1': 'Icare.register',
+        '1': 'Icare.options',
         '2': 'Icare.mobile'
     }
 });
@@ -401,6 +401,22 @@ menu.state('exit', {
     }
 })
 
+
+menu.state('Icare.options', {
+    run: () => {
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. Only once' + 
+        '\n5. Stop Repeat Payment')
+    },
+    next: {
+        '4': 'Deposit',
+        '5': 'Srp',
+        '*[0-3]+': 'Pay.view'
+    }
+})
 
 menu.state('Icare.frequency', {
     run: () => {
