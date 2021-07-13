@@ -718,7 +718,7 @@ menu.state('CheckBalance',{
             if(result.balance != null) { account.balance = result.balance; }
             menu.session.set('account', account);
             menu.session.set('balance', result.balance);
-            menu.con('Your Balance is Savings: GHS '+result.savings+ '\nRetirement: GHS '+result.retirement +'.\nEnter zero(0) to continue');
+            menu.con('Your Balance is Savings: GHS '+ parseFloat(result.savings).toFixed(2)+ '\nRetirement: GHS '+parseFloat(result.retirement).toFixed(2) +'.\nEnter zero(0) to continue');
         });
     },
     next: {

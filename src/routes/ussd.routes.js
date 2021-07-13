@@ -9,6 +9,10 @@ module.exports = function(app) {
     var leverage = require('../controllers/leverage/leverage.ussd.controller.js');
     var leveragetest = require('../controllers/leverage/leverage.test.ussd.controller.js');
     var leverageofficer = require('../controllers/leverage/leverage.officer.ussd.controller.js');
+    // Sikasoft
+    var sikkasoft = require('../controllers/sikkasoft/sikkasoft.ussd.controller.js');
+    var sikkasofttest = require('../controllers/sikkasoft/sikkasoft.test.ussd.controller.js');
+    var sikkasoftofficer = require('../controllers/sikkasoft/sikkasoft.officer.ussd.controller.js');
     // Aslan
     var aslan = require('../controllers/aslan/aslan.ussd.controller.js');
     // ECG 
@@ -46,8 +50,8 @@ module.exports = function(app) {
     app.post('/api/aslan/officer', aslan.ussdApp);
 
     // SikaSoft Collection
-    app.post('/api/sikasoft', ahantaman.ussdApp);
-    app.post('/api/sikasoft/officer', ppt.ussdApp);
+    app.post('/api/sikkasoft', sikkasoft.ussdApp);
+    app.post('/api/sikkasoft/officer', sikkasoftofficer.ussdApp);
     
     // GPRTU Collection
     app.post('/api/gprtu', gprtu.ussdApp);
