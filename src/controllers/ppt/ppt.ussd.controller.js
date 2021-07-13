@@ -297,7 +297,7 @@ menu.state('Register.complete', {
     }
 })
 
-menu.state('exit', {
+menu.state('Exit', {
     run: () => {
         menu.end('')
     }
@@ -372,8 +372,8 @@ menu.state('Pay.Option.Amount', {
         )
 },
     next: {
-        '4': 'Pay.Option.account',
-        '*[0-3]+': 'Pay.view'
+        '1': 'Pay.send',
+        '0': 'Exit'
     }
 })
 
@@ -621,8 +621,7 @@ menu.state('Icare.Deposit.mobile', {
     next: {
         '0': 'Start',
         '*\\d+': 'Deposit.view'
-    },
-    defaultNext: 'Deposit.view'
+    }
 });
 
 // menu.state('Deposit.account', {
