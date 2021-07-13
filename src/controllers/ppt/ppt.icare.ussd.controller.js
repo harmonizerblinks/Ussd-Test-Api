@@ -412,11 +412,21 @@ menu.state('Icare.options', {
         '\n5. Stop Repeat Payment')
     },
     next: {
-        '4': 'Deposit',
+        '4': 'Icare.options.mobile',
         '5': 'Srp',
         '*[0-3]+': 'Pay.view'
     }
 })
+
+menu.state('Icare.options.mobile', {
+    run: () => {
+        menu.con('Enter Mobile Number of Person')
+    },
+    next: {
+        '*\\d+': 'Deposit'
+    }
+})
+
 
 menu.state('Icare.frequency', {
     run: () => {
