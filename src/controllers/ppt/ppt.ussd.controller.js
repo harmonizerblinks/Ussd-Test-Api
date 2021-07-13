@@ -380,8 +380,6 @@ menu.state('Pay.Option.Amount', {
     }
 })
 
-
-
 menu.state('Pay.Option.Complete', {
     run: async () => {
         var amount = await menu.session.get('amount');
