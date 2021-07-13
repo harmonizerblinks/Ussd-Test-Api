@@ -54,7 +54,7 @@ menu.startState({
             if(data.active) {     
                 menu.con('Welcome to People\'s Pensions Trust' + 
                 '\n1. Pay' +
-                '\n2. iCare (Pay for Someone)' +
+                '\n2. iCare' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
                 '\n5. Contact us')
@@ -83,7 +83,7 @@ menu.state('Start', {
             if(data.active) {     
                 menu.con('Welcome to People\'s Pensions Trust' + 
                 '\n1. Pay' +
-                '\n2. iCare (Pay for Someone)' +
+                '\n2. iCare' +
                 '\n3. Check Balance' +
                 '\n4. Withdrawal' +
                 '\n5. Contact us')
