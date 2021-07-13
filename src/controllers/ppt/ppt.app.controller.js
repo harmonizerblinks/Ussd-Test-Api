@@ -178,10 +178,10 @@ exports.getMemberinfo = async(req, res) => {
                 success: false, register: false, message: 'User Record not Found' 
             });
         }
-        // console.log(resp.body);
-        var response = JSON.parse(resp.raw_body);
-        response.pin = null;
-        res.send(response);
+        console.log(resp.body);
+        // var response = JSON.parse(resp.raw_body);
+        // response.pin = null;
+        res.send(resp.body);
     });
 };
 
@@ -312,8 +312,11 @@ exports.changePassword = async(req, res) => {
 // Post Statement
 exports.Statement = (req, res) => {
     const val = req.body;
+    console.log(val);
     
     val.appid = access.code; val.appkey = access.key;
+    
+    console.log(val);
 
     var api_endpoint = apiurl + 'Statement';
     var req = unirest('POST', api_endpoint)
@@ -326,7 +329,7 @@ exports.Statement = (req, res) => {
             console.log(resp.error);
             // if (response.error) throw new Error(response.error);
             return res.status(500).send({
-                message: resp.error
+                message: "unable to generate statement a the moment pls try again later"
             });
         }
         // if (res.error) throw new Error(res.error); 
@@ -339,11 +342,21 @@ exports.Statement = (req, res) => {
 
 // Post Payment
 exports.Deposit = (req, res) => {
+    const mobile = req.user.mobile;
     const val = req.body;
+    if(val.method == "CARD") {
+        res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
+    }
     
-    var value = { merchant:access.code,account:val.code,type:'Deposit',network:val.network,mobile:val.mobile,amount:amount,method:val.method,source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+val.code,merchantid:val.merchantid};
+    var value = { merchant:access.code,account:val.schemenumber,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:'PORTAL', withdrawal:false, reference:'Deposit to Scheme Number '+val.code,merchantid:val.merchantid};
 
-    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    var api_endpoint = apiurl;
+    if(val.frequency == "OneTime") {
+        api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    } else {
+        api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
+    }
+    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -351,14 +364,15 @@ exports.Deposit = (req, res) => {
     .send(JSON.stringify(value))
     .end( async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
+            console.log(resp);
+            var respons = JSON.parse(resp.raw_body);
             // if (response.error) throw new Error(response.error);
             return res.status(500).send({
-                message: resp.error
+                message: respons.message || "Unable to proccess Payment at the moment"
             });
         }
         // if (res.error) throw new Error(res.error); 
-        var response = JSON.parse(resp.raw_body);
+        // var response = JSON.parse(resp.raw_body);
         // await callback(response);
         res.send({ output: 'Payment Request Sent', message: response.message });
     });
