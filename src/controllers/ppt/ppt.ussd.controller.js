@@ -363,9 +363,12 @@ menu.state('Pay.view', {
 });
 
 menu.state('Pay.Option.Amount', {
-    run: () => {
+    run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount); 
+        var accounts = await menu.session.get('accounts');
+        let account = await filterPersonalSchemeOnly(accounts);
+        menu.session.set('account', account);
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -420,7 +423,7 @@ menu.state('Pay.send', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        // console.log(account);
+        console.log(account);
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code};

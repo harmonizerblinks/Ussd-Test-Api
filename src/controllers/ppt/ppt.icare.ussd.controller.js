@@ -275,20 +275,13 @@ menu.state('Icare.register', {
 menu.state('Icare.next', {
     run: async() => {
         let mobile = menu.val;
-        console.log(mobile)
-        // if (mobile && mobile.startsWith('+233')) {
-        //     // Remove Bearer from string
-        //     mobile = mobile.replace('+233', '0');
-        // }else if(mobile && mobile.startsWith('233')) {
-        //     // Remove Bearer from string
-        //     mobile = mobile.replace('233', '0');
-        // }    
+        // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
+            console.log(data.body)
             if(data.surname && data.surname == null || data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
-                // console.log(nameArray.length)
                 if (nameArray.length > 2){
                     var firstname = capitalizeFirstLetter(nameArray[0]);
                     var lastname = capitalizeFirstLetter(nameArray[2]);
@@ -312,7 +305,7 @@ menu.state('Icare.next', {
             '\nLast Name: ' + lastname +
             
             '\n\n0. Make Changes' +
-            '\n1#. Confirm')
+            '\n1. Confirm')
         })
     },
     next: {

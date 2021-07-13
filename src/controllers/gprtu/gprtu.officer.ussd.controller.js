@@ -49,7 +49,7 @@ menu.startState({
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
             if(data.active) {     
-                menu.con('Welcome to GPRTU Enidasoa Payment.' + 
+                menu.con('Welcome to GPRTU Enidasoa Agent Collection.' + 
                 '\nSelect an Option.' + 
                 '\n1. Pay' + 
                 '\n2. Check Balance'+ 
@@ -73,7 +73,7 @@ menu.state('Start', {
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
             if(data.active) {     
-                menu.con('Welcome to GPRTU Enidasoa Payment.' + 
+                menu.con('Welcome to GPRTU Enidasoa Agent Collection.' + 
                 '\nSelect an Option.' + 
                 '\n1. Pay' + 
                 '\n2. Check Balance'+ 
