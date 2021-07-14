@@ -351,7 +351,7 @@ exports.Deposit = (req, res) => {
     var value = { merchant:access.code,account:val.schemenumber,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:'PORTAL', withdrawal:false, reference:'Deposit to Scheme Number '+val.code,merchantid:val.merchantid};
 
     var api_endpoint = apiurl;
-    if(val.frequency == "OneTime") {
+    if(val.frequency != "OneTime") {
         api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
     } else {
         api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
