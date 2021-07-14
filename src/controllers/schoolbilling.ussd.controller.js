@@ -47,7 +47,7 @@ menu.startState({
             // console.log(1,data); 
             // use menu.con() to send response without terminating session 
             // if(data.code) { 
-                menu.con('Hello [Customer Name],' +'\nYour Current Debt Amount for School Account Number BBG023943942 is GHS [amount]' +
+                menu.con('Hello '+data.name+',' +'\nYour Current Fees Amount for Student ID Number '+data.number+' is GHS ' + data.amount + 
                     '\n\n1. Make Payment'); 
         //     } else {
         //         menu.con('Enter Mobile Number that received Bill or Bill Code.');
@@ -71,7 +71,7 @@ menu.state('Menu', {
             // console.log(1,data); 
             // use menu.con() to send response without terminating session 
             if(data.code) { 
-                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for School Account Number '+data.number+' is GHS ' + data.amount + 
+                menu.con('Hello '+data.name+',' +'\nYour Current Fees Amount for Student ID Number '+data.number+' is GHS ' + data.amount + 
                     '\n\n1. Make Payment'); 
             } else {
                 // `menu.go('Number');
@@ -97,7 +97,7 @@ menu.state('Number.account', {
             // console.log(1,data); 
             // use menu.con() to send response without terminating session 
             // if(data.code) { 
-                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for School Account Number '+data.number+' is GHS ' + data.amount + 
+                menu.con('Hello '+data.name+',' +'\nYour Current Debt Amount for Student ID Number '+data.number+' is GHS ' + data.amount + 
                     '\n\n1. Make Payment'); 
             // } else {
                 // `menu.go('Number');
@@ -129,10 +129,10 @@ menu.state('Payment', {
 menu.state('Payment.amount', {
     run: async() => {
         // use menu.val to access user input value
-        // var amount = Number(menu.val);
+        var amount = Number(menu.val);
         // menu.session.set('amount', amount);
         // var data = await menu.session.get('account');
-        menu.con('You want to perform Bill payment of amount GHC GHS 285.00 to School Account Number BBG023943942' +
+        menu.con('You want to perform Bill payment of amount GHS '+ amount +' to Student ID Number BBG023943942' +
             '\n1. Confirm' +
             '\n2. Cancel');
         

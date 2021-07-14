@@ -36,7 +36,7 @@ module.exports = function(app) {
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
     app.post('/leader', ppticare.ussdApp);
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
-    app.post('/', pptpromo.ussdApp);
+    app.post('/', pptofficer.ussdApp);
 
     // Ecg Ussd 
     app.post('/api/ecg', ecg.ussdApp);

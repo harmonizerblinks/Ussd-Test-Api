@@ -366,9 +366,9 @@ menu.state('Withdrawal.confirm', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' from mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
-            // console.log(result.message) 
+            console.log(result) 
             // menu.end(JSON.stringify(result)); 
-            menu.end(result.message);
+            menu.end(result.body.message);
         });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
@@ -643,7 +643,7 @@ async function fetchCustomer(val, callback) {
 
 async function fetchBalance(val, callback) {
     var api_endpoint = apiurl + 'getBalance/' + access.code +'/' + val;
-    console.log(api_endpoint);
+    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
@@ -702,6 +702,7 @@ async function postDeposit(val, callback) {
 
 async function postWithdrawal(val, callback) {
     var api_endpoint = apiurl + 'Withdrawal/' + access.code+'/'+access.key;
+    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
