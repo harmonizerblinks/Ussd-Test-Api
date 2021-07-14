@@ -352,9 +352,9 @@ exports.Deposit = (req, res) => {
 
     var api_endpoint = apiurl;
     if(val.frequency == "OneTime") {
-        api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
-    } else {
         api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
+    } else {
+        api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
     }
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
@@ -372,7 +372,7 @@ exports.Deposit = (req, res) => {
             });
         }
         // if (res.error) throw new Error(res.error); 
-        // var response = JSON.parse(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
         // await callback(response);
         res.send({ output: 'Payment Request Sent', message: response.message });
     });
