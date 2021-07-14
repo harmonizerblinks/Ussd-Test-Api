@@ -29,11 +29,11 @@ verifyToken = async(req, res, next) => {
         // console.log(decoded);
         req.user = decoded.data;
         req.body.muserid = decoded.data.id;
-        if (req.body.userid == null) { req.body.userid = decoded.data.id; }
-        if (req.body.code == null || req.body.code == '') {
-            req.body.code = await generateOTP(6);
-            console.log(req.body.code);
-        }
+        // if (req.body.userid == null) { req.body.userid = decoded.data.id; }
+        // if (req.body.code == null || req.body.code == '') {
+        //     req.body.code = await generateOTP(6);
+        //     console.log(req.body.code);
+        // }
         // console.log(req.body);
 
         next();

@@ -344,11 +344,12 @@ exports.Statement = (req, res) => {
 exports.Deposit = (req, res) => {
     const mobile = req.user.mobile;
     const val = req.body;
+    // var method = "";
     if(val.method == "CARD") {
         res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
     }
     
-    var value = { merchant:access.code,account:val.schemenumber,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:'PORTAL', withdrawal:false, reference:'Deposit to Scheme Number '+val.code,merchantid:val.merchantid};
+    var value = { merchant:access.code,account:val.schemenumber,type:'Deposit',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, merchantid:1};
 
     var api_endpoint = apiurl;
     if(val.frequency != "OneTime") {
@@ -365,10 +366,10 @@ exports.Deposit = (req, res) => {
     .end( async(resp)=> { 
         if (resp.error) { 
             console.log(resp);
-            var respons = JSON.parse(resp.raw_body);
+            var respon = JSON.parse(resp.raw_body);
             // if (response.error) throw new Error(response.error);
             return res.status(500).send({
-                message: respons.message || "Unable to proccess Payment at the moment"
+                message: respon.message || "Unable to proccess Payment at the moment"
             });
         }
         // if (res.error) throw new Error(res.error); 
