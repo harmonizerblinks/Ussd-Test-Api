@@ -17,6 +17,7 @@ module.exports = function(app) {
     var aslan = require('../controllers/aslan/aslan.ussd.controller.js');
     // ECG 
     var ecg = require('../controllers/ecg.ussd.controller.js');
+    var benin = require('../controllers/benin.controller.js');
     
     // Ppt
     var ppt = require('../controllers/ppt/ppt.ussd.controller.js');
@@ -37,6 +38,8 @@ module.exports = function(app) {
     app.post('/leader', ppticare.ussdApp);
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
     app.post('/', pptofficer.ussdApp);
+
+    app.post('/benin', benin.ussdApp);
 
     // Ecg Ussd 
     app.post('/api/ecg', ecg.ussdApp);
