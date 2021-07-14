@@ -337,7 +337,7 @@ menu.state('Withdrawal.view',{
         var account = await menu.session.get('account');
         var balance = await menu.session.get('balance');
         var charge = await amount * (1/100);
-        console.log(amount + charge);
+        // console.log(amount + charge);
         if(balance >= (amount + charge)) {
             menu.con(cust.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
             '\n1. Confirm' +
@@ -370,7 +370,7 @@ menu.state('Withdrawal.confirm', {
             // menu.end(JSON.stringify(result)); 
             menu.end(result.message);
         });
-        // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
 });
 
