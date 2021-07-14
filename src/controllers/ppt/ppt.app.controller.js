@@ -349,7 +349,7 @@ exports.Deposit = (req, res) => {
         res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
     }
     
-    var value = { merchant:access.code,account:val.schemenumber,type:'Deposit',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, merchantid:1};
+    var value = { merchant:access.code,account:val.account,type:'Deposit',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, merchantid:1};
 
     var api_endpoint = apiurl;
     if(val.frequency != "OneTime") {
