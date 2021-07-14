@@ -50,7 +50,7 @@ menu.startState({
                 menu.con('Welcome to PPT Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
-                menu.con('You are not a Field Officer');
+                menu.end('You are not a Field Officer');
             }
         });
     },
