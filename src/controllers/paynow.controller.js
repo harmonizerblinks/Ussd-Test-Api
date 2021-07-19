@@ -2,6 +2,8 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 var apiurl = "https://api.paynowafrica.com/PayNow/";
+var studentapiUrl = "http://api.uschoolonline.com/api/Students?StudentNumber="
+var studentPaymentAPI = "http://api.uschoolonline.com/api/Students";
 let sessions = {};
 let church = ["","Tithe","Offering","Harvest","Donation","Welfare","Others"];
 let group = ["","Due","Levies","Welfare","Assessment","Donation","Others"];
@@ -88,6 +90,7 @@ menu.state('Payments', {
             '\n3. Pay Item' +
             '\n4. Pay Invoice' +
             '\n5. Pay Group / Club' +
+            '\n6. Pay Fee' +
             '\n \n#. Main Menu');
     },
     // next object links to next state based on user input
@@ -97,6 +100,7 @@ menu.state('Payments', {
         '3': 'Item',
         '4': 'Invoice',
         '5': 'Group',
+        '6': 'Fees',
         '#': 'Start'
     }
 });
@@ -746,6 +750,65 @@ menu.state('Group.cancel', {
     }
 });
 
+menu.state('Fees', {
+    run: () => {
+        menu.con('Enter Student Id');
+    },
+    next: {
+        '*\\d+': 'Fees.studentId'
+    }
+});
+
+menu.state('Fees.studentId', {
+    run: async() => {
+        let studentId = menu.val
+        menu.session.set('studentId', studentId);
+        let code = studentId.substring(0,3);
+        // console.log(code);
+        menu.session.set('code', code);
+        await fetchStudent(studentId, (data) => {
+            menu.con('Debt Amount: GHS '+ data.feesBalance +' \nEnter amount to you want to pay');
+        })
+    },
+    next: {
+        '*\\d+': 'Fees.amount'
+    }
+});
+
+menu.state('Fees.amount', {
+    run: async() => {
+        let amount = menu.val;
+        menu.session.set('amount', amount);
+        let studentName = await menu.session.get('studentname');
+        menu.con('You want to perform Bill payment of amount GHS '+ amount +' for ' + studentName +
+        '\n1. Confirm' +
+        '\n2. Cancel');
+    },
+    next: {
+        '1': 'Fees.confirm',
+        '2': 'Fees.cancel'
+    }
+});
+
+menu.state('Fees.confirm', {
+    run: async() => {
+        // access user input value save in session
+        var code = await menu.session.get('code');
+        var studentId = await menu.session.get('studentId');
+        var amount = await menu.session.get('amount');
+        var network = await menu.session.get('network');
+        var mobile = menu.args.phoneNumber;
+        var data = {code: code, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, reference: "School Fees payment for " + studentId};
+        // console.log(data);
+        await postStudentPayment(data, async(result)=> { 
+            console.log(result);
+            // menu.end(JSON.stringify(result)); 
+        });
+        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone. Kindly confirm payment');
+    }
+});
+
+
 
 menu.state('Contact', {
     run: () => {
@@ -792,6 +855,15 @@ menu.state('Contact.website', {
     }
 });
 
+menu.state('Fees.cancel', {
+    run: () => {
+        // Cancel Savings request
+        menu.end(' ');
+    }
+});
+
+
+
 
 // POST Paynow
 exports.ussd = async(req, res) => {
@@ -834,7 +906,6 @@ async function fetchMerchant(val, callback) {
     });
 }
 
-
 async function payMerchant(val, callback) {
     console.info(val);
     var api_endpoint = apiurl + 'Merchant';
@@ -850,7 +921,6 @@ async function payMerchant(val, callback) {
         await callback(response);
     });
 }
-
 
 async function fetchItem(val, callback) {
 
@@ -894,7 +964,6 @@ async function payItem(val, callback) {
         await callback(response);
     });
 }
-
 
 async function fetchInvoice(val, callback) {
     // try {
@@ -950,7 +1019,6 @@ async function fetchUtility(val, callback) {
         });
 }
 
-
 async function buyAirtime(val, callback) {
     
     var api_endpoint = apiurl + 'Merchant';
@@ -966,6 +1034,103 @@ async function buyAirtime(val, callback) {
         await callback(response);
     });
 }
+
+async function fetchStudent(val, callback) {
+
+    var api_endpoint = studentapiUrl + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        // if (resp.error) { 
+        //     console.log(resp.error); 
+        //     // var response = JSON.parse(res); 
+        //     return res;
+        // }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        console.log(response)
+            menu.session.set('studentinfo', response);
+            menu.session.set('studentname', response.studentName);
+            // menu.session.set('category', response.category);
+            // menu.session.set('itemamount', response.amount);
+            // menu.session.set('itemquantity', response.quantity);
+        
+        await callback(response);
+    });
+}
+
+// async function postStudentPayment(val, callback) {
+
+//     var api_endpoint = "http://api.uschoolonline.com/api/Students";
+//     console.log(api_endpoint);
+//     var request = unirest('POST', api_endpoint)
+//     .headers({
+//         'Content-Type': 'application/json'
+//     })
+//     .send(JSON.stringify({ "code": val.code, "type": val.type, "amount": val.amount, "mobile": val.mobile, "network": val.network, "service": val.service, "reference": val.reference }))
+//     .end(async(resp) => {
+//         console.log(resp.raw_body);
+//         var response = JSON.parse(resp.raw_body);
+//         await callback(response);
+//     });
+// }
+
+// Post Payment
+
+async function postStudentPayment(val, callback){
+    console.info(val);
+    var api_endpoint = apiurl + 'Merchant';
+    console.log(api_endpoint);
+    var request = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify({ "code": val.code, "type": val.type, "amount": val.amount, "mobile": val.mobile, "network": val.network, "service": val.service, "reference": val.reference }))
+    .end(async(resp) => {
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        var body = response;
+        setTimeout(() => { getCallBack(body, val); }, 60000);
+        await callback(response);
+    });
+};
+
+function getCallBack(code, val) {
+    var req = unirest('GET', 'https://api.paynowafrica.com/paynow/confirmation/' + code.transaction_no)
+        .end(async(res)=>{
+            var body = JSON.parse(res.raw_body);
+            if (body.status_code ===  -1 || body.status_code === 0) {
+                setTimeout(() => { getCallBack(body, body.transaction_no); }, 60000);
+                // var callback = setTimeout(getCallBack(body, body.response.transaction_no), 200000);
+            } else {
+                var api_endpoint = studentPaymentAPI;
+                var request = unirest('POST', api_endpoint)
+                .headers({
+                    'Content-Type': 'application/json'
+                })
+                .send(JSON.stringify({
+                    "studentNumber": "",
+                    "amountpaid": "10.00",
+                    "datepaid": "2021-07-16",
+                    "phonenumber": "0246479428",
+                    "statuscode": "01",
+                    "statusmessage": "Payment successful",
+                    "schoolcode":"100",
+                    "paynow_ref":"HG879879",
+                    "network_ref":"G8798770",
+                    "network":"MTN"
+                }))
+                .end(async(resp) => {
+                    console.log(resp.raw_body);
+                    var response = JSON.parse(resp.raw_body);
+                    await callback(response);
+                });
+            }
+
+        });
+}
+
+
 
 function fetchBalance(val) {
     return "2.00"

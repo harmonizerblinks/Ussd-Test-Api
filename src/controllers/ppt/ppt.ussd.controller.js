@@ -332,7 +332,7 @@ menu.state('Pay.account', {
         })
     },
     next: {
-        '*\\d+': 'Pay.Option.Amount'
+        '*\\d+': 'Pay.Option.OneTimeAmount'
     }
 })
 
@@ -343,6 +343,7 @@ menu.state('Pay.view', {
             menu.con('Incorrect Selection. Enter zero(0) to retry again')
         } else {
             var option = optionArray[index];
+            // console.log(option);
             menu.session.set('paymentoption', option);
             var accounts = await menu.session.get('accounts');
             let account = await filterPersonalSchemeOnly(accounts);
@@ -380,6 +381,24 @@ menu.state('Pay.Option.Amount', {
     }
 })
 
+menu.state('Pay.Option.OneTimeAmount', {
+    run: async() => {
+        let amount = menu.val;
+        menu.session.set('amount', amount); 
+        var accounts = await menu.session.get('accounts');
+        let account = await filterPersonalSchemeOnly(accounts);
+        menu.session.set('account', account);
+        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+        '\n1. Proceed' +
+        '\n0. Exit'
+        )
+},
+    next: {
+        '1': 'Pay.send',
+        '0': 'Exit'
+    }
+})
+
 menu.state('Pay.Option.Complete', {
     run: async () => {
         var amount = await menu.session.get('amount');
@@ -387,14 +406,14 @@ menu.state('Pay.Option.Complete', {
         var paymentoption = await menu.session.get('paymentoption');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid};
+        var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid};
         // console.log(data);
         await postAutoDeposit(data, async(data) => {
-            if (data.status == 0) {
-                menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-            } else {
-                menu.end('Application Server error. Please contact administrator');
-            }
+            // if (data.status == 0) {
+            //     menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+            // } else {
+            //     menu.end('Application Server error. Please contact administrator');
+            // }
         });
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
@@ -1069,7 +1088,7 @@ async function fetchBalance(val, callback) {
 }
 
 async function postAutoDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    var api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
