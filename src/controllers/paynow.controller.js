@@ -1103,23 +1103,25 @@ function getCallBack(code, val) {
                 setTimeout(() => { getCallBack(body, body.transaction_no); }, 60000);
                 // var callback = setTimeout(getCallBack(body, body.response.transaction_no), 200000);
             } else {
+                let ref = val.reference.split(" ");
+                var data = {
+                    "studentNumber": ref[4],
+                    "amountpaid": val.amount,
+                    "datepaid": new Date(),
+                    "phonenumber": val.mobile,
+                    "statuscode": val.status_code,
+                    "statusmessage": body.status_message,
+                    "schoolcode": val.code,
+                    "paynow_ref": body.transaction_no,
+                    "network_ref": body.interpaytxnref,
+                    "network": val.network
+                }
                 var api_endpoint = studentPaymentAPI;
                 var request = unirest('POST', api_endpoint)
                 .headers({
                     'Content-Type': 'application/json'
                 })
-                .send(JSON.stringify({
-                    "studentNumber": "",
-                    "amountpaid": "10.00",
-                    "datepaid": "2021-07-16",
-                    "phonenumber": "0246479428",
-                    "statuscode": "01",
-                    "statusmessage": "Payment successful",
-                    "schoolcode":"100",
-                    "paynow_ref":"HG879879",
-                    "network_ref":"G8798770",
-                    "network":"MTN"
-                }))
+                .send(JSON.stringify(data))
                 .end(async(resp) => {
                     console.log(resp.raw_body);
                     var response = JSON.parse(resp.raw_body);
