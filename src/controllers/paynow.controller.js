@@ -767,7 +767,7 @@ menu.state('Fees.studentId', {
         // console.log(code);
         menu.session.set('code', code);
         await fetchStudent(studentId, (data) => {
-            menu.con('Debt Amount: GHS '+ data.feesBalance +' \nEnter amount to you want to pay');
+            menu.con('Debt Amount: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
         })
     },
     next: {
@@ -780,7 +780,7 @@ menu.state('Fees.amount', {
         let amount = menu.val;
         menu.session.set('amount', amount);
         let studentName = await menu.session.get('studentname');
-        menu.con('You want to perform Bill payment of amount GHS '+ amount +' for ' + studentName +
+        menu.con('You want to perform Fees payment of amount GHS '+ amount +' for ' + studentName +
         '\n1. Confirm' +
         '\n2. Cancel');
     },
@@ -1090,6 +1090,7 @@ async function postStudentPayment(val, callback){
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         var body = response;
+        console.log('Callback starts')
         setTimeout(() => { getCallBack(body, val); }, 60000);
         await callback(response);
     });
@@ -1116,17 +1117,18 @@ function getCallBack(code, val) {
                     "network_ref": body.interpaytxnref,
                     "network": val.network
                 }
-                var api_endpoint = studentPaymentAPI;
-                var request = unirest('POST', api_endpoint)
-                .headers({
-                    'Content-Type': 'application/json'
-                })
-                .send(JSON.stringify(data))
-                .end(async(resp) => {
-                    console.log(resp.raw_body);
-                    var response = JSON.parse(resp.raw_body);
-                    await callback(response);
-                });
+                console.log(data);
+                // var api_endpoint = studentPaymentAPI;
+                // var request = unirest('POST', api_endpoint)
+                // .headers({
+                //     'Content-Type': 'application/json'
+                // })
+                // .send(JSON.stringify(data))
+                // .end(async(resp) => {
+                //     console.log(resp.raw_body);
+                //     var response = JSON.parse(resp.raw_body);
+                //     await callback(response);
+                // });
             }
 
         });
