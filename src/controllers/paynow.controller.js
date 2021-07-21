@@ -1090,7 +1090,6 @@ async function postStudentPayment(val, callback){
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         var body = response;
-        console.log('Callback starts')
         setTimeout(() => { getCallBack(body, val); }, 60000);
         await callback(response);
     });
@@ -1101,7 +1100,7 @@ function getCallBack(code, val) {
         .end(async(res)=>{
             var body = JSON.parse(res.raw_body);
             if (body.status_code ===  -1 || body.status_code === 0) {
-                setTimeout(() => { getCallBack(body, body.transaction_no); }, 60000);
+                setTimeout(() => { getCallBack(code, val); }, 60000);
                 // var callback = setTimeout(getCallBack(body, body.response.transaction_no), 200000);
             } else {
                 let ref = val.reference.split(" ");
@@ -1110,25 +1109,25 @@ function getCallBack(code, val) {
                     "amountpaid": val.amount,
                     "datepaid": new Date(),
                     "phonenumber": val.mobile,
-                    "statuscode": val.status_code,
+                    "statuscode": body.status_code,
                     "statusmessage": body.status_message,
                     "schoolcode": val.code,
                     "paynow_ref": body.transaction_no,
                     "network_ref": body.interpaytxnref,
                     "network": val.network
                 }
-                console.log(data);
-                // var api_endpoint = studentPaymentAPI;
-                // var request = unirest('POST', api_endpoint)
-                // .headers({
-                //     'Content-Type': 'application/json'
-                // })
-                // .send(JSON.stringify(data))
-                // .end(async(resp) => {
-                //     console.log(resp.raw_body);
-                //     var response = JSON.parse(resp.raw_body);
-                //     await callback(response);
-                // });
+                console.log(data)        
+                var api_endpoint = studentPaymentAPI;
+                var request = unirest('POST', api_endpoint)
+                .headers({
+                    'Content-Type': 'application/json'
+                })
+                .send(JSON.stringify(data))
+                .end(async(resp) => {
+                    console.log(resp.raw_body);
+                    var response = JSON.parse(resp.raw_body);
+                    await callback(response);
+                });
             }
 
         });
