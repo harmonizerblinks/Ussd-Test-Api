@@ -4,7 +4,7 @@ var unirest = require('unirest');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../../config/mongodb.config.js');
-let sessions = {};
+let sessions = [];
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -42,7 +42,7 @@ menu.sessionConfig({
 menu.on('error', (err) => {
     // handle errors
     console.log('Error', err);
-    menu.end('error ' + err);
+    menu.end(err);
 });
 
 // Define menu states
@@ -367,7 +367,7 @@ menu.state('Withdrawal.confirm', {
         var network = await menu.session.get('network');
         // var mobile = menu.args.phoneNumber;
         var mobile = await menu.session.get('mobile');
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' from mobile number '+mobile,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
             console.log(result) 
             // menu.end(JSON.stringify(result)); 
