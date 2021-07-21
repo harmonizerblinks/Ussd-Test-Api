@@ -90,7 +90,7 @@ menu.state('Payments', {
             '\n3. Pay Item' +
             '\n4. Pay Invoice' +
             '\n5. Pay Group / Club' +
-            '\n6. Pay Fee' +
+            '\n6. uSchool' +
             '\n \n#. Main Menu');
     },
     // next object links to next state based on user input
@@ -752,7 +752,7 @@ menu.state('Group.cancel', {
 
 menu.state('Fees', {
     run: () => {
-        menu.con('Enter Student Id');
+        menu.con('Welcome to uSchool Payment Services. Enter Student Number');
     },
     next: {
         '*\\d+': 'Fees.studentId'
@@ -767,7 +767,7 @@ menu.state('Fees.studentId', {
         // console.log(code);
         menu.session.set('code', code);
         await fetchStudent(studentId, (data) => {
-            menu.con('Debt Amount: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
+            menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nDebt Amount: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
         })
     },
     next: {
