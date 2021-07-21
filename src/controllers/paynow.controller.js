@@ -45,8 +45,7 @@ menu.startState({
     run: () => {
         // use menu.con() to send response without terminating session
         menu.con('Welcome to PayNow Services' +
-            '\n1. Payments' +
-            '\n2. Usoft');
+            '\n1. Payments');
         // menu.con('Welcome to PayNow Services' +
         //     '\n1. Payments' +
         //     '\n2. Airtime' +
@@ -57,12 +56,11 @@ menu.startState({
     // next object links to next state based on user input
     next: {
         '1': 'Payments',
-        '2': 'Fees',
-        // '2': 'Airtime',
-        // '3': 'Financial',
-        // '4': 'Utility',
-        // '5': 'Voting',
-        // '6': 'Contact'
+        '2': 'Airtime',
+        '3': 'Financial',
+        '4': 'Utility',
+        '5': 'Voting',
+        '6': 'Contact'
     }
 });
 
@@ -92,6 +90,7 @@ menu.state('Payments', {
             '\n3. Pay Item' +
             '\n4. Pay Invoice' +
             '\n5. Pay Group / Club' +
+            '\n6. uSchool' +
             '\n \n#. Main Menu');
     },
     // next object links to next state based on user input
@@ -101,6 +100,7 @@ menu.state('Payments', {
         '3': 'Item',
         '4': 'Invoice',
         '5': 'Group',
+        '6': 'Fees',
         '#': 'Start'
     }
 });
@@ -752,7 +752,7 @@ menu.state('Group.cancel', {
 
 menu.state('Fees', {
     run: () => {
-        menu.con('Welcome to USCHOOLS. Please enter Student Id');
+        menu.con('Welcome to uSchool Payment Services. Enter Student Number');
     },
     next: {
         '*\\d+': 'Fees.studentId'
@@ -767,7 +767,7 @@ menu.state('Fees.studentId', {
         // console.log(code);
         menu.session.set('code', code);
         await fetchStudent(studentId, (data) => {
-            menu.con('School Name: '+ data.schoolName +'\nStudent Name: '+ data.studentName +'\nDebt Amount: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
+            menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nDebt Amount: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
         })
     },
     next: {
