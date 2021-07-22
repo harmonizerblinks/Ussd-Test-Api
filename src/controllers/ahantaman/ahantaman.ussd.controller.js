@@ -371,7 +371,7 @@ menu.state('Withdrawal.confirm', {
             // Remove Bearer from string
             val = val.replace('+233','0');
             
-            if (val != mobile) menu.end("")
+            if (val != mobile) menu.end("Unable to proccess Withdrawal at the moment. Please try again")
         }
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
