@@ -648,7 +648,7 @@ async function fetchCustomer(val, callback) {
             // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            await callback(resp.error);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
