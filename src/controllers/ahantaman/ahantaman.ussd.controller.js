@@ -645,7 +645,7 @@ async function fetchCustomer(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
+            // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
             await callback(resp);
@@ -672,7 +672,7 @@ async function fetchCustomerAccounts(val, callback) {
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
             if (resp.error) { 
-                console.log(resp.error);
+                // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
                 await callback(resp);
@@ -694,7 +694,7 @@ async function fetchCustomerAccount(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
+            // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
             await callback(resp);
