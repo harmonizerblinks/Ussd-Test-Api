@@ -53,7 +53,14 @@ menu.startState({
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
-            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
+            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {
+                menu.session.set('name', data.name);
+                menu.session.set('mobile', val);
+                menu.session.set('accounts', data.accounts);
+                menu.session.set('cust', data);
+                menu.session.set('type', data.type);
+                menu.session.set('pin', data.pin);
+
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
@@ -62,6 +69,13 @@ menu.startState({
                 '\n4. Other' +
                 '\n5. Contact');
             } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+                menu.session.set('name', data.name);
+                menu.session.set('mobile', val);
+                menu.session.set('accounts', data.accounts);
+                menu.session.set('cust', data);
+                menu.session.set('type', data.type);
+                menu.session.set('pin', data.pin);
+
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.end('Mobile Number not Registered, kindly Open an Account with Ahantaman Rural Bank.');
@@ -84,6 +98,12 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
+            menu.session.set('name', response.name);
+                menu.session.set('mobile', val);
+                menu.session.set('accounts', response.accounts);
+                menu.session.set('cust', response);
+                menu.session.set('type', response.type);
+                menu.session.set('pin', response.pin);
             if(data.active && (data.pin != '' || data.pin == null)) {     
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
@@ -371,7 +391,7 @@ menu.state('Withdrawal.confirm', {
             // Remove Bearer from string
             val = val.replace('+233','0');
             
-            if (val != mobile) menu.end("Unable to proccess Withdrawal at the moment. Please try again")
+            if (val != mobile) menu.end("Unable to proccess Withdrawal at the moment. Please try again");
         }
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
@@ -632,12 +652,6 @@ async function fetchCustomer(val, callback) {
             var response = JSON.parse(resp.raw_body);
             if(response.active)
             {
-                menu.session.set('name', response.name);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('type', response.type);
-                menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
             }
             
