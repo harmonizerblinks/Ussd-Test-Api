@@ -4,7 +4,7 @@ var unirest = require('unirest');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../../config/mongodb.config.js');
-let sessions = [];
+var sessions = [];
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -23,17 +23,20 @@ menu.sessionConfig({
     end: (sessionId, callback) => {
         // clear current session
         // this is called by menu.end()
+        console.log(sessions[sessionId], 'Deleted');
         delete sessions[sessionId];
         callback();
     },
     set: (sessionId, key, value, callback) => {
         // store key-value pair in current session
         sessions[sessionId][key] = value;
+        console.log(sessions[sessionId], value, 'Saved');
         callback();
     },
     get: (sessionId, key, callback) => {
         // retrieve value by key in current session
         let value = sessions[sessionId][key];
+        console.log(sessions[sessionId],value);
         callback(null, value);
     }
 });
@@ -54,11 +57,8 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {
-                menu.session.set('name', data.name);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', data.accounts);
+                let session = getSession(menu.args.sessionId);
                 menu.session.set('cust', data);
-                menu.session.set('type', data.type);
                 menu.session.set('pin', data.pin);
 
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
@@ -68,12 +68,10 @@ menu.startState({
                 '\n3. Check Balance' +
                 '\n4. Other' +
                 '\n5. Contact');
+
             } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.session.set('name', data.name);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', data.accounts);
+                let session = getSession(menu.args.sessionId);
                 menu.session.set('cust', data);
-                menu.session.set('type', data.type);
                 menu.session.set('pin', data.pin);
 
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
@@ -98,12 +96,11 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            menu.session.set('name', response.name);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('type', response.type);
-                menu.session.set('pin', response.pin);
+            // menu.session.set('name', data.name);
+            // menu.session.set('mobile', data.mobile);
+            // menu.session.set('accounts', data.accounts);
+            menu.session.set('cust', data);
+            menu.session.set('pin', data.pin);
             if(data.active && (data.pin != '' || data.pin == null)) {     
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
@@ -245,12 +242,17 @@ menu.state('Deposit.view',{
         var cust = await menu.session.get('cust');
         // console.log(cust);
         if(amount > 10000) {
-            menu.con('Invalid Amount Provided. Enter (0) to continue.');
+            menu.end('Invalid Amount Provided. Enter (0) to continue.');
         } else {
-            menu.con(cust.fullname +', you are making a deposit of GHS '+amount+' into your account'+
-            '\n1. Confirm' +
-            '\n2. Cancel' +
-            '\n#. Main Menu');
+            
+            await fetchCustomer(menu.args.phoneNumber, (data)=> { 
+                if(data.active) {
+                    menu.con(cust.fullname +', you are making a deposit of GHS '+amount+' into your account'+
+                    '\n1. Confirm' +
+                    '\n2. Cancel' +
+                    '\n#. Main Menu');
+                }
+            });
         }
     },
     next: {
@@ -265,14 +267,14 @@ menu.state('Deposit.view',{
 menu.state('Deposit.confirm', {
     run: async() => {
         // access user input value save in session
-        // var cust = await menu.session.get('cust');
+        var cust = await menu.session.get('cust');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         // var mobile = menu.args.phoneNumber;
         // var mobile = cust.mobile;
-        var mobile = await menu.session.get('mobile');
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
+        // var mobile = await menu.session.get('mobile');
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:cust.mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
             // console.log(result) 
             // menu.end(JSON.stringify(result)); 
@@ -395,7 +397,7 @@ menu.state('Withdrawal.confirm', {
         }
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
-            console.log(result) 
+            console.log(result);
             // menu.end(JSON.stringify(result)); 
             menu.end(result.message);
         });
@@ -650,10 +652,10 @@ async function fetchCustomer(val, callback) {
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            if(response.active)
-            {
-                // menu.session.set('limit', response.result.limit);
-            }
+            // if(response.active)
+            // {
+            //     menu.session.set('limit', response.result.limit);
+            // }
             
             await callback(response);
         });
@@ -662,6 +664,33 @@ async function fetchCustomer(val, callback) {
     //     console.log(err);
     //     return err;
     // }
+}
+
+
+async function fetchCustomer(val, callback) {
+        if (val && val.startsWith('+233')) {
+            // Remove Bearer from string
+            val = val.replace('+233','0');
+        }
+        var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
+        console.log(api_endpoint);
+        var request = unirest('GET', api_endpoint)
+        .end(async(resp)=> { 
+            if (resp.error) { 
+                console.log(resp.error);
+                // var response = JSON.parse(res);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            // if(response.active)
+            // {
+            //     menu.session.set('limit', response.result.limit);
+            // }
+            
+            await callback(response);
+        });
 }
 
 async function fetchBalance(val, callback) {
@@ -675,10 +704,10 @@ async function fetchBalance(val, callback) {
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        if(response.balance)
-        {
-            menu.session.set('balance', response.balance);
-        }
+        // if(response.balance)
+        // {
+        //     menu.session.set('balance', response.balance);
+        // }
         
         await callback(response);
     });
