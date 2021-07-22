@@ -30,13 +30,13 @@ menu.sessionConfig({
     set: (sessionId, key, value, callback) => {
         // store key-value pair in current session
         sessions[sessionId][key] = value;
-        console.log(sessions[sessionId], value, 'Saved');
+        console.log(sessions[sessionId],sessions[sessionId][key], value, 'Saved');
         callback();
     },
     get: (sessionId, key, callback) => {
         // retrieve value by key in current session
         let value = sessions[sessionId][key];
-        console.log(sessions[sessionId],value);
+        console.log(sessions[sessionId],sessions[sessionId][key],value);
         callback(null, value);
     }
 });
@@ -54,10 +54,11 @@ menu.startState({
         // Fetch Customer information
         console.log(menu.args,'Values');
         
-        menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
+        menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
+        // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
-            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {
+            if(data && data.active && data.pin != '' && data.pin != null && data.pin != '1234') {
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
 
@@ -69,7 +70,7 @@ menu.startState({
                 '\n4. Other' +
                 '\n5. Contact');
 
-            } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+            } else if(data && data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
 
@@ -635,34 +636,29 @@ function buyAirtime(phone, val) {
 
 async function fetchCustomer(val, callback) {
     // try {
-        if (val && val.startsWith('+233')) {
-            // Remove Bearer from string
-            val = val.replace('+233','0');
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233','0');
+    }
+    var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
         }
-        var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
-        console.log(api_endpoint);
-        var request = unirest('GET', api_endpoint)
-        .end(async(resp)=> { 
-            if (resp.error) { 
-                console.log(resp.error);
-                // var response = JSON.parse(res);
-                // return res;
-                await callback(resp);
-            }
-            // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            // if(response.active)
-            // {
-            //     menu.session.set('limit', response.result.limit);
-            // }
-            
-            await callback(response);
-        });
-    // }
-    // catch(err) {
-    //     console.log(err);
-    //     return err;
-    // }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        // if(response.active)
+        // {
+        //     menu.session.set('limit', response.result.limit);
+        // }
+        
+        await callback(response);
+    });
 }
 
 
