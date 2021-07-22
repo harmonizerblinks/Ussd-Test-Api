@@ -52,6 +52,7 @@ menu.on('error', (err) => {
 menu.startState({
     run: async() => {
         // Fetch Customer information
+        console.log(menu.args);
         
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
