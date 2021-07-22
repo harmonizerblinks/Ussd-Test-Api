@@ -58,7 +58,6 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {
-                let session = getSession(menu.args.sessionId);
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
 
@@ -71,7 +70,6 @@ menu.startState({
                 '\n5. Contact');
 
             } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                let session = getSession(menu.args.sessionId);
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
 
@@ -275,7 +273,7 @@ menu.state('Deposit.confirm', {
         // var mobile = menu.args.phoneNumber;
         // var mobile = cust.mobile;
         // var mobile = await menu.session.get('mobile');
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:cust.mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:cust.mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
             // console.log(result) 
             // menu.end(JSON.stringify(result)); 
