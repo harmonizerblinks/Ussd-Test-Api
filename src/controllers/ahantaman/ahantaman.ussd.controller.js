@@ -365,8 +365,14 @@ menu.state('Withdrawal.confirm', {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
-        // var mobile = menu.args.phoneNumber;
         var mobile = await menu.session.get('mobile');
+        var val = menu.args.phoneNumber;
+        if (val && val.startsWith('+233')) {
+            // Remove Bearer from string
+            val = val.replace('+233','0');
+            
+            if (val != mobile) menu.end("")
+        }
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+mobile,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
             console.log(result) 
