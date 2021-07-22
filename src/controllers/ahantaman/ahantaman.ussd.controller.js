@@ -614,7 +614,7 @@ exports.ussdApp = async(req, res) => {
     }
     console.log(args);
     menu.run(args, ussdResult => {
-        menu.session.set('network', args.Operator);
+        // menu.session.set('network', args.Operator);
         res.send(ussdResult);
     });
     // let args = {
