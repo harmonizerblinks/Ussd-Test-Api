@@ -4,7 +4,6 @@ var unirest = require('unirest');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../../config/mongodb.config.js');
-var sessions = [];
 let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -13,6 +12,7 @@ let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 let access = { code: "ARB", key: "10198553" };
 // let access = { code: "ACU001", key: "1029398" };
 
+let sessions = {};
 menu.sessionConfig({
     start: (sessionId, callback) => {
         // initialize current session if it doesn't exist
