@@ -1,4 +1,4 @@
-const UssdMenu = require('ussd-menu-builder');
+const UssdMenu = require('ussd-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 var apiurl = "https://api.paynowafrica.com/PayNow/";
@@ -768,6 +768,7 @@ menu.state('Fees.studentId', {
         menu.session.set('code', code);
         await fetchStudent(studentId, (data) => {
             if(data && data.schoolName){
+                menu.session.set('student', data);
                 menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nFees Balance: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
             } else {
                 menu.end('Invalid Student Number Provided. Please try again.')
@@ -783,7 +784,7 @@ menu.state('Fees.amount', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        let studentName = await menu.session.get('studentname');
+        let data = await menu.session.get('studentname');
         menu.con('You want to perform Fees payment of amount GHS '+ amount +' for ' + studentName +
         '\n1. Confirm' +
         '\n2. Cancel');
