@@ -55,7 +55,7 @@ menu.on('error', (err) => {
 menu.startState({
     run: async() => {
         // Fetch Customer information
-        console.log(menu.args,'Values');
+        console.log(menu.args,'Argument');
         
         menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
