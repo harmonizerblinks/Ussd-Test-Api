@@ -40,7 +40,7 @@
     "nodemailer": "^6.4.17",
     "socket.io": "^3.0.5",
     "unirest": "^0.6.0",
-    "ussd-builder": "^1.1.0",
+    "ussd-builder": "^1.1.1",
     "ussd-menu-builder": "^1.2.0",
     "xss-clean": "^0.1.1"
   },
