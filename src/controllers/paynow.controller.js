@@ -2,8 +2,8 @@ const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 var apiurl = "https://api.paynowafrica.com/PayNow/";
-var studentapiUrl = "http://api.uschoolonline.com/api/Students?StudentNumber="
-var studentPaymentAPI = "http://api.uschoolonline.com/api/Students";
+var studentapiUrl = "http://api.uschoolonline.com/api/Students"
+// var studentPaymentAPI = "http://api.uschoolonline.com/api/Students";
 let sessions = {};
 let church = ["","Tithe","Offering","Harvest","Donation","Welfare","Others"];
 let group = ["","Due","Levies","Welfare","Assessment","Donation","Others"];
@@ -767,7 +767,15 @@ menu.state('Fees.studentId', {
         // console.log(code);
         menu.session.set('code', code);
         await fetchStudent(studentId, (data) => {
+<<<<<<< HEAD
             menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nFees Balance: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
+=======
+            if(data && data.schoolName){
+                menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nFees Balance: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
+            } else {
+                menu.end('Invalid Student Number Provided. Please try again.')
+            }
+>>>>>>> efba06e6aa2ab678d0bdff5d9d333695f0fc452d
         })
     },
     next: {
@@ -1037,7 +1045,7 @@ async function buyAirtime(val, callback) {
 
 async function fetchStudent(val, callback) {
 
-    var api_endpoint = studentapiUrl + val;
+    var api_endpoint = studentapiUrl + '?StudentNumber=' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
@@ -1102,7 +1110,7 @@ function getCallBack(code, val) {
             if (body.status_code ===  -1 || body.status_code === 0) {
                 setTimeout(() => { getCallBack(code, val); }, 60000);
                 // var callback = setTimeout(getCallBack(body, body.response.transaction_no), 200000);
-            } else {
+            } else if(body.status_code === 1 ) {
                 let ref = val.reference.split(" ");
                 var data = {
                     "studentNumber": ref[4],
@@ -1117,7 +1125,7 @@ function getCallBack(code, val) {
                     "network": val.network
                 }
                 console.log(data)        
-                var api_endpoint = studentPaymentAPI;
+                var api_endpoint = studentapiUrl;
                 var request = unirest('POST', api_endpoint)
                 .headers({
                     'Content-Type': 'application/json'

@@ -19,11 +19,75 @@ let access = { code: "446785909", key: "164383692" };
 // POST a User
 exports.Register = async(req, res) => {
     console.log(req.body);
-    const user = new User(req.body);
+    const user = req.body;
     user.password = bcrypt.hashSync(req.body.password, 10);
     user.email = req.body.email.toLowerCase();
-
+    
+    user.save()
+        .then(async(data) => {
+            console.info('saved successfully');
+            const token = jwt.sign({
+                type: 'user',
+                data: {
+                    id: data._id,
+                    fullname: data.fullname,
+                    isAdmin: data.isAdmin,
+                    mmobile: data.mobile,
+                    email: user.email
+                },
+            }, config.secret, {
+                expiresIn: 684800
+            });
+            console.log(token);
+            res.send({ success: true, access_token: token, date: Date.now });
+            // res.send(data);
+        }).catch(err => {
+            res.status(500).send({
+                message: err.message
+            });
+        });
 };
+    
+
+exports.agentinfo = (req, res) => {
+    console.log('agentinfo');
+    var req = unirest('POST', apiUrl + 'agentinfo')
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    .end(function (res) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+};
+
+// agent Payment
+exports.agentPayment = (req, res) => {
+    console.log('mini Statement');
+    var req = unirest('POST', apiUrl + 'agentPayment')
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify({"appId":appId,"appKey":appKey,"schemeNumber":req.body.schemenumber,"pin":req.body.pin }))
+    .end(function (res) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+};
+
 
 exports.sendOtp = async(req, res) => {
     var val = req.body;

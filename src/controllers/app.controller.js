@@ -301,7 +301,6 @@ exports.schemeBeneficiaries = (req, res) => {
     });
 };
 
-
 // agent info
 exports.agentinfo = (req, res) => {
     console.log('agentinfo');
