@@ -57,7 +57,7 @@ menu.startState({
         // Fetch Customer information
         console.log(menu.args,'Argument');
         
-        menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
+        // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
@@ -116,7 +116,7 @@ menu.state('Start', {
             } else {
                 menu.con('Mobile Number not Registered');
             }
-        }).catch((err)=>{ menu.end(err); });;
+        }).catch((err)=>{ menu.end(err); });
     },
     // next object links to next state based on user input
     next: {
@@ -190,7 +190,7 @@ menu.state('User.verifypin', {
                 // console.log(1,data); 
                 menu.session.set('pin', newpin);
                 menu.con(data.message);
-            });
+            }).catch((err)=>{ menu.end(err); });;
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
@@ -219,7 +219,7 @@ menu.state('Deposit',{
             } else {
                 menu.end('Unable to Fetch Accounts, please try again');
             }
-        });
+        }).catch((err)=>{ menu.end(err); });;
     },
     next: {
         '#': 'Start',
@@ -260,7 +260,7 @@ menu.state('Deposit.view',{
         var amount = Number(menu.val);
         // save user input in session
         menu.session.set('amount', amount);
-        // var cust = await menu.session.get('cust');
+        var account = await menu.session.get('account');
         // console.log(cust);
         if(amount > 10000) {
             menu.end('Invalid Amount Provided. Please try again.');
@@ -268,7 +268,7 @@ menu.state('Deposit.view',{
             await fetchCustomer(menu.args.phoneNumber, (data)=> { 
                 if(data.active) {
                     menu.session.set('cust', data);
-                    menu.con(data.fullname +', you are making a deposit of GHS '+amount+' into your account'+
+                    menu.con(data.fullname +', you are making a deposit of GHS '+amount+' into your ' +account.type+ ' ACCOUNT'+
                     '\n1. Confirm' +
                     '\n2. Cancel' +
                     '\n#. Main Menu');
@@ -338,7 +338,7 @@ menu.state('Withdrawal.account',{
             await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
                 if(accounts.length > 0) {
                     var accts = ''; var count = 1;
-                    menu.session.set('accounts',accounts);
+                    // menu.session.set('accounts',accounts);
                     // var accounts = await menu.session.get('accounts');
                     accounts.forEach(val => {
                         // console.log(val);
@@ -364,10 +364,11 @@ menu.state('Withdrawal.account',{
 menu.state('Withdrawal.amount',{
     run: async() => {
         var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
+        // var accounts = await menu.session.get('accounts');
         // console.log(accounts);
-        var account = accounts[index-1]
+        // var account = accounts[index-1]
         // menu.session.set('account', account);
+        var val = {mobile: menu.args.phoneNumber, index: index};
         await fetchCustomerAccount(val, async(account)=> { 
             console.log(account);
             if(account && account.code) {
@@ -422,7 +423,7 @@ menu.state('Withdrawal.view',{
             await fetchCustomer(menu.args.phoneNumber, (data)=> { 
                 if(data.active) {
                     menu.session.set('cust', data);
-                    menu.con(data.fullname +', you are making a deposit of GHS '+(amount+charge)+' into your account'+
+                    menu.con(data.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
                     '\n1. Confirm' +
                     '\n2. Cancel' +
                     '\n#. Main Menu');
@@ -488,13 +489,14 @@ menu.state('CheckBalance',{
     next: {
         '*\\d+': 'CheckBalance.account'
     },
-    defaultNext: 'CheckBalance'
+    // defaultNext: 'CheckBalance'
 });
 
 menu.state('CheckBalance.account',{
     run: async() => {
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
+        console.log(pin);
         if(menu.val === pin) {
             // var accts = ''; var count = 1;
             // var accounts = await menu.session.get('accounts');
@@ -527,24 +529,27 @@ menu.state('CheckBalance.account',{
         '0': 'Start',
         '*\\d+': 'CheckBalance.balance'
     },
-    defaultNext: 'CheckBalance'
+    // defaultNext: 'CheckBalance'
 })
 
 menu.state('CheckBalance.balance',{
     run: async() => {
         var index = Number(menu.val);
-        var accounts = await menu.session.get('cust');
-        // console.log(accounts);
-        var account = cust.accounts[index-1]
-        // menu.session.set('account', account);
-        await fetchBalance(account.code, async(result)=> { 
-            console.log(result) 
-            if(result.balance != null) { 
-                account.balance = result.balance; 
-                menu.session.set('account', account);
-                menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+        var val = {mobile: menu.args.phoneNumber, index: index};
+        console.log(val);
+        await fetchCustomerAccount(val, async(account)=> { 
+            console.log(account);
+            if(account && account.code) {
+                await fetchBalance(account.code, async(result)=> { 
+                    // console.log(result) 
+                    if(result.balance != null) { 
+                        menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+                    } else {
+                        menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
+                    }
+                });
             } else {
-                menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+                menu.end('Unable to Fetch Selected Account, please try again');
             }
         });
     },
@@ -700,10 +705,10 @@ exports.ussdApp = async(req, res) => {
     // console.log(args);
     let resp = await menu.run(args)
     res.send(resp);
-    await menu.run(args, ussdResult => {
-        // menu.session.set('network', args.Operator);
-        res.send(ussdResult);
-    });
+    // await menu.run(args, ussdResult => {
+    //     // menu.session.set('network', args.Operator);
+    //     res.send(ussdResult);
+    // });
     // let args = {
     //     phoneNumber: req.body.phoneNumber,
     //     sessionId: req.body.sessionId,
