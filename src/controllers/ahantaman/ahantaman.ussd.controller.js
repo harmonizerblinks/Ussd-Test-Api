@@ -10,6 +10,7 @@ let types = ["", "Current", "Savings", "Susu" ];
 let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 
 let access = { code: "ARB", key: "10198553" };
+// let access = { code: "L005", key: "546787787" };
 // let access = { code: "ACU001", key: "1029398" };
 
 let sessions = {};
@@ -30,13 +31,15 @@ menu.sessionConfig({
     set: (sessionId, key, value, callback) => {
         // store key-value pair in current session
         sessions[sessionId][key] = value;
-        console.log(sessions[sessionId],sessions[sessionId][key], value, 'Saved');
+        // console.log(sessions[sessionId]);
+        console.log(key, value, 'Saved');
         callback();
     },
     get: (sessionId, key, callback) => {
         // retrieve value by key in current session
         let value = sessions[sessionId][key];
-        console.log(sessions[sessionId],sessions[sessionId][key],value);
+        console.log(key, value, 'Get');
+        // console.log(sessions[sessionId]);
         callback(null, value);
     }
 });
@@ -72,7 +75,7 @@ menu.startState({
 
             } else if(data && data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
                 menu.session.set('cust', data);
-                menu.session.set('pin', data.pin);
+                // menu.session.set('pin', data.pin);
 
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
@@ -95,13 +98,11 @@ menu.state('Start', {
     run: async() => {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
-            // menu.session.set('name', data.name);
-            // menu.session.set('mobile', data.mobile);
-            // menu.session.set('accounts', data.accounts);
-            menu.session.set('cust', data);
-            menu.session.set('pin', data.pin);
-            if(data.active && (data.pin != '' || data.pin == null)) {     
+            // console.log(1,data);
+            if(data.active && (data.pin != '' || data.pin == null)) {
+                menu.session.set('cust', data);
+                // menu.session.set('mobile', data.mobile);
+                menu.session.set('pin', data.pin);
                 menu.con('Welcome to Ahantaman Rural Bank.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
@@ -110,6 +111,7 @@ menu.state('Start', {
                 '\n4. Other' +
                 '\n5. Contact');
             } else if(data.active && (data.pin != '' || data.pin == null)) {
+                menu.session.set('cust', data);
                 menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Mobile Number not Registered');
@@ -181,8 +183,7 @@ menu.state('User.verifypin', {
             var newpin = Number(menu.val);
             // var cust = await menu.session.get('cust');
             // console.log(cust);
-            // var cus = JSON.parse(cust);
-            var mobile = await menu.session.get('mobile');
+            var mobile = menu.args.phoneNumber;
             // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
             var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
             await postChangePin(value, (data)=> { 
@@ -198,18 +199,27 @@ menu.state('User.verifypin', {
         '0': 'Start'
     },
     defaultNext: 'Start'
-});
+}); 
 
 menu.state('Deposit',{
     run: async() => {
-        var accts = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            // console.log(val);
-            accts += '\n'+count+'. '+val.code;
-            count +=1;
+        var cust = menu.session.get('cust');
+        console.log(cust);
+        await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
+            if(accounts.length > 0) {
+                var accts = ''; var count = 1;
+                menu.session.set('accounts',accounts);
+                // var accounts = await menu.session.get('accounts');
+                accounts.forEach(val => {
+                    // console.log(val);
+                    accts += '\n'+count+'. '+val.code;
+                    count +=1;
+                });
+                menu.con('Please Select an Account' + accts);
+            } else {
+                menu.end('Unable to Fetch Accounts, please try again');
+            }
         });
-        menu.con('Please Select an Account' + accts)
     },
     next: {
         '#': 'Start',
@@ -221,11 +231,22 @@ menu.state('Deposit',{
 menu.state('Deposit.amount',{
     run: async() => {
         var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        menu.session.set('account', account);
-        menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?')
+        // var cust = await menu.session.get('accounts');
+        // // console.log(accounts);
+        // var account = cust.accounts[index-1]
+        // menu.session.set('account', account);
+        // menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?');
+        var val = {mobile: menu.args.phoneNumber, index: index};
+        await fetchCustomerAccount(val, (account)=> { 
+            console.log(account);
+            if(account && account.code) {
+                menu.session.set('account',account);
+                
+                menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?');
+            } else {
+                menu.end('Unable to Fetch Selected Account, please try again');
+            }
+        });
     },
     next: {
         '*\\d+': 'Deposit.view',
@@ -252,6 +273,7 @@ menu.state('Deposit.view',{
                     '\n2. Cancel' +
                     '\n#. Main Menu');
                 }
+                menu.end('An error occur, kindly try again');
             });
         }
     },
@@ -270,7 +292,8 @@ menu.state('Deposit.confirm', {
         var cust = await menu.session.get('cust');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
+        // var network = await menu.session.get('network');
+        var network = menu.args.Operator;
         // var mobile = menu.args.phoneNumber;
         // var mobile = cust.mobile;
         // var mobile = await menu.session.get('mobile');
@@ -305,16 +328,31 @@ menu.state('Withdrawal.account',{
         // var custpin = Number(menu.val);
         console.info(pin, menu.val);
         if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
+            // var accts = ''; var count = 1;
+            // var accounts = await menu.session.get('accounts');
+            // accounts.forEach(val => {
+            //     // console.log(val);
+            //     accts += '\n'+count+'. '+val.code;
+            //     count +=1;
+            // });
+            // menu.con('Please Select an Account' + accts)
+            await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
+                if(accounts.length > 0) {
+                    var accts = ''; var count = 1;
+                    menu.session.set('accounts',accounts);
+                    // var accounts = await menu.session.get('accounts');
+                    accounts.forEach(val => {
+                        // console.log(val);
+                        accts += '\n'+count+'. '+val.code;
+                        count +=1;
+                    });
+                    menu.con('Please Select an Account' + accts);
+                } else {
+                    menu.end('Unable to Fetch Bank Accounts, please try again');
+                }
             });
-            menu.con('Please Select an Account' + accts)
         } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
+            menu.end('Incorrect Pin. Pls Try again')
         }
     },
     next: {
@@ -427,14 +465,29 @@ menu.state('CheckBalance.account',{
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
         if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
+            // var accts = ''; var count = 1;
+            // var accounts = await menu.session.get('accounts');
+            // accounts.forEach(val => {
+            //     // console.log(val);
+            //     accts += '\n'+count+'. '+val.code;
+            //     count +=1;
+            // });
+            // menu.con('Please Select an Account' + accts)
+            await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
+                if(accounts.length > 0) {
+                    var accts = ''; var count = 1;
+                    // menu.session.set('accounts',accounts);
+                    // var accounts = await menu.session.get('accounts');
+                    accounts.forEach(val => {
+                        // console.log(val);
+                        accts += '\n'+count+'. '+val.code;
+                        count +=1;
+                    });
+                    menu.con('Please Select an Account' + accts);
+                } else {
+                    menu.end('Unable to Fetch Bank Accounts, please try again');
+                }
             });
-            menu.con('Please Select an Account' + accts)
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
@@ -449,9 +502,9 @@ menu.state('CheckBalance.account',{
 menu.state('CheckBalance.balance',{
     run: async() => {
         var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
+        var accounts = await menu.session.get('cust');
         // console.log(accounts);
-        var account = accounts[index-1]
+        var account = cust.accounts[index-1]
         // menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
             console.log(result) 
@@ -685,9 +738,9 @@ async function fetchCustomerAccounts(val, callback) {
 }
 
 async function fetchCustomerAccount(val, callback) {
-    if (val && val.startsWith('+233')) {
+    if (val.mobile && val.mobile.startsWith('+233')) {
         // Remove Bearer from string
-        val = val.replace('+233','0');
+        val.mobile = val.mobile.replace('+233','0');
     }
     var api_endpoint = apiurl + 'getCustomerAccount/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
     console.log(api_endpoint);
@@ -786,6 +839,10 @@ async function postWithdrawal(val, callback) {
 }
 
 async function postChangePin(val, callback) {
+    if (val.mobile && val.mobile.startsWith('+233')) {
+        // Remove Bearer from string
+        val.mobile = val.mobile.replace('+233','0');
+    }
     var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
