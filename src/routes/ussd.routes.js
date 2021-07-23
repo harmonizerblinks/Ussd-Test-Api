@@ -32,6 +32,9 @@ module.exports = function(app) {
     // PayNow
     var paynowafrica = require('../controllers/paynow.controller.js');
 
+    // Kamcu
+    var kamcu = require('../controllers/kamcu/kamcu.officer.ussd.controller.js');
+
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
@@ -79,5 +82,8 @@ module.exports = function(app) {
 
     // PAYNOWAFRICA
     app.post('/api/paynowafrica', paynowafrica.ussd);
+
+    // KAMCU
+    app.post('/api/kamcu', kamcu.ussdApp);
 
 }

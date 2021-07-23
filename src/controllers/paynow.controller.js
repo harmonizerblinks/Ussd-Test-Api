@@ -767,7 +767,7 @@ menu.state('Fees.studentId', {
         // console.log(code);
         menu.session.set('code', code);
         await fetchStudent(studentId, (data) => {
-            menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nDebt Amount: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
+            menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nFees Balance: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
         })
     },
     next: {
