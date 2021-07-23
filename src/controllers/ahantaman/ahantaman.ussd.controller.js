@@ -698,7 +698,9 @@ exports.ussdApp = async(req, res) => {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
     // console.log(args);
-    menu.run(args, ussdResult => {
+    let resp = await menu.run(args)
+    res.send(resp);
+    await menu.run(args, ussdResult => {
         // menu.session.set('network', args.Operator);
         res.send(ussdResult);
     });
@@ -827,6 +829,10 @@ async function fetchStatement(val, callback) {
 }
 
 async function postDeposit(val, callback) {
+    if (val.mobile && val.mobile.startsWith('+233')) {
+        // Remove Bearer from string
+        val.mobile = val.mobile.replace('+233','0');
+    }
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
@@ -850,6 +856,10 @@ async function postDeposit(val, callback) {
 }
 
 async function postWithdrawal(val, callback) {
+    if (val.mobile && val.mobile.startsWith('+233')) {
+        // Remove Bearer from string
+        val.mobile = val.mobile.replace('+233','0');
+    }
     var api_endpoint = apiurl + 'Withdrawal/' + access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
