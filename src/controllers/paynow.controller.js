@@ -767,15 +767,11 @@ menu.state('Fees.studentId', {
         // console.log(code);
         menu.session.set('code', code);
         await fetchStudent(studentId, (data) => {
-<<<<<<< HEAD
-            menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nFees Balance: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
-=======
             if(data && data.schoolName){
                 menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nFees Balance: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
             } else {
                 menu.end('Invalid Student Number Provided. Please try again.')
             }
->>>>>>> efba06e6aa2ab678d0bdff5d9d333695f0fc452d
         })
     },
     next: {
