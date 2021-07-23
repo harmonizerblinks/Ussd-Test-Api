@@ -300,9 +300,9 @@ menu.state('Deposit.confirm', {
         console.log('posting Payment');
         await postDeposit(data, async(result)=> { 
             console.log(result) 
-            menu.end(result.message); 
+            // menu.end(result.message); 
         });
-        // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     },
     next: {
         '0': 'Start'
@@ -807,8 +807,8 @@ async function fetchBalance(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
-            await callback(resp);
+            // console.log(resp.error);
+            await callback(resp.error);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -851,12 +851,12 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
+            // console.log(resp.error);
             // await postDeposit(val);
-            // await callback(resp);
+            await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
-        console.log(resp.raw_body);
+        // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         console.log(response);
         await callback(response);
@@ -877,8 +877,8 @@ async function postWithdrawal(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
-            await callback(resp);
+            // console.log(resp.error);
+            await callback(resp.error);
         }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
