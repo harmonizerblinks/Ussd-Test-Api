@@ -57,7 +57,7 @@ menu.startState({
         // Fetch Customer information
         console.log(menu.args,'Argument');
         
-        // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
+        menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             console.log(1,data); 
@@ -260,7 +260,7 @@ menu.state('Deposit.view',{
         var amount = Number(menu.val);
         // save user input in session
         menu.session.set('amount', amount);
-        // var cust = await menu.session.get('cust');
+        var account = await menu.session.get('account');
         // console.log(cust);
         if(amount > 10000) {
             menu.end('Invalid Amount Provided. Please try again.');
@@ -293,7 +293,7 @@ menu.state('Deposit.confirm', {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         // var network = await menu.session.get('network');
-        var network = menu.args.Operator;
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         // var mobile = cust.mobile;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
@@ -423,7 +423,7 @@ menu.state('Withdrawal.view',{
             await fetchCustomer(menu.args.phoneNumber, (data)=> { 
                 if(data.active) {
                     menu.session.set('cust', data);
-                    menu.con(data.fullname +', you are making a deposit of GHS '+(amount+charge)+' into your account'+
+                    menu.con(data.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
                     '\n1. Confirm' +
                     '\n2. Cancel' +
                     '\n#. Main Menu');
@@ -454,8 +454,8 @@ menu.state('Withdrawal.confirm', {
         //var cust = await menu.session.get('cust');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        // var network = await menu.session.get('network');
-        var mobile = await menu.session.get('mobile');
+        var network = menu.args.operator;
+        // var mobile = await menu.session.get('mobile');
         var val = menu.args.phoneNumber;
         if (val && val.startsWith('+233')) {
             // Remove Bearer from string
@@ -489,13 +489,14 @@ menu.state('CheckBalance',{
     next: {
         '*\\d+': 'CheckBalance.account'
     },
-    defaultNext: 'CheckBalance'
+    // defaultNext: 'CheckBalance'
 });
 
 menu.state('CheckBalance.account',{
     run: async() => {
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
+        console.log(pin);
         if(menu.val === pin) {
             // var accts = ''; var count = 1;
             // var accounts = await menu.session.get('accounts');
@@ -528,15 +529,16 @@ menu.state('CheckBalance.account',{
         '0': 'Start',
         '*\\d+': 'CheckBalance.balance'
     },
-    defaultNext: 'CheckBalance'
+    // defaultNext: 'CheckBalance'
 })
 
 menu.state('CheckBalance.balance',{
     run: async() => {
         var index = Number(menu.val);
         var val = {mobile: menu.args.phoneNumber, index: index};
+        console.log(val);
         await fetchCustomerAccount(val, async(account)=> { 
-            // console.log(account);
+            console.log(account);
             if(account && account.code) {
                 await fetchBalance(account.code, async(result)=> { 
                     // console.log(result) 
