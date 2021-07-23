@@ -297,11 +297,15 @@ menu.state('Deposit.confirm', {
         var mobile = menu.args.phoneNumber;
         // var mobile = cust.mobile;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
+        console.log('posting Payment');
         await postDeposit(data, async(result)=> { 
-            // console.log(result) 
-            // menu.end(JSON.stringify(result)); 
+            console.log(result) 
+            menu.end(result.message); 
         });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+    },
+    next: {
+        '0': 'Start'
     }
 });
 
@@ -703,12 +707,12 @@ exports.ussdApp = async(req, res) => {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
     // console.log(args);
-    let resp = await menu.run(args)
-    res.send(resp);
-    // await menu.run(args, ussdResult => {
-    //     // menu.session.set('network', args.Operator);
-    //     res.send(ussdResult);
-    // });
+    // let resp = await menu.run(args)
+    // res.send(resp);
+    await menu.run(args, ussdResult => {
+        // menu.session.set('network', args.Operator);
+        res.send(ussdResult);
+    });
     // let args = {
     //     phoneNumber: req.body.phoneNumber,
     //     sessionId: req.body.sessionId,
@@ -849,10 +853,10 @@ async function postDeposit(val, callback) {
         if (resp.error) { 
             console.log(resp.error);
             // await postDeposit(val);
-            await callback(resp);
+            // await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
-        // console.log(resp.raw_body);
+        console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         console.log(response);
         await callback(response);
