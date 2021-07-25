@@ -466,7 +466,7 @@ menu.state('Withdrawal.confirm', {
             val = val.replace('+233','0');
             // if (val != mobile) menu.end("Unable to proccess Withdrawal at the moment. Please try again");
         }
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:val,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+mobile,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:val,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+val,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
             console.log(result);
             // menu.end(JSON.stringify(result)); 
@@ -523,6 +523,8 @@ menu.state('CheckBalance.account',{
                 } else {
                     menu.end('Unable to Fetch Bank Accounts, please try again');
                 }
+            }).catch((err)=>{
+                menu.end(err)
             });
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
@@ -554,6 +556,8 @@ menu.state('CheckBalance.balance',{
             } else {
                 menu.end('Unable to Fetch Selected Account, please try again');
             }
+        }).catch((err)=>{
+            menu.end(err)
         });
     },
     next: {
@@ -599,14 +603,31 @@ menu.state('Statement.account',{
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
         if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
+            await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
+                if(accounts.length > 0) {
+                    var accts = ''; var count = 1;
+                    menu.session.set('accounts',accounts);
+                    // var accounts = await menu.session.get('accounts');
+                    accounts.forEach(val => {
+                        // console.log(val);
+                        accts += '\n'+count+'. '+val.code;
+                        count +=1;
+                    });
+                    menu.con('Please Select an Account' + accts);
+                } else {
+                    menu.end('Unable to Fetch Bank Accounts, please try again');
+                }
+            }).catch((err)=>{
+                menu.end(err)
             });
-            menu.con('Please Select an Account' + accts)
+            // var accts = ''; var count = 1;
+            // var accounts = await menu.session.get('accounts');
+            // accounts.forEach(val => {
+            //     // console.log(val);
+            //     accts += '\n'+count+'. '+val.code;
+            //     count +=1;
+            // });
+            // menu.con('Please Select an Account' + accts)
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
