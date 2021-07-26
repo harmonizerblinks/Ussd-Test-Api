@@ -1069,7 +1069,7 @@ async function fetchStudent(val, callback) {
 
 async function postStudentPayment(val, callback){
     console.info(val);
-    const value = val;
+    const value = { studentNumber:val.studentNumber};
     val.code = 'S' + val.code;
     var api_endpoint = apiurl + 'Merchant';
     console.log(api_endpoint);
