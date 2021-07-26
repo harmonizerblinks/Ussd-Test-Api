@@ -784,8 +784,8 @@ menu.state('Fees.amount', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        let data = await menu.session.get('studentname');
-        menu.con('You want to perform Fees payment of amount GHS '+ amount +' for ' + studentName +
+        let data = await menu.session.get('student');
+        menu.con('You want to perform Fees payment of amount GHS '+ amount +' for ' + data.studentName +
         '\n1. Confirm' +
         '\n2. Cancel');
     },
@@ -798,12 +798,12 @@ menu.state('Fees.amount', {
 menu.state('Fees.confirm', {
     run: async() => {
         // access user input value save in session
-        var code = await menu.session.get('code');
-        var studentId = await menu.session.get('studentId');
+        // var code = await menu.session.get('code');
+        var data = await menu.session.get('student');
         var amount = await menu.session.get('amount');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = {code: code, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, reference: "School Fees payment for " + studentId};
+        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, student:data.studentNumber reference: data.studentName+ " with StudentNumber" + data.studentNumber};
         // console.log(data);
         await postStudentPayment(data, async(result)=> { 
             console.log(result);
@@ -1046,16 +1046,17 @@ async function fetchStudent(val, callback) {
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
-        // if (resp.error) { 
-        //     console.log(resp.error); 
-        //     // var response = JSON.parse(res); 
-        //     return res;
-        // }
+        if (resp.error) { 
+            console.log(resp.error); 
+            // var response = JSON.parse(res); 
+            // return res;
+            await callback(resp.error);
+        }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         console.log(response)
-            menu.session.set('studentinfo', response);
-            menu.session.set('studentname', response.studentName);
+            // menu.session.set('student', response);
+            // menu.session.set('studentname', response.studentName);
             // menu.session.set('category', response.category);
             // menu.session.set('itemamount', response.amount);
             // menu.session.set('itemquantity', response.quantity);
@@ -1064,26 +1065,12 @@ async function fetchStudent(val, callback) {
     });
 }
 
-// async function postStudentPayment(val, callback) {
-
-//     var api_endpoint = "http://api.uschoolonline.com/api/Students";
-//     console.log(api_endpoint);
-//     var request = unirest('POST', api_endpoint)
-//     .headers({
-//         'Content-Type': 'application/json'
-//     })
-//     .send(JSON.stringify({ "code": val.code, "type": val.type, "amount": val.amount, "mobile": val.mobile, "network": val.network, "service": val.service, "reference": val.reference }))
-//     .end(async(resp) => {
-//         console.log(resp.raw_body);
-//         var response = JSON.parse(resp.raw_body);
-//         await callback(response);
-//     });
-// }
-
 // Post Payment
 
 async function postStudentPayment(val, callback){
     console.info(val);
+    const value = val;
+    val.code = 'S' + val.code;
     var api_endpoint = apiurl + 'Merchant';
     console.log(api_endpoint);
     var request = unirest('POST', api_endpoint)
@@ -1094,8 +1081,10 @@ async function postStudentPayment(val, callback){
     .end(async(resp) => {
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        var body = response;
-        setTimeout(() => { getCallBack(body, val); }, 60000);
+        if(response.status_code == 0) {
+            var body = response;
+            setTimeout(() => { getCallBack(body, val); }, 60000);
+        }
         await callback(response);
     });
 };
