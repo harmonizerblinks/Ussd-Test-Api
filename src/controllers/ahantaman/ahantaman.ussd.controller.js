@@ -297,11 +297,15 @@ menu.state('Deposit.confirm', {
         var mobile = menu.args.phoneNumber;
         // var mobile = cust.mobile;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
+        console.log('posting Payment');
         await postDeposit(data, async(result)=> { 
-            // console.log(result) 
-            // menu.end(JSON.stringify(result)); 
+            console.log(result) 
+            // menu.end(result.message); 
         });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+    },
+    next: {
+        '0': 'Start'
     }
 });
 
@@ -460,10 +464,9 @@ menu.state('Withdrawal.confirm', {
         if (val && val.startsWith('+233')) {
             // Remove Bearer from string
             val = val.replace('+233','0');
-            
-            if (val != mobile) menu.end("Unable to proccess Withdrawal at the moment. Please try again");
+            // if (val != mobile) menu.end("Unable to proccess Withdrawal at the moment. Please try again");
         }
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:val,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+mobile,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:val,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+val,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
             console.log(result);
             // menu.end(JSON.stringify(result)); 
@@ -520,6 +523,8 @@ menu.state('CheckBalance.account',{
                 } else {
                     menu.end('Unable to Fetch Bank Accounts, please try again');
                 }
+            }).catch((err)=>{
+                menu.end(err)
             });
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
@@ -551,6 +556,8 @@ menu.state('CheckBalance.balance',{
             } else {
                 menu.end('Unable to Fetch Selected Account, please try again');
             }
+        }).catch((err)=>{
+            menu.end(err)
         });
     },
     next: {
@@ -596,14 +603,31 @@ menu.state('Statement.account',{
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
         if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
+            await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
+                if(accounts.length > 0) {
+                    var accts = ''; var count = 1;
+                    menu.session.set('accounts',accounts);
+                    // var accounts = await menu.session.get('accounts');
+                    accounts.forEach(val => {
+                        // console.log(val);
+                        accts += '\n'+count+'. '+val.code;
+                        count +=1;
+                    });
+                    menu.con('Please Select an Account' + accts);
+                } else {
+                    menu.end('Unable to Fetch Bank Accounts, please try again');
+                }
+            }).catch((err)=>{
+                menu.end(err)
             });
-            menu.con('Please Select an Account' + accts)
+            // var accts = ''; var count = 1;
+            // var accounts = await menu.session.get('accounts');
+            // accounts.forEach(val => {
+            //     // console.log(val);
+            //     accts += '\n'+count+'. '+val.code;
+            //     count +=1;
+            // });
+            // menu.con('Please Select an Account' + accts)
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
@@ -703,12 +727,12 @@ exports.ussdApp = async(req, res) => {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
     // console.log(args);
-    let resp = await menu.run(args)
-    res.send(resp);
-    // await menu.run(args, ussdResult => {
-    //     // menu.session.set('network', args.Operator);
-    //     res.send(ussdResult);
-    // });
+    // let resp = await menu.run(args)
+    // res.send(resp);
+    await menu.run(args, ussdResult => {
+        // menu.session.set('network', args.Operator);
+        res.send(ussdResult);
+    });
     // let args = {
     //     phoneNumber: req.body.phoneNumber,
     //     sessionId: req.body.sessionId,
@@ -803,8 +827,8 @@ async function fetchBalance(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
-            await callback(resp);
+            // console.log(resp.error);
+            await callback(resp.error);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -847,7 +871,7 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
+            // console.log(resp.error);
             // await postDeposit(val);
             await callback(resp);
         }
@@ -873,8 +897,8 @@ async function postWithdrawal(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
-            await callback(resp);
+            // console.log(resp.error);
+            await callback(resp.error);
         }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
