@@ -527,14 +527,31 @@ menu.state('Statement.account',{
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
         if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
+            await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
+                if(accounts.length > 0) {
+                    var accts = ''; var count = 1;
+                    menu.session.set('accounts',accounts);
+                    // var accounts = await menu.session.get('accounts');
+                    accounts.forEach(val => {
+                        // console.log(val);
+                        accts += '\n'+count+'. '+val.code;
+                        count +=1;
+                    });
+                    menu.con('Please Select an Account' + accts);
+                } else {
+                    menu.end('Unable to Fetch Bank Accounts, please try again');
+                }
+            }).catch((err)=>{
+                menu.end(err)
             });
-            menu.con('Please Select an Account' + accts)
+            // var accts = ''; var count = 1;
+            // var accounts = await menu.session.get('accounts');
+            // accounts.forEach(val => {
+            //     // console.log(val);
+            //     accts += '\n'+count+'. '+val.code;
+            //     count +=1;
+            // });
+            // menu.con('Please Select an Account' + accts)
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
