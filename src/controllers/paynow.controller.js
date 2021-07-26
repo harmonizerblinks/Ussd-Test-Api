@@ -1129,7 +1129,7 @@ function getCallBack(val) {
                 .end(async(resp) => {
                     console.log(resp.raw_body);
                     var response = JSON.parse(resp.raw_body);
-                    await callback(response);
+                    // await callback(response);
                 });
             }
 
