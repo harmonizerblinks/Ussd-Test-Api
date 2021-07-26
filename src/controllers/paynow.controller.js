@@ -803,7 +803,7 @@ menu.state('Fees.confirm', {
         var amount = await menu.session.get('amount');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, student:data.studentNumber, reference: data.studentName+ " with StudentNumber" + data.studentNumber};
+        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, studentNumber:data.studentNumber, reference: data.studentName+ " with StudentNumber" + data.studentNumber};
         // console.log(data);
         await postStudentPayment(data, async(result)=> { 
             console.log(result);
@@ -1069,7 +1069,7 @@ async function fetchStudent(val, callback) {
 
 async function postStudentPayment(val, callback){
     console.info(val);
-    const value = { studentNumber:val.studentNumber};
+    const value = { schoolcode:val.code, studentNumber:val.studentNumber, amountpaid: val.amount, datepaid: new Date(), phoneNumber: val.mobile, network:val.network };
     val.code = 'S' + val.code;
     var api_endpoint = apiurl + 'Merchant';
     console.log(api_endpoint);
@@ -1082,41 +1082,50 @@ async function postStudentPayment(val, callback){
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         if(response.status_code == 0) {
-            var body = response;
-            setTimeout(() => { getCallBack(body, val); }, 60000);
+            value.statuscode = response.status_code;
+            value.statusmessage = response.status_message;
+            value.paynow_ref = response.interpaytxnref;
+            value.network_ref = response.transaction_no;
+            // var body = response;
+            setTimeout(() => { getCallBack(value); }, 60000);
         }
         await callback(response);
     });
 };
 
-function getCallBack(code, val) {
-    var req = unirest('GET', 'https://api.paynowafrica.com/paynow/confirmation/' + code.transaction_no)
+function getCallBack(val) {
+    var req = unirest('GET', 'https://api.paynowafrica.com/paynow/confirmation/' + val.network_ref)
         .end(async(res)=>{
             var body = JSON.parse(res.raw_body);
             if (body.status_code ===  -1 || body.status_code === 0) {
                 setTimeout(() => { getCallBack(code, val); }, 60000);
                 // var callback = setTimeout(getCallBack(body, body.response.transaction_no), 200000);
             } else if(body.status_code === 1 ) {
-                let ref = val.reference.split(" ");
-                var data = {
-                    "studentNumber": ref[4],
-                    "amountpaid": val.amount,
-                    "datepaid": new Date(),
-                    "phonenumber": val.mobile,
-                    "statuscode": body.status_code,
-                    "statusmessage": body.status_message,
-                    "schoolcode": val.code,
-                    "paynow_ref": body.transaction_no,
-                    "network_ref": body.interpaytxnref,
-                    "network": val.network
-                }
+                // let ref = val.reference.split(" ");
+                // var data = {
+                //     "studentNumber": ref[4],
+                //     "amountpaid": val.amount,
+                //     "datepaid": new Date(),
+                //     "phonenumber": val.mobile,
+                //     "statuscode": body.status_code,
+                //     "statusmessage": body.status_message,
+                //     "schoolcode": val.code,
+                //     "paynow_ref": body.transaction_no,
+                //     "network_ref": body.interpaytxnref,
+                //     "network": val.network
+                // }
+                
+                val.statuscode = body.status_code;
+                val.statusmessage = body.status_message;
+                val.paynow_ref = body.interpaytxnref;
+                val.network_ref = body.transaction_no;
                 console.log(data)        
                 var api_endpoint = studentapiUrl;
                 var request = unirest('POST', api_endpoint)
                 .headers({
                     'Content-Type': 'application/json'
                 })
-                .send(JSON.stringify(data))
+                .send(JSON.stringify(val))
                 .end(async(resp) => {
                     console.log(resp.raw_body);
                     var response = JSON.parse(resp.raw_body);

@@ -231,11 +231,6 @@ menu.state('Deposit',{
 menu.state('Deposit.amount',{
     run: async() => {
         var index = Number(menu.val);
-        // var cust = await menu.session.get('accounts');
-        // // console.log(accounts);
-        // var account = cust.accounts[index-1]
-        // menu.session.set('account', account);
-        // menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?');
         var val = {mobile: menu.args.phoneNumber, index: index};
         await fetchCustomerAccount(val, (account)=> { 
             // console.log(account);
@@ -331,14 +326,6 @@ menu.state('Withdrawal.account',{
         // var custpin = Number(menu.val);
         console.info(pin, menu.val);
         if(menu.val === pin) {
-            // var accts = ''; var count = 1;
-            // var accounts = await menu.session.get('accounts');
-            // accounts.forEach(val => {
-            //     // console.log(val);
-            //     accts += '\n'+count+'. '+val.code;
-            //     count +=1;
-            // });
-            // menu.con('Please Select an Account' + accts)
             await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
                 if(accounts.length > 0) {
                     var accts = ''; var count = 1;
@@ -392,18 +379,6 @@ menu.state('Withdrawal.amount',{
                 menu.end('Unable to Fetch Selected Account, please try again');
             }
         });
-        // await fetchBalance(account.code, async(result)=> { 
-        //     console.log(result) 
-        //     if(result.balance > 0 && result.balance != null) {
-        //         account.balance = result.balance;
-        //         menu.session.set('account', account);
-        //         menu.session.set('balance', result.balance);
-        //         menu.con('How much would you like to withdraw from account number '+account.code+'?');
-        //     } else {
-        //         menu.end('Error Retrieving current Account Balance, please try again');
-        //     }
-        // });
-        // menu.con('How much would you like to withdraw from account number '+account.code+'?');
     },
     next: {
         '*\\d+': 'Withdrawal.view',
@@ -435,10 +410,6 @@ menu.state('Withdrawal.view',{
                     menu.end('An error occur, kindly try again');
                 }
             });
-            // menu.con(cust.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
-            // '\n1. Confirm' +
-            // '\n2. Cancel' +
-            // '\n#. Main Menu');
         } else {
             menu.end('Insufficent Account Balance.');
         }
@@ -501,14 +472,6 @@ menu.state('CheckBalance.account',{
         // var custpin = Number(menu.val);
         console.log(pin);
         if(menu.val === pin) {
-            // var accts = ''; var count = 1;
-            // var accounts = await menu.session.get('accounts');
-            // accounts.forEach(val => {
-            //     // console.log(val);
-            //     accts += '\n'+count+'. '+val.code;
-            //     count +=1;
-            // });
-            // menu.con('Please Select an Account' + accts)
             await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
                 if(accounts.length > 0) {
                     var accts = ''; var count = 1;
@@ -620,14 +583,6 @@ menu.state('Statement.account',{
             }).catch((err)=>{
                 menu.end(err)
             });
-            // var accts = ''; var count = 1;
-            // var accounts = await menu.session.get('accounts');
-            // accounts.forEach(val => {
-            //     // console.log(val);
-            //     accts += '\n'+count+'. '+val.code;
-            //     count +=1;
-            // });
-            // menu.con('Please Select an Account' + accts)
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
