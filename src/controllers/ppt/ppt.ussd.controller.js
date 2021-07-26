@@ -1170,6 +1170,52 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+async function fetchCustomerAccounts(val, callback) {
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233','0');
+    }
+    var api_endpoint = apiurl + 'getCustomerAccounts/' + access.code+'/'+access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            // console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        
+        await callback(response);
+    });
+}
+
+async function fetchCustomerAccount(val, callback) {
+if (val.mobile && val.mobile.startsWith('+233')) {
+    // Remove Bearer from string
+    val.mobile = val.mobile.replace('+233','0');
+}
+var api_endpoint = apiurl + 'getCustomerAccount/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
+console.log(api_endpoint);
+var request = unirest('GET', api_endpoint)
+.end(async(resp)=> { 
+    if (resp.error) { 
+        // console.log(resp.error);
+        // var response = JSON.parse(res);
+        // return res;
+        await callback(resp);
+    }
+    // console.log(resp.raw_body);
+    var response = JSON.parse(resp.raw_body);
+    
+    await callback(response);
+});
+}
+
+
+
 // function filterPersonalScheme(schemes) {
 //     schemes.forEach(val => {
 //         val.type.includes('PERSONAL') ? menu.session.set('account', val) : ' ';

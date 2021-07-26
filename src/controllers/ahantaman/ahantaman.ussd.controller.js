@@ -242,7 +242,7 @@ menu.state('Deposit.amount',{
             if(account && account.code) {
                 menu.session.set('account',account);
                 
-                menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?');
+                menu.con('How much would you like to pay to ' + account.type + ' account number '+ account.code +'?');
             } else {
                 menu.end('Unable to Fetch Selected Account, please try again');
             }
