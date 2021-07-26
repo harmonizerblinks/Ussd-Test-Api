@@ -65,7 +65,7 @@ menu.startState({
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
 
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to HM Plus Micro Finance.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -77,9 +77,9 @@ menu.startState({
                 menu.session.set('cust', data);
                 // menu.session.set('pin', data.pin);
 
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to HM Plus Micro Finance. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.end('Mobile Number not Registered, kindly Open an Account with Ahantaman Rural Bank.');
+                menu.end('Mobile Number not Registered, kindly Open an Account with HM Plus Micro Finance.');
             }
         }).catch((err)=>{ menu.end(err); });
     },
@@ -103,7 +103,7 @@ menu.state('Start', {
                 menu.session.set('cust', data);
                 // menu.session.set('mobile', data.mobile);
                 menu.session.set('pin', data.pin);
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to HM Plus Micro Finance.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -112,7 +112,7 @@ menu.state('Start', {
                 '\n5. Contact');
             } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.session.set('cust', data);
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to HM Plus Micro Finance. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Mobile Number not Registered');
             }
@@ -312,7 +312,7 @@ menu.state('Deposit.confirm', {
 menu.state('Deposit.cancel', {
     run: () => {
         // Cancel Deposit request
-        menu.end('Thank you for using Ahantaman Rural Bank.');
+        menu.end('Thank you for using HM Plus Micro Finance.');
     }
 });
 
@@ -579,7 +579,7 @@ menu.state('Other',{
 
 menu.state('Account',{
     run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
+        menu.con('Please contact HM Plus Micro Finance on +233(0)312091033 for assistance with account opening. Thank you' +	
         '\n\n0.	Return to Main Menu')
     },
     next: {
@@ -693,7 +693,7 @@ menu.state('AutoDebit', {
 menu.state('Contact.name', {
     run: () => {
         // Cancel Savings request
-        menu.end('Ahantaman Rural Bank Limited.');
+        menu.end('HM Plus Micro Finance Limited.');
     }
 });
 

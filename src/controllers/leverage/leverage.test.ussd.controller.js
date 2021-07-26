@@ -1,15 +1,17 @@
 const UssdMenu = require('ussd-menu-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const config = require('../../config/mongodb.config.js');
 let sessions = {};
 let types = ["", "Current", "Savings", "Susu" ];
-// let apiurl = "http://localhost:5000/Ussd/";
+// let apiurl = "http://localhost:4000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-// let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
-// let access = { code: "ARB", key: "10198553" };
-let access = { code: "ACU001", key: "1029398" };
+let access = { code: "L005", key: "546787787" };
+// let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -48,11 +50,11 @@ menu.startState({
     run: async() => {
         // Fetch Customer information
         
-        // menu.end('Ussd Service Currently Down, We are working to restore smooth Transaction proccess for all our customers. Thanks For Banking With Us');
+        // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
+            console.log(1,data); 
             if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to Leverage Micro Finance.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -60,9 +62,9 @@ menu.startState({
                 '\n4. Other' +
                 '\n5. Contact');
             } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to Leverage Micro Finance. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.end('Mobile Number not Registered, kindly Open an Account with Ahantaman Rural Bank.');
+                menu.end('Mobile Number not Registered, kindly Open an Account with Leverage Micro Finance.');
             }
         });
     },
@@ -83,7 +85,7 @@ menu.state('Start', {
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active && (data.pin != '' || data.pin == null)) {     
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to Leverage Micro Finance.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -91,7 +93,7 @@ menu.state('Start', {
                 '\n4. Other' +
                 '\n5. Contact');
             } else if(data.active && (data.pin != '' || data.pin == null)) {
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to Leverage Micro Finance. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Mobile Number not Registered');
             }
@@ -260,7 +262,7 @@ menu.state('Deposit.confirm', {
 menu.state('Deposit.cancel', {
     run: () => {
         // Cancel Deposit request
-        menu.end('Thank you for using Ahantaman Rural Bank.');
+        menu.end('Thank you for using Leverage Micro Finance.');
     }
 });
 
@@ -288,7 +290,7 @@ menu.state('Withdrawal.account',{
             });
             menu.con('Please Select an Account' + accts)
         } else {
-            menu.end('Incorrect Pin. Enter zero(0) to continue')
+            menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
     },
     next: {
@@ -304,22 +306,21 @@ menu.state('Withdrawal.amount',{
         var accounts = await menu.session.get('accounts');
         // console.log(accounts);
         var account = accounts[index-1]
-        menu.session.set('account', account);
+        // menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
-            // console.log(result) 
-            if(result.balance > 0) {
+            console.log(result) 
+            if(result.balance > 0 && result.balance != null) {
                 account.balance = result.balance;
                 menu.session.set('account', account);
                 menu.session.set('balance', result.balance);
                 menu.con('How much would you like to withdraw from account number '+account.code+'?');
             } else {
-                menu.end('Error Retrieving Account Balance with '+account.code+', please try again');
+                menu.end('Error Retrieving current Account Balance, please try again');
             }
         });
         // menu.con('How much would you like to withdraw from account number '+account.code+'?');
     },
     next: {
-        '0': 'Start',
         '*\\d+': 'Withdrawal.view',
     },
     defaultNext: 'Withdrawal.amount'
@@ -330,19 +331,20 @@ menu.state('Withdrawal.view',{
         // use menu.val to access user input value
         var amount = Number(menu.val);
         // save user input in session
-        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis"); }
+        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
-        var charge = await amount * (1/100);
-        // console.log(cust);
-        if(account.balance >= (amount + charge)) {
-            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + (amount+charge) +' from your '+account.type+' account' +
+        var balance = await menu.session.get('balance');
+        var charge = 0.10;
+        // console.log(amount + charge);
+        if(balance >= (amount + charge)) {
+            menu.con(cust.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
             '\n1. Confirm' +
             '\n2. Cancel' +
             '\n#. Main Menu');
         } else {
-            menu.con('Not Enough Fund in Account. Enter zero(0) to continue')
+            menu.end('Insufficent Account Balance.');
         }
     },
     next: {
@@ -362,13 +364,13 @@ menu.state('Withdrawal.confirm', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code+' from mobile number '+mobile,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' from mobile number '+mobile,merchantid:account.merchantid };
+        console.log(data) 
         await postWithdrawal(data, async(result)=> { 
-            console.log(result) 
             // menu.end(JSON.stringify(result)); 
-            menu.end(result.message);
+            menu.end(result.body.message);
         });
-        // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
 });
 
@@ -422,12 +424,14 @@ menu.state('CheckBalance.balance',{
         // menu.session.set('account', account);
         await fetchBalance(account.code, async(result)=> { 
             console.log(result) 
-            if(result.balance != null) { account.balance = result.balance; }
-            menu.session.set('account', account);
-            menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+            if(result.balance != null) { 
+                account.balance = result.balance; 
+                menu.session.set('account', account);
+                menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+            } else {
+                menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
+            }
         });
-        // menu.con('Your '+account.type+' balance is GHS '+ account.balance+ '\nEnter zero(0) to continue');
     },
     next: {
         '0': 'Start',
@@ -448,7 +452,7 @@ menu.state('Other',{
 
 menu.state('Account',{
     run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
+        menu.con('Please contact Leverage Micro Finance on +233(0)312091033 for assistance with account opening. Thank you' +	
         '\n\n0.	Return to Main Menu')
     },
     next: {
@@ -545,28 +549,28 @@ menu.state('AutoDebit', {
 menu.state('Contact.name', {
     run: () => {
         // Cancel Savings request
-        menu.end('Ahantaman Rural Bank Limited.');
+        menu.end('Leverage Micro Finance Limited.');
     }
 });
 
 menu.state('Contact.email', {
     run: () => {
         // Cancel Savings request
-        menu.end('info@ahantamanbank.com.gh.');
+        menu.end('info@leveragefinance.com');
     }
 });
 
 menu.state('Contact.mobile', {
     run: () => {
         // Contact Mobile
-        menu.end('+233 (0) 31 209 1033');
+        menu.end('+233 (0)303 933 698');
     }
 });
 
 menu.state('Contact.website', {
     run: () => {
         // Contact Website
-        menu.end('http://www.ahantamanbank.com.gh');
+        menu.end('www.leveragemicrofinancelimited.com');
     }
 });
 
@@ -578,9 +582,9 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    console.log(args);
+    // console.log(args);
     menu.run(args, ussdResult => {
-        menu.session.set('network', args.Operator);
+        if(args.Operator) {menu.session.set('network', args.Operator); }
         res.send(ussdResult);
     });
     // let args = {
@@ -638,7 +642,7 @@ async function fetchCustomer(val, callback) {
 }
 
 async function fetchBalance(val, callback) {
-    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
+    var api_endpoint = apiurl + 'getBalance/' + access.code +'/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
@@ -675,7 +679,6 @@ async function fetchStatement(val, callback) {
 
 async function postDeposit(val, callback) {
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
-    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -699,12 +702,17 @@ async function postDeposit(val, callback) {
 
 async function postWithdrawal(val, callback) {
     var api_endpoint = apiurl + 'Withdrawal/' + access.code+'/'+access.key;
+    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            await callback(resp);
+        }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -721,6 +729,11 @@ async function postChangePin(val, callback) {
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            // await postDeposit(val);
+            await callback(resp);
+        }
         // if (resp.error) throw new Error(resp.error); 
         console.log(resp.raw_body);      
         var response = JSON.parse(resp.raw_body);
