@@ -273,6 +273,7 @@ async function fetchOfficer(val, callback) {
             }
             // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
+            // console.log(resp);
             if(response.active)
             {
                 menu.session.set('officer', response);
