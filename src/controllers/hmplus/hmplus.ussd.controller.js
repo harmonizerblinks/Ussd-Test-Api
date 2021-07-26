@@ -9,7 +9,7 @@ let types = ["", "Current", "Savings", "Susu" ];
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
-let access = { code: "ARB", key: "10198553" };
+let access = { code: "HMPLUS", key: "10198553" };
 // let access = { code: "L005", key: "546787787" };
 // let access = { code: "ACU001", key: "1029398" };
 
