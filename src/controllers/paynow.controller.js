@@ -803,7 +803,7 @@ menu.state('Fees.confirm', {
         var amount = await menu.session.get('amount');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, student:data.studentNumber reference: data.studentName+ " with StudentNumber" + data.studentNumber};
+        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, student:data.studentNumber, reference: data.studentName+ " with StudentNumber" + data.studentNumber};
         // console.log(data);
         await postStudentPayment(data, async(result)=> { 
             console.log(result);
