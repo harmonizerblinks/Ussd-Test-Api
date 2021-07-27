@@ -45,7 +45,8 @@ menu.startState({
     run: () => {
         // use menu.con() to send response without terminating session
         menu.con('Welcome to PayNow Services' +
-            '\n1. Payments');
+            '\n1. Payments' +
+            '\n2. Airtime');
         // menu.con('Welcome to PayNow Services' +
         //     '\n1. Payments' +
         //     '\n2. Airtime' +
@@ -69,7 +70,8 @@ menu.state('Start', {
     run: () => {
         // use menu.con() to send response without terminating session      
         menu.con('Welcome to PayNow Services' +
-            '\n1) Payments');
+            '\n1. Payments' +
+            '\n2. Airtime');
     },
     // next object links to next state based on user input
     next: {
@@ -812,6 +814,35 @@ menu.state('Fees.confirm', {
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone. Kindly confirm payment');
     }
 });
+
+menu.state('Airtime', {
+    run: () => {
+        // use menu.con() to send response without terminating session      
+        menu.con('1. Self' +
+            '\n2. Others' +
+            '\n\n#. Main Menu');
+    },
+    // next object links to next state based on user input
+    next: {
+        '#': 'Start',
+        '1': 'Airtime.self',
+        '2': 'Airtime.others',
+    }
+});
+
+menu.state('Airtime.self', {
+    run: () => {
+        // use menu.con() to send response without terminating session      
+        menu.con('Enter Amount' +
+        '\n\n#. Main Menu');
+    },
+    // next object links to next state based on user input
+    next: {
+        '*\\d+': 'Airtime.amount',
+        '#': 'Start'
+    }
+});
+
 
 
 

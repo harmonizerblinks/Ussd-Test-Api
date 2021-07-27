@@ -386,9 +386,6 @@ menu.state('Pay.Option.Amount', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount); 
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -1000,7 +997,7 @@ async function getSchemeInfo(val, callback) {
     }    
 
     var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
-    var req = unirest('POST', api_endpoint)
+    var req = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
