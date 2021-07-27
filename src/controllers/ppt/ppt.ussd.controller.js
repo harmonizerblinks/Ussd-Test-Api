@@ -9,6 +9,7 @@ let optionArray = ["", "Daily", "Weekly", "Monthly"]
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "446785909", key: "164383692" };
@@ -323,14 +324,23 @@ menu.state('Pay', {
 
 menu.state('Pay.account', {
     run: async() => {
-        await fetchCustomer(menu.args.phoneNumber, (data)=> {
-            if (data.active) {
-                menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
-            }else{
-                menu.end(`Error in Retrieving Customer Details.`)        
+        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+        await getSchemeInfo(data, async(data) => {
+            if (data.scheme) {
+                let account = data.scheme
+                menu.session.set('account', account);
+                await fetchCustomer(menu.args.phoneNumber, (data)=> {
+                    if (data.active) {
+                        menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
+                    }else{
+                        menu.end(`Error in Retrieving Customer Details.`)        
+                    }
+                })     
+            } else {
+                menu.end('Dear Customer, you do not have a scheme number')
             }
         })
-    },
+},
     next: {
         '*\\d+': 'Pay.Option.OneTimeAmount'
     }
@@ -345,16 +355,25 @@ menu.state('Pay.view', {
             var option = optionArray[index];
             // console.log(option);
             menu.session.set('paymentoption', option);
-            var accounts = await menu.session.get('accounts');
-            let account = await filterPersonalSchemeOnly(accounts);
-            menu.session.set('account', account);
-            await fetchCustomer(menu.args.phoneNumber, (data)=> {
-                if (data.active) {
-                    menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
-                }else{
-                    menu.end(`Error in Retrieving Customer Details.`)        
+            // var accounts = await menu.session.get('accounts');
+            // let account = await filterPersonalSchemeOnly(accounts);
+            // menu.session.set('account', account);
+            var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+            await getSchemeInfo(data, async(data) => {
+                if (data.scheme) {
+                    let account = data.scheme
+                    menu.session.set('account', account);
+                    await fetchCustomer(menu.args.phoneNumber, (data)=> {
+                        if (data.active) {
+                            menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
+                        }else{
+                            menu.end(`Error in Retrieving Customer Details.`)        
+                        }
+                    })     
+                } else {
+                    menu.end('Dear Customer, you do not have a scheme number')
                 }
-            })     
+            })
         }
     },
     next: {
@@ -406,7 +425,7 @@ menu.state('Pay.Option.Complete', {
         var paymentoption = await menu.session.get('paymentoption');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code,merchantid:account.merchantid};
+        var data = { merchant:access.code,account:account.schemenumber, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
         // console.log(data);
         await postAutoDeposit(data, async(data) => {
             // if (data.status == 0) {
@@ -443,7 +462,7 @@ menu.state('Pay.send', {
         console.log(account);
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code};
+        var data = { merchant:access.code,account:account.schemenumber,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
         }); 
@@ -953,6 +972,35 @@ async function getInfo(val, callback) {
 
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
     var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        });
+    return true
+}
+
+async function getSchemeInfo(val, callback) {
+    if (val.mobile && val.mobile.startsWith('+233')) {
+        // Remove Bearer from string
+        val.mobile = val.mobile.replace('+233', '0');
+    }else if(val.mobile && val.mobile.startsWith('233')) {
+        // Remove Bearer from string
+        val.mobile = val.mobile.replace('233', '0');
+    }    
+
+    var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
+    var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
