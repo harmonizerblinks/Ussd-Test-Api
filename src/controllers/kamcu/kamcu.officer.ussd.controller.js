@@ -5,6 +5,7 @@ let sessions = {};
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
 
 let access = { code: "446785909", key: "164383692" };
 
@@ -152,14 +153,22 @@ menu.state('User.verifypin', {
 
 menu.state('Deposit', {
     run: async() => {
-        await fetchCustomer(menu.val, (data)=> { 
-            // console.log(1,data);  
-            if(data.active) {
-                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+        await getSchemeInfo(data, async(data) => {
+            if (data.scheme) {
+                let account = data.scheme
+                menu.session.set('account', account);
+                await fetchCustomer(menu.args.phoneNumber, (data)=> {
+                    if (data.active) {
+                        menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+                    }else{
+                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                    }
+                })     
             } else {
-                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                menu.end('Dear Customer, you do not have a scheme number')
             }
-        });
+        })
     },
     next: {
         '0': 'Start',
@@ -189,10 +198,6 @@ menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
-
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -421,3 +426,33 @@ async function filterPersonalSchemeOnly(accounts) {
         return obj.type.includes('PERSONAL');
     });
 }
+
+async function getSchemeInfo(val, callback) {
+    if (val.mobile && val.mobile.startsWith('+233')) {
+        // Remove Bearer from string
+        val.mobile = val.mobile.replace('+233', '0');
+    }else if(val.mobile && val.mobile.startsWith('233')) {
+        // Remove Bearer from string
+        val.mobile = val.mobile.replace('233', '0');
+    }    
+
+    var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        });
+    return true
+}
+

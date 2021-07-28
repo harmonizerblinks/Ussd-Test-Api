@@ -865,7 +865,19 @@ menu.state('Airtime.complete', {
         let amount = await menu.session.get('amount');
         let name = await menu.session.get('name');
         let network = await menu.session.get('network');
-        var data = { code: "500", name: name, email: "alias@gmail.com", amount: amount, mobile: menu.args.phoneNumber, provider: network, "quantity": val.quantity, reference: "Airtime Purchase for " + menu.args.phoneNumber};
+        var data = { 
+        "code": "500",
+        "source": "Ussd",
+        "recipient_mobile_network": network,
+        "recipientmobilenumber": val.mobile,
+        "amount": amount,
+        "vouchernumber": val.vouchernumber,
+        "payeroperatorname": network,
+        "payermobilenumber": menu.args.phoneNumber,
+        "userid": string,
+        "botid": string,
+        "order_id": string
+        };
         await buyAirtime(data, (res) => {
             console.log(res);
         })
@@ -1087,13 +1099,25 @@ async function fetchUtility(val, callback) {
 
 async function buyAirtime(val, callback) {
     
-    var api_endpoint = apiurl + 'Merchant';
+    var api_endpoint = apiurl + 'BuyAirtime';
     console.log(api_endpoint);
     var request = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify({ "code": val.code, "name": val.name, "email": val.email, "amount": val.amount, "mobile": val.mobile, "provider": val.network, "quantity": val.quantity, "source": "Ussd", "reference": val.reference, "userid": "Ussd", "botid": "Ussd", "order_id": "Ussd" }))
+    .send(JSON.stringify({
+    "code": val.code,
+    "source": val.source,
+    "recipient_mobile_network": val.network,
+    "recipientmobilenumber": val.mobile,
+    "amount": val.amount,
+    "vouchernumber": val.vouchernumber,
+    "payeroperatorname": val.operator,
+    "payermobilenumber": val.payermobilenumber,
+    "userid": string,
+    "botid": string,
+    "order_id": string
+    }))
     .end(async(resp) => {
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);

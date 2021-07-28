@@ -401,9 +401,6 @@ menu.state('Pay.Option.OneTimeAmount', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount); 
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -437,9 +434,6 @@ menu.state('Pay.Option.Complete', {
 
 menu.state('Pay.Option.account', {
     run: async() => {
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
         let amount = await menu.session.get('amount'); 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
@@ -616,14 +610,23 @@ menu.state('Icare.complete', {
 menu.state('Icare.mobile', {
     run: async() => {
         var mobile = await menu.session.get('mobile');        
-        await fetchCustomer(mobile, (data)=> { 
-            // console.log(1,data);  
-            if(data.active) {
-                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-            } else {
-                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+        await getSchemeInfo(data, async(data) => {
+            if (data.scheme) {
+                let account = data.scheme
+                menu.session.set('account', account);
+                await fetchCustomer(mobile, (data)=> { 
+                    // console.log(1,data);  
+                    if(data.active) {
+                        menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+                    } else {
+                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                    }
+                });
+                } else {
+                menu.end('Dear Customer, you do not have a scheme number')
             }
-        });
+        })
     },
     next: {
         '0': 'Start',
@@ -660,14 +663,23 @@ menu.state('Icare.Deposit', {
 
 menu.state('Icare.Deposit.mobile', {
     run: async() => {
-        await fetchCustomer(menu.val, (data)=> { 
-            // console.log(1,data);  
-            if(data.active) {
-                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-            } else {
-                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+        var data = {appId: access.code, appKey: access.key, mobile: menu.val}
+        await getSchemeInfo(data, async(data) => {
+            if (data.scheme) {
+                let account = data.scheme
+                menu.session.set('account', account);
+                await fetchCustomer(mobile, (data)=> { 
+                    // console.log(1,data);  
+                    if(data.active) {
+                        menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+                    } else {
+                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                    }
+                });
+                } else {
+                menu.end('Dear Customer, you do not have a scheme number')
             }
-        });
+        })
     },
     next: {
         '0': 'Start',
@@ -694,10 +706,6 @@ menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
-
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -744,17 +752,23 @@ menu.state('Srp', {
 
 menu.state('CheckBalance',{
     run: async() => {
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
+        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+        await getSchemeInfo(data, async(data) => {
+            if (data.scheme) {
+                let account = data.scheme
+                menu.session.set('account', account);
+                await fetchBalance(account.code, async(result)=> { 
+                    console.log(result) 
+                    if(result.balance != null) { account.balance = result.balance; }
+                    menu.session.set('account', account);
+                    menu.session.set('balance', result.balance);
+                    menu.con('Your Balance is Savings: GHS '+ parseFloat(result.savings).toFixed(2)+ '\nRetirement: GHS '+parseFloat(result.retirement).toFixed(2) +'.\nEnter zero(0) to continue');
+                });
+            } else {
+                menu.end('Dear Customer, you do not have a scheme number')
+            }
+        })
 
-        await fetchBalance(account.code, async(result)=> { 
-            console.log(result) 
-            if(result.balance != null) { account.balance = result.balance; }
-            menu.session.set('account', account);
-            menu.session.set('balance', result.balance);
-            menu.con('Your Balance is Savings: GHS '+ parseFloat(result.savings).toFixed(2)+ '\nRetirement: GHS '+parseFloat(result.retirement).toFixed(2) +'.\nEnter zero(0) to continue');
-        });
     },
     next: {
         '0': 'Start',
