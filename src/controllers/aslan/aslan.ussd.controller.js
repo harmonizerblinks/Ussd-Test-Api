@@ -127,8 +127,8 @@ menu.state('User.pin',{
     run: async() => {
         var pin = await menu.session.get('pin');
         if(menu.val === pin) {
-            // var newpin = Number(menu.val);
-            // menu.session.set('newpin', newpin);
+            var newpin = Number(menu.val);
+            menu.session.set('newpin', newpin);
             menu.con('Enter new 4 digits PIN');
         } else {
             menu.end('Incorrect Pin. Enter zero(0) to continue');
@@ -164,9 +164,7 @@ menu.state('User.verifypin', {
             var newpin = Number(menu.val);
             // var cust = await menu.session.get('cust');
             // console.log(cust);
-            // var cus = JSON.parse(cust);
             var mobile = await menu.session.get('mobile');
-            // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
             var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
             await postChangePin(value, (data)=> { 
                 // console.log(1,data); 
@@ -184,71 +182,130 @@ menu.state('User.verifypin', {
 });
 
 menu.state('Register', {
-    run: () => {
-        menu.con('Enter your FullName')
-    },
-    next: {
-        '*[a-zA-Z]+': 'Register.name'
-    }
-});
-
-menu.state('Register.name', {
-    run: () => {
-        let name = menu.val;
-        menu.session.set('name', name);
-        menu.con('Select your gender:' +
-            '\n1. Male' +
-            '\n2. Female')
-    },
-    next: {
-        '*\\d+': 'Register.gender'
-    }
-});
-
-menu.state('Register.gender', {
-    run: async () => {
-        let index = menu.val;
-        var gender = genderArray[index];
-        menu.session.set('gender', gender);
-        var name = await menu.session.get('name');
-        menu.con('Please confirm your details to continue:' +
-            '\n Full Name: ' + name +
-            '\n Gender: ' + gender +
-            '\n\n1. Proceed' +
-            '\n0. Back')
-    },
-    next: {
-        '0': 'Start',
-        '1': 'Register.confirm'
-    }
-});
-
-menu.state('Register.confirm', {
     run: async() => {
-        var name = await menu.session.get('name');
-        var gender = await menu.session.get('gender');
-        var mobile = menu.args.phoneNumber;
+        let mobile = menu.args.phoneNumber;
+        // console.log(mobile)
+        menu.session.set('mobile', mobile);        
+        await getInfo(mobile, async(data) =>{
+            console.log(data.body)
+            if(data.surname && data.surname == null || data.lastname == null){
+                var name = data.firstname;
+                var nameArray = name.split(" ")
+                if (nameArray.length > 2){
+                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                    var lastname = capitalizeFirstLetter(nameArray[2]);
+                    menu.session.set('firstname', firstname)
+                    menu.session.set('lastname', lastname)
+                }else{
+                    var firstname = capitalizeFirstLetter(nameArray[0]);
+                    var lastname = capitalizeFirstLetter(nameArray[1]);
+                    menu.session.set('firstname', firstname)
+                    menu.session.set('lastname', lastname)
+                }
+
+            }else{
+                var firstname = data.firstname;
+                var lastname = data.surname || data.lastname;
+                menu.session.set('firstname', firstname)
+                menu.session.set('lastname', lastname)
+            }
+            menu.con('Please confirm Person\'s details:' +
+            '\nFirst Name: ' + firstname +
+            '\nLast Name: ' + lastname +
+            
+            '\n\n0. Make Changes' +
+            '\n1. Confirm')
+        })
+    },
+    next: {
+        '0': 'Register.change',
+        '1': 'Register.complete',
+    }
+});
+
+
+menu.state('Register.change', {
+    run: () => {
+        menu.con('Please enter Person\'s first name')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Register.firstname'
+    }
+});
+
+menu.state('Register.firstname', {
+    run: () => {
+        let firstname = menu.val;
+        menu.session.set('firstname', firstname);
+        menu.con('Please enter Person\'s last name')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Register.lastname'
+    }
+})
+
+menu.state('Register.lastname', {
+    run: async() => {
+            let lastname = menu.val;
+            menu.session.set('lastname', lastname);
+            var firstname = await menu.session.get('firstname');
+            var mobile = await menu.session.get('mobile');
+            if (mobile && mobile.startsWith('+233')) {
+                // Remove Bearer from string
+                mobile = mobile.replace('+233', '0');
+            }else if(mobile && mobile.startsWith('233')) {
+                // Remove Bearer from string
+                mobile = mobile.replace('233', '0');
+            }    
+            menu.con('Please confirm the registration details below to continue:' +
+            '\nFirst Name - ' + firstname +
+            '\nLast Name - '+ lastname + 
+            '\nMobile Number - '+ mobile +
+            '\n\n0. Make Changes' +
+            '\n1. Confirm')
+    },
+    next: {
+        '0': 'Register.register',
+        '1': 'Register.complete',
+    }
+})
+
+menu.state('Register.complete', {
+    run: async() => {
+        var firstname = await menu.session.get('firstname');
+        var lastname = await menu.session.get('lastname');
+        var icareId = await menu.session.get('icareid');
+        var mobile = await menu.session.get('mobile');
         if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
             mobile = mobile.replace('+233', '0');
-        } else if (mobile && mobile.startsWith('233')) {
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
             mobile = mobile.replace('233', '0');
-        }
+        }    
         var data = {
-            fullname: name, mobile: mobile, gender: gender, email: "alias@gmail.com", source: "USSD"
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", icareid: icareId
         };
-        console.log(data);
-        await postCustomer(data, async(data) => {
-            if(data.active) {
-                menu.con('Your account has been created successfully. Press 0 to continue to the Main Menu');
-            } else {
-                menu.end(data.message || 'Register Was not Successful');
+        await postCustomer(data, (data) => {
+            if (data.active) {
+                menu.con('Your account has been registered successfully. Press (0) zero to continue to Main Menu..')
+            }else{
+                menu.end(data.message || 'Registration not Successful')
             }
         })
+
     },
     next: {
         '0': 'Start'
     }
-});
+})
+
+menu.state('Exit', {
+    run: () => {
+        menu.end('')
+    }
+})
+
 
 
 menu.state('Deposit',{
@@ -820,5 +877,35 @@ async function postChangePin(val, callback) {
 
 async function getCharge(val, callback) {
     var amount = value 
+    return true
+}
+
+
+async function getInfo(val, callback) {
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233', '0');
+    }else if(val && val.startsWith('233')) {
+        // Remove Bearer from string
+        val = val.replace('233', '0');
+    }    
+
+    var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        });
     return true
 }

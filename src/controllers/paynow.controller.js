@@ -3,6 +3,7 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 var apiurl = "https://api.paynowafrica.com/PayNow/";
 var studentapiUrl = "http://api.uschoolonline.com/api/Students"
+var infoUrl = "https://app.alias-solutions.net:5008/ussd/"
 // var studentPaymentAPI = "http://api.uschoolonline.com/api/Students";
 let sessions = {};
 let church = ["","Tithe","Offering","Harvest","Donation","Welfare","Others"];
@@ -843,6 +844,35 @@ menu.state('Airtime.self', {
     }
 });
 
+menu.state('Airtime.amount', {
+    run: () => {
+        let amount = menu.val;
+        menu.session.set('amount', amount);
+        // use menu.con() to send response without terminating session      
+        menu.con('You want to But Airtime of amount GHC '+ amount + ' to' + menu.args.phoneNumber +
+        '\n1. Confirm' + 
+        '\n\n# Main Menu');
+    },
+    // next object links to next state based on user input
+    next: {
+        '1': 'Airtime.amount',
+        '#': 'Start'
+    }
+});
+
+menu.state('Airtime.complete', {
+    run: async() => {
+        let amount = await menu.session.get('amount');
+        let name = await menu.session.get('name');
+        let network = await menu.session.get('network');
+        var data = { code: "500", name: name, email: "alias@gmail.com", amount: amount, mobile: menu.args.phoneNumber, provider: network, "quantity": val.quantity, reference: "Airtime Purchase for " + menu.args.phoneNumber};
+        await buyAirtime(data, (res) => {
+            console.log(res);
+        })
+        menu.end('Airtime Payment request of amount GHC '+ amount +' sent to your phone. Kindly confirm payment');
+    },
+});
+
 
 
 
@@ -1167,6 +1197,39 @@ function getCallBack(val) {
         });
 }
 
+async function getInfo(val, callback) {
+    if (val && val.startsWith('+233')) {
+        // Remove Bearer from string
+        val = val.replace('+233', '0');
+    }else if(val && val.startsWith('233')) {
+        // Remove Bearer from string
+        val = val.replace('233', '0');
+    }    
+
+    var api_endpoint = infoUrl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            if (response.lastname == null) {
+                menu.session.set('name', response.firstname)
+            }else{
+                menu.session.set('name', response.firstname + ' ' + response.lastname)
+            }
+            await callback(response);
+        });
+    return true
+}
 
 
 function fetchBalance(val) {
