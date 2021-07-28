@@ -53,18 +53,18 @@ menu.startState({
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            if(data.active && data.pin != '' && data.pin != null && data.pin != '1234') {     
-                menu.con('Welcome to Aslan Credit Union.' +
+            if(data.active && (data.pin != '' || data.pin == null)) {     
+                menu.con('Welcome to Aslan Credit Union.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
                 '\n3. Check Balance' +
                 '\n4. Other' +
                 '\n5. Contact');
-            } else if(data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+            } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Welcome Aslan Credit Union, kindly follow the steps to Onboard \n0. Register');
+                menu.con('Mobile Number not Registered \n0. Register');
             }
         });
     },
@@ -187,7 +187,7 @@ menu.state('Register', {
         // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            console.log(data.body)
+            // console.log(data.body)
             if(data.surname && data.surname == null || data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
