@@ -780,24 +780,26 @@ menu.state('CheckBalance',{
 
 menu.state('Withdrawal',{
     run: async() => {
-        var accounts = await menu.session.get('accounts');
-        // await filterPersonalSchemeOnly(accounts, (account) => {
-        //     menu.session.set('account', account);
-        // });
-
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
-        await fetchBalance(account.code, async(result)=> { 
-            // console.log(result) 
-            if(result.balance > 0) {
-                account.balance = result.contribution;
+        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+        await getSchemeInfo(data, async(data) => {
+            if (data.scheme) {
+                let account = data.scheme
                 menu.session.set('account', account);
-                menu.session.set('balance', result.savings);
-                menu.con('How much would you like to withdraw from account number '+account.code+'?');
-            } else {
-                menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
+                await fetchBalance(account.code, async(result)=> { 
+                    // console.log(result) 
+                    if(result.balance > 0) {
+                        account.balance = result.contribution;
+                        menu.session.set('account', account);
+                        menu.session.set('balance', result.savings);
+                        menu.con('How much would you like to withdraw from account number '+account.code+'?');
+                    } else {
+                        menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
+                    }
+                });
+                } else {
+                menu.end('Dear Customer, you do not have a scheme number')
             }
-        });
+        })
         // menu.con('How much would you like to withdraw from account number '+account.code+'?');
     },
     next: {
