@@ -878,7 +878,7 @@ menu.state('Airtime.amount', {
         menu.session.set('amount', amount);
         const mobile = menu.session.get('recipient', amount);
         // use menu.con() to send response without terminating session      
-        menu.con('You want to But Airtime of amount GHC '+ amount + ' to' + menu.args.phoneNumber +
+        menu.con('You want to Buy Airtime of amount GHC '+ amount + ' to ' + menu.args.phoneNumber +
         '\n1. Confirm' + 
         '\n\n# Main Menu');
     },
