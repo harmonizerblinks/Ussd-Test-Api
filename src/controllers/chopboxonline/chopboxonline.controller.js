@@ -3,7 +3,7 @@ const unirest = require('unirest');
 const generator = require('generate-serial-number')
 let menu = new UssdMenu();
 let sessions = {};
-const appKey = '180547238'; const appId = '75318691';
+const appKey = '21410742'; const appId = '6854841673';
 const apiUrl = "https://api.paynowafrica.com";
 
 let unipackArray = ['', '']
