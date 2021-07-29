@@ -867,7 +867,7 @@ menu.state('Airtime.others.amount', {
     // next object links to next state based on user input
     next: {
         '#': 'Start',
-        '*\\d+': 'Airtime.amount'
+        '*\\d+': 'Airtime.options.complete'
     }
 });
 
@@ -876,9 +876,17 @@ menu.state('Airtime.amount', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        const mobile = menu.session.get('recipient', amount);
+        let mobile = menu.args.phoneNumber;
+        if (mobile && mobile.startsWith('+233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('+233', '0');
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('233', '0');
+        }    
+        menu.session.set('mobile', mobile);
         // use menu.con() to send response without terminating session      
-        menu.con('You want to Buy Airtime of amount GHC '+ amount + ' to ' + menu.args.phoneNumber +
+        menu.con('You want to buy airtime of amount GHC '+ amount + ' to ' + mobile +
         '\n1. Confirm' + 
         '\n\n# Main Menu');
     },
@@ -890,6 +898,21 @@ menu.state('Airtime.amount', {
 });
 
 menu.state('Airtime.complete', {
+    run: async() => {
+        let amount = await menu.session.get('amount');
+        let network = menu.args.operator;
+        let mobile = await menu.session.get('mobile');
+        var data = { 
+            code: "500", source: "Ussd", recipient_mobile_network: network, recipientmobilenumber: mobile, amount: amount, vouchernumber: "00000", payeroperatorname: network, payermobilenumber: menu.args.phoneNumber, userid: "Ussd", botid: "Ussd",order_id: ""
+        };
+        await buyAirtime(data, (res) => {
+            console.log(res);
+        })
+        menu.end('Airtime Payment request of amount GHC '+ amount +' sent to your phone. Kindly confirm payment');
+    },
+});
+
+menu.state('Airtime.options.complete', {
     run: async() => {
         let amount = await menu.session.get('amount');
         let network = menu.args.operator;
@@ -1123,7 +1146,7 @@ async function buyAirtime(val, callback) {
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify(data)).end(async(resp) => {
+    .send(JSON.stringify(val)).end(async(resp) => {
         if (resp.error) { 
             console.log(resp.error); 
             // var response = JSON.parse(res); 
