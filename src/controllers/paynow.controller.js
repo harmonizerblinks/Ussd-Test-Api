@@ -223,7 +223,7 @@ menu.state('Church.send', {
         var amount = await menu.session.get('amount');
         // var service = await menu.session.get('service');
         var reference = await menu.session.get('reference');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = {code: code, type: type,service: "Pay Church", network:network,mobile: mobile,amount: amount, reference: reference};
         payMerchant(data);
@@ -335,7 +335,7 @@ menu.state('Store.send', {
         var amount = await menu.session.get('amount');
         // var service = await menu.session.get('service'); 
         var reference = await menu.session.get('reference');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = {code: code, type: "Payment",service: "Pay Merchant", network:network,mobile: mobile,amount: amount, reference: reference};
         payMerchant(data);
@@ -468,7 +468,7 @@ menu.state('Item.send', {
         var amount = await menu.session.get('amount');
         // var service = await menu.session.get('service');
         var reference = await menu.session.get('reference');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = {code: code, type: type,service: "Pay Church", network:network,mobile: mobile,amount: amount, reference: reference};
         await payMerchant(data, async(result)=> { 
@@ -601,7 +601,7 @@ menu.state('Invoice.send', {
         var amount = await menu.session.get('amount');
         // var service = await menu.session.get('service');
         var reference = await menu.session.get('reference');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = {code: code, type: type,service: "Pay Church", network:network,mobile: mobile,amount: amount, reference: reference};
         await payMerchant(data, async(result)=> { 
@@ -735,7 +735,7 @@ menu.state('Group.send', {
         var amount = await menu.session.get('amount');
         // var service = await menu.session.get('service');
         var reference = await menu.session.get('reference');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = {code: code, type: type,service: "Pay Group", network:network,mobile: mobile,amount: amount, reference: reference};
         await payMerchant(data, async(result)=> { 
@@ -833,14 +833,16 @@ menu.state('Airtime', {
 
 menu.state('Airtime.self', {
     run: () => {
+        
+        menu.session.set('recipient', menu.args.phoneNumber);
         // use menu.con() to send response without terminating session      
         menu.con('Enter Amount' +
         '\n\n#. Main Menu');
     },
     // next object links to next state based on user input
     next: {
-        '*\\d+': 'Airtime.amount',
-        '#': 'Start'
+        '#': 'Start',
+        '*\\d+': 'Airtime.amount'
     }
 });
 
@@ -852,46 +854,32 @@ menu.state('Airtime.others', {
     },
     // next object links to next state based on user input
     next: {
-        '*\\d+': 'Airtime.others.amount',
-        '#': 'Start'
-    }
-});
-
-menu.state('Airtime.amount', {
-    run: () => {
-        // use menu.con() to send response without terminating session
-        let receipientnumber = menu.val;
-        menu.session.set('receipientnumber', receipientnumber);
-        menu.con('Enter Amount' +
-        '\n\n#. Main Menu');
-    },
-    // next object links to next state based on user input
-    next: {
-        '*\\d+': 'Airtime.amount',
-        '#': 'Start'
+        '#': 'Start',
+        '*\\d+': 'Airtime.others.amount'
     }
 });
 
 menu.state('Airtime.others.amount', {
     run: () => {
-        let amount = menu.val;
-        menu.session.set('amount', amount);
-        // use menu.con() to send response without terminating session      
-        menu.con('You want to But Airtime of amount GHC '+ amount + ' to' + menu.args.phoneNumber +
-        '\n1. Confirm' + 
-        '\n\n# Main Menu');
+        // use menu.con() to send response without terminating session
+        // let receipientnumber = menu.val;
+        menu.session.set('recipient', menu.val);
+        menu.con('Enter Amount' +
+        '\n\n#. Main Menu');
     },
     // next object links to next state based on user input
     next: {
-        '1': 'Airtime.others.complete',
-        '#': 'Start'
+        '#': 'Start',
+        '*\\d+': 'Airtime.amount'
     }
 });
+
 
 menu.state('Airtime.amount', {
-    run: () => {
+    run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
+        const mobile = menu.session.get('recipient', amount);
         // use menu.con() to send response without terminating session      
         menu.con('You want to But Airtime of amount GHC '+ amount + ' to' + menu.args.phoneNumber +
         '\n1. Confirm' + 
@@ -899,27 +887,18 @@ menu.state('Airtime.amount', {
     },
     // next object links to next state based on user input
     next: {
-        '1': 'Airtime.self.complete',
-        '#': 'Start'
+        '#': 'Start',
+        '1': 'Airtime.complete'
     }
 });
 
-menu.state('Airtime.self.complete', {
+menu.state('Airtime.complete', {
     run: async() => {
         let amount = await menu.session.get('amount');
-        let network = await menu.session.get('network');
+        let network = menu.args.operator;
+        let mobile = await menu.session.get('recipient');
         var data = { 
-        "code": "500",
-        "source": "Ussd",
-        "recipient_mobile_network": network,
-        "recipientmobilenumber": menu.args.phoneNumber,
-        "amount": amount,
-        "vouchernumber": "00000",
-        "payeroperatorname": network,
-        "payermobilenumber": menu.args.phoneNumber,
-        "userid": "Ussd",
-        "botid": "Ussd",
-        "order_id": ""
+            code: "500", source: "Ussd", recipient_mobile_network: network, recipientmobilenumber: mobile, amount: amount, vouchernumber: "00000", payeroperatorname: network, payermobilenumber: menu.args.phoneNumber, userid: "Ussd", botid: "Ussd",order_id: ""
         };
         await buyAirtime(data, (res) => {
             console.log(res);
@@ -927,33 +906,6 @@ menu.state('Airtime.self.complete', {
         menu.end('Airtime Payment request of amount GHC '+ amount +' sent to your phone. Kindly confirm payment');
     },
 });
-
-menu.state('Airtime.others.complete', {
-    run: async() => {
-        let amount = await menu.session.get('amount');
-        let network = await menu.session.get('network');
-        let mobile = await menu.session.get('receipientnumber');
-        var data = { 
-        "code": "500",
-        "source": "Ussd",
-        "recipient_mobile_network": network,
-        "recipientmobilenumber": mobile,
-        "amount": amount,
-        "vouchernumber": "00000",
-        "payeroperatorname": network,
-        "payermobilenumber": menu.args.phoneNumber,
-        "userid": "Ussd",
-        "botid": "Ussd",
-        "order_id": ""
-        };
-        await buyAirtime(data, (res) => {
-            console.log(res);
-        })
-        menu.end('Airtime Payment request of amount GHC '+ amount +' sent to your phone. Kindly confirm payment');
-    },
-});
-
-
 
 
 menu.state('Contact', {
@@ -1060,7 +1012,8 @@ async function payMerchant(val, callback) {
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify({ "code": val.code, "type": val.type, "amount": val.amount, "mobile": val.mobile, "network": val.network, "service": val.service, "reference": val.reference }))
+    .send(JSON.stringify(val))
+    // .send(JSON.stringify({ "code": val.code, "type": val.type, "amount": val.amount, "mobile": val.mobile, "network": val.network, "service": val.service, "reference": val.reference }))
     .end(async(resp) => {
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -1173,23 +1126,16 @@ async function buyAirtime(val, callback) {
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify({
-    "code": val.code,
-    "source": val.source,
-    "recipient_mobile_network": val.network,
-    "recipientmobilenumber": val.mobile,
-    "amount": val.amount,
-    "vouchernumber": val.vouchernumber,
-    "payeroperatorname": val.operator,
-    "payermobilenumber": val.payermobilenumber,
-    "userid": string,
-    "botid": string,
-    "order_id": string
-    }))
-    .end(async(resp) => {
+    .send(JSON.stringify(data)).end(async(resp) => {
+        if (resp.error) { 
+            console.log(resp.error); 
+            // var response = JSON.parse(res); 
+            // return res;
+            await callback(resp.error);
+        }
         console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        // var response = JSON.parse(resp.raw_body);
+        await callback(resp.raw_body);
     });
 }
 
@@ -1230,7 +1176,8 @@ async function postStudentPayment(val, callback){
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify({ "code": val.code, "type": val.type, "amount": val.amount, "mobile": val.mobile, "network": val.network, "service": val.service, "reference": val.reference }))
+    .send(JSON.stringify(val))
+    // .send(JSON.stringify({ "code": val.code, "type": val.type, "amount": val.amount, "mobile": val.mobile, "network": val.network, "service": val.service, "reference": val.reference }))
     .end(async(resp) => {
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
