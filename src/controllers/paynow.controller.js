@@ -867,7 +867,7 @@ menu.state('Airtime.others.amount', {
     // next object links to next state based on user input
     next: {
         '#': 'Start',
-        '*\\d+': 'Airtime.options.complete'
+        '*\\d+': 'Airtime.amount'
     }
 });
 
