@@ -801,9 +801,10 @@ menu.state('Fees.confirm', {
         // var code = await menu.session.get('code');
         var data = await menu.session.get('student');
         var amount = await menu.session.get('amount');
+        var studentNumber =  await menu.session.get('studentId');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, studentNumber:data.studentNumber, reference: data.studentName+ " with StudentNumber" + data.studentNumber};
+        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, studentNumber: studentNumber, reference: data.studentName+ " with StudentNumber" + data.studentNumber};
         // console.log(data);
         await postStudentPayment(data, async(result)=> { 
             console.log(result);
