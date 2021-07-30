@@ -64,7 +64,7 @@ menu.startState({
             } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Mobile Number not Registered \n0. Register');
+                menu.con('Welcome to Aslan Credit Union. Press (0) zero to register \n0. Register');
             }
         });
     },
@@ -96,7 +96,7 @@ menu.state('Start', {
             } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Mobile Number not Registered \n0. Register');
+                menu.con('Welcome to Aslan Credit Union. Press (0) zero to register \n0. Register');
             }
         });
     },
@@ -187,25 +187,18 @@ menu.state('Register', {
         // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            // console.log(data.body)
-            if(data.surname && data.surname == null || data.lastname == null){
+            console.log(data.body)
+            if(data.lastname && data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
-                if (nameArray.length > 2){
-                    var firstname = capitalizeFirstLetter(nameArray[0]);
-                    var lastname = capitalizeFirstLetter(nameArray[2]);
-                    menu.session.set('firstname', firstname)
-                    menu.session.set('lastname', lastname)
-                }else{
-                    var firstname = capitalizeFirstLetter(nameArray[0]);
-                    var lastname = capitalizeFirstLetter(nameArray[1]);
-                    menu.session.set('firstname', firstname)
-                    menu.session.set('lastname', lastname)
-                }
+                var firstname = capitalizeFirstLetter(nameArray[0]);
+                var lastname = capitalizeFirstLetter(nameArray[1]);
+                menu.session.set('firstname', firstname)
+                menu.session.set('lastname', lastname)
 
             }else{
                 var firstname = data.firstname;
-                var lastname = data.surname || data.lastname;
+                var lastname = data.lastname;
                 menu.session.set('firstname', firstname)
                 menu.session.set('lastname', lastname)
             }

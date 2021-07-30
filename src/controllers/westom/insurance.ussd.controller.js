@@ -1,7 +1,7 @@
 const UssdMenu = require('ussd-menu-builder');
 const unirest = require('unirest');
 const generator = require('generate-serial-number')
-let menu = new UssdMenu();
+let menu = new UssdMenu({provider: 'hubtel'});
 let sessions = {};
 const appKey = '180547238'; const appId = '75318691';
 const apiUrl = "https://api.paynowafrica.com";
@@ -37,17 +37,16 @@ menu.sessionConfig({
 
 menu.startState({
 	run: async() => {
-		await fetchCustomer(menu.args.phoneNumber, (data) => {
-			if (data.code) {
-				menu.con(`Welcome to EPSW,
-				1. Pay
-				2. Check Policy
-				3. Claims
-				`)	
-			} else {
-				menu.end('You are not registered on EPSW. For registration, visit https://www.paynowafrica.com')
-			}
-		})
+		// await fetchCustomer(menu.args.phoneNumber, (data) => {
+		// 	if (data.code) {
+				menu.con('Welcome to Baafo Pa,' +
+				'\n1. Pay'+
+				'\n2. Check Policy'+
+				'\n3. Claims')	
+		// 	} else {
+		// 		menu.end('You are not registered on Baafo Pa. For registration, visit https://www.paynowafrica.com')
+		// 	}
+		// })
 	},
 	next: {
 		'1': 'pay',
@@ -60,13 +59,12 @@ menu.state('mainmenu', {
 	run: async() => {
 		await fetchCustomer(menu.args.phoneNumber, (data) => {
 			if (data.code) {
-				menu.con(`Welcome to EPSW,
-				1. Pay
-				2. Check Policy
-				3. Claims
-				`)	
+				menu.con('Welcome to Baafo Pa,' +
+				'\n1. Pay'+
+				'\n2. Check Policy'+
+				'\n3. Claims')	
 			} else {
-				menu.end('You are not registered on EPSW. For registration, visit https://www.paynowafrica.com')
+				menu.end('You are not registered on Baafo Pa. For registration, visit https://www.paynowafrica.com')
 			}
 		})
 	},
@@ -83,14 +81,14 @@ menu.state('mainmenu', {
 
 menu.state('pay',{
 	run: async() => {
-        var schemes = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.type + ' A/C';
-            count += 1;
-        });
-		menu.con(`Please Select Policy Number:
-		${schemes}`)
+        // var schemes = ''; var count = 1;
+        // var accounts = await menu.session.get('accounts');
+        // accounts.forEach(val => {
+        //     schemes += '\n' + count + '. ' + val.type + ' A/C';
+        //     count += 1;
+        // });
+		menu.con('Please Select Policy Number' +
+		'\n1. 00000000000')
 	},
 	next: {
 		'0': 'mainmenu',
@@ -101,16 +99,16 @@ menu.state('pay',{
 
 menu.state('policy', {
 	run: async() => {
-		var amount = Number(menu.val);
-		menu.session.set('amount', amount);
-		var fullname = await menu.session.get('name');
+		var amount = 4;
+		// menu.session.set('amount', amount);
+		// var fullname = await menu.session.get('name');
 
-		var index = await menu.session.get('userreq');
+		// var index = await menu.session.get('userreq');
 
-		var accountinfo = await menu.session.get('accountinfo');
-		var account = accountinfo[index - 1];
-		menu.session.set('accountnumber', account.accountNumber)
-		menu.con(`Dear ${fullname}, you are making a payment of GHS  ${amount}  for policy number ${account.accountNumber}` +
+		// var accountinfo = await menu.session.get('accountinfo');
+		// var account = accountinfo[index - 1];
+		// menu.session.set('accountnumber', account.accountNumber)
+		menu.con(`Dear [fullname], you are making a payment of GHS  ${amount}  for policy number 00000000000` +
 			'\n1. Confirm' +
 			'\n2. Cancel'
 		)
@@ -123,7 +121,7 @@ menu.state('policy', {
 
 menu.state('confirm', {
 	run: async() => {
-		await payment(menu.args.phoneNumber, (data) => {
+		// await payment(menu.args.phoneNumber, (data) => {
 			// console.log(data.body)
 			// if (data.body.statusMessage == 'Success') {
 				menu.end('Your transaction was successful. \n\nThank you.');
@@ -131,7 +129,7 @@ menu.state('confirm', {
 			// else {
 			// 	menu.end('Server Error. Please contact the admin')
 			// }
-		})
+		// })
 	}
 })
 
@@ -139,14 +137,14 @@ menu.state('confirm', {
 
 menu.state('checkpolicy', {
 	run: async() => {
-        var schemes = ''; var count = 1;
-        var accounts = await menu.session.get('accounts');
-        accounts.forEach(val => {
-            schemes += '\n' + count + '. ' + val.type + ' A/C';
-            count += 1;
-        });
+        // var schemes = ''; var count = 1;
+        // var accounts = await menu.session.get('accounts');
+        // accounts.forEach(val => {
+        //     schemes += '\n' + count + '. ' + val.type + ' A/C';
+        //     count += 1;
+        // });
 		menu.con(`Please Select Policy Number:
-		${schemes}`)
+		\n1. 00000000000`)
 	},
 	next: {
 		'*\\d+': 'checkpolicy.account',
@@ -155,7 +153,7 @@ menu.state('checkpolicy', {
 
 menu.state('checkpolicy.account', {
 	run: () => {
-		menu.con('Your policy number 000000241 will expire on 12/10/21' + '\n\nPress zero (0) to return to the Main Menu')
+		menu.con('Your policy number 00000000000 will expire on 12/10/21' + '\n\nPress zero (0) to return to the Main Menu')
 	},
 	next: {
 		'0': 'mainmenu'
