@@ -64,7 +64,7 @@ menu.startState({
             } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Mobile Number not Registered \n0. Register');
+                menu.con('Welcome to Aslan Credit Union. Press (0) zero to register \n0. Register');
             }
         });
     },
@@ -96,7 +96,7 @@ menu.state('Start', {
             } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.con('Welcome to Aslan Credit Union. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.con('Mobile Number not Registered \n0. Register');
+                menu.con('Welcome to Aslan Credit Union. Press (0) zero to register \n0. Register');
             }
         });
     },
