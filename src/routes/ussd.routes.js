@@ -13,6 +13,10 @@ module.exports = function(app) {
     var sikkasoft = require('../controllers/sikkasoft/sikkasoft.ussd.controller.js');
     var sikkasofttest = require('../controllers/sikkasoft/sikkasoft.test.ussd.controller.js');
     var sikkasoftofficer = require('../controllers/sikkasoft/sikkasoft.officer.ussd.controller.js');
+    // Hmplus
+    var hmplus = require('../controllers/hmplus/hmplus.ussd.controller.js');
+    var hmplustest = require('../controllers/hmplus/hmplus.test.ussd.controller.js');
+    var hmplusofficer = require('../controllers/hmplus/hmplus.officer.ussd.controller.js');
     // Aslan
     var aslan = require('../controllers/aslan/aslan.ussd.controller.js');
     // ECG 
@@ -42,7 +46,7 @@ module.exports = function(app) {
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
-    app.post('/group', ppt.ussdApp);
+    app.post('/group', hmplus.ussdApp);
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
     app.post('/leader', paynowafrica.ussd);
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
