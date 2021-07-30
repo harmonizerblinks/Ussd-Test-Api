@@ -832,7 +832,7 @@ menu.state('Airtime', {
 menu.state('Airtime.self', {
     run: () => {
         
-        menu.session.set('recipient', menu.args.phoneNumber);
+        menu.session.set('mobile', menu.args.phoneNumber);
         // use menu.con() to send response without terminating session      
         menu.con('Enter Amount' +
         '\n\n#. Main Menu');
@@ -861,7 +861,7 @@ menu.state('Airtime.others.amount', {
     run: () => {
         // use menu.con() to send response without terminating session
         // let receipientnumber = menu.val;
-        menu.session.set('recipient', menu.val);
+        menu.session.set('mobile', menu.val);
         menu.con('Enter Amount' +
         '\n\n#. Main Menu');
     },
@@ -877,15 +877,15 @@ menu.state('Airtime.amount', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        let mobile = menu.args.phoneNumber;
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }else if(mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }    
-        menu.session.set('mobile', mobile);
+        // let mobile = menu.args.phoneNumber;
+        // if (mobile && mobile.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('+233', '0');
+        // }else if(mobile && mobile.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('233', '0');
+        // }    
+        // menu.session.set('mobile', mobile);
         // use menu.con() to send response without terminating session      
         menu.con('You want to buy airtime of amount GHC '+ amount + ' to ' + mobile +
         '\n1. Confirm' + 
@@ -904,22 +904,7 @@ menu.state('Airtime.complete', {
         let network = menu.args.operator;
         let mobile = await menu.session.get('mobile');
         var data = { 
-            code: "500", source: "Ussd", recipient_mobile_network: network, recipientmobilenumber: mobile, amount: amount, vouchernumber: "00000", payeroperatorname: network, payermobilenumber: menu.args.phoneNumber, userid: "Ussd", botid: "Ussd",order_id: ""
-        };
-        await buyAirtime(data, (res) => {
-            console.log(res);
-        })
-        menu.end('Airtime Payment request of amount GHC '+ amount +' sent to your phone. Kindly confirm payment');
-    },
-});
-
-menu.state('Airtime.options.complete', {
-    run: async() => {
-        let amount = await menu.session.get('amount');
-        let network = menu.args.operator;
-        let mobile = await menu.session.get('recipient');
-        var data = { 
-            code: "500", source: "Ussd", recipient_mobile_network: network, recipientmobilenumber: mobile, amount: amount, vouchernumber: "00000", payeroperatorname: network, payermobilenumber: menu.args.phoneNumber, userid: "Ussd", botid: "Ussd",order_id: ""
+            code: "500", source: "Ussd", recipient_mobile_network: network, recipientmobilenumber: mobile, amount: amount, vouchernumber: "00000", payeroperatorname: network, payermobilenumber: mobile, userid: "Ussd", botid: "Ussd",order_id: ""
         };
         await buyAirtime(data, (res) => {
             console.log(res);
