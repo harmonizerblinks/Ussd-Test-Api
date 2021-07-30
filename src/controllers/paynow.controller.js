@@ -877,6 +877,7 @@ menu.state('Airtime.amount', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
+        let mobile = await menu.session.get('mobile');
         // let mobile = menu.args.phoneNumber;
         // if (mobile && mobile.startsWith('+233')) {
         //     // Remove Bearer from string
@@ -904,7 +905,7 @@ menu.state('Airtime.complete', {
         let network = menu.args.operator;
         let mobile = await menu.session.get('mobile');
         var data = { 
-            code: "500", source: "Ussd", recipient_mobile_network: network, recipientmobilenumber: mobile, amount: amount, vouchernumber: "00000", payeroperatorname: network, payermobilenumber: mobile, userid: "Ussd", botid: "Ussd",order_id: ""
+            code: "500", source: "Ussd", recipient_mobile_network: network, recipientmobilenumber: mobile, amount: amount, vouchernumber: "00000", payeroperatorname: network, payermobilenumber: menu.args.phoneNumber, userid: "Ussd", botid: "Ussd",order_id: ""
         };
         await buyAirtime(data, (res) => {
             console.log(res);
@@ -912,7 +913,6 @@ menu.state('Airtime.complete', {
         menu.end('Airtime Payment request of amount GHC '+ amount +' sent to your phone. Kindly confirm payment');
     },
 });
-
 
 menu.state('Contact', {
     run: () => {
