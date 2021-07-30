@@ -762,12 +762,13 @@ menu.state('Fees', {
 menu.state('Fees.studentId', {
     run: async() => {
         let studentId = menu.val
-        menu.session.set('studentId', studentId);
+        // menu.session.set('studentId', studentId);
         let code = studentId.substring(0,3);
         // console.log(code);
         menu.session.set('code', code);
         await fetchStudent(studentId, (data) => {
             if(data && data.schoolName){
+                data.studentNumber = studentId;
                 menu.session.set('student', data);
                 menu.con('School Name: '+ data.schoolName  +'\nStudent Name: '+ data.studentName +'\nFees Balance: GHS '+ data.feesBalance +' \nEnter amount you want to pay');
             } else {
@@ -801,10 +802,9 @@ menu.state('Fees.confirm', {
         // var code = await menu.session.get('code');
         var data = await menu.session.get('student');
         var amount = await menu.session.get('amount');
-        var studentNumber =  await menu.session.get('studentId');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, studentNumber: studentNumber, reference: data.studentName+ " with StudentNumber" + data.studentNumber};
+        var data = {code: data.schoolCode, type: "Fees",service: "Pay Fees", network:network,mobile: mobile,amount: amount, studentNumber: data.studentNumber, reference: data.studentName+ " with StudentNumber " + data.studentNumber};
         // console.log(data);
         await postStudentPayment(data, async(result)=> { 
             console.log(result);
@@ -1189,7 +1189,7 @@ async function fetchStudent(val, callback) {
 
 async function postStudentPayment(val, callback){
     console.info(val);
-    const value = { schoolcode:val.code, studentNumber:val.studentNumber, amountpaid: val.amount, datepaid: new Date(), phoneNumber: val.mobile, network:val.network };
+    const value = { schoolcode:val.code, studentNumber: val.studentNumber, amountpaid: val.amount, datepaid: new Date(), phoneNumber: val.mobile, network:val.network };
     val.code = 'S' + val.code;
     var api_endpoint = apiurl + 'Merchant';
     console.log(api_endpoint);
