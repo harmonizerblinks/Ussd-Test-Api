@@ -35,6 +35,9 @@ module.exports = function(app) {
     // Kamcu
     var kamcu = require('../controllers/kamcu/kamcu.officer.ussd.controller.js');
 
+    // Westom
+    var westom = require('../controllers/westom/insuranceussd.controller');
+
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
@@ -85,5 +88,8 @@ module.exports = function(app) {
 
     // KAMCU
     app.post('/api/kamcu', kamcu.ussdApp);
+    
+    // WESTOM INSURANCE
+    app.post('/api/westom', westom.startSession);
 
 }
