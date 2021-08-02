@@ -4,10 +4,10 @@ var unirest = require('unirest');
 let sessions = {};
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
 
-let access = { code: "446785909", key: "164383692" };
+let access = { code: "KCU006", key: "60198553" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -47,7 +47,7 @@ menu.startState({
         // Fetch Customer information
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
-            if(data.active) { 
+            if(data.officerid) { 
                 menu.con('Welcome to KAMCU Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
@@ -66,7 +66,7 @@ menu.state('Start', {
         // Fetch Customer information
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
-            if(data.active) { 
+            if(data.officerid) { 
                 menu.con('Welcome to KAMCU Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
@@ -265,8 +265,13 @@ async function fetchOfficer(val, callback) {
         if (val && val.startsWith('+233')) {
             // Remove Bearer from string
             val = val.replace('+233','0');
+        } else if (val && val.startsWith('233'))
+        {
+            // Remove Bearer from string
+            val = val.replace('233','0');
         }
-        var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
+        console.log(val);
+        var api_endpoint = apiurl + 'getOfficer/'+ access.key + '/'+ val;
         // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
