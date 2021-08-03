@@ -211,8 +211,6 @@ menu.state('Register', {
     }
 });
 
-//////////////////////////////////////////////////////////////////////////////////////
-
 menu.state('Register.Auto.Gender', {
     run: () => {
         menu.con('Please choose an option for your gender:' +
@@ -224,15 +222,56 @@ menu.state('Register.Auto.Gender', {
     }
 });
 
-menu.state('Register.Auto.Complete', {
+menu.state('Policy',{
     run: async() => {
         if(menu.val > 2){
             menu.con('Invalid option. Press (0) zero to try again.')
         }else{
             let gender = genderArray[Number(menu.val)];
             menu.session.set('gender', gender);
+            menu.con('Select Policy Type:' +
+            '\n1. Standard' +
+            '\n2. Bronze' +
+            '\n3. Silver' +
+            '\n4. Gold' +
+            '\n5. Diamond')    
+        }
+    },
+    next: {
+        '*\\d+': 'Policy.Type'
+    },
+    defaultNext: 'Register.Auto.Gender'
+})
+
+menu.state('Policy.Type',{
+    run: async() => {
+        menu.con('Select Payment Plan:' +
+        '\n1. Daily' +
+        '\n2. Weekly' +
+        '\n3. Monthly')
+    },
+    next: {
+        '*\\d+': 'Policy.Option'
+    }
+})
+
+menu.state('Policy.Option',{
+    run: async() => {
+        menu.con('Dear Jason Addy please confirm your registration for the Gold policy with a weekly plan of GH2' +
+        '\n1. Confirm' +
+        '\n2. Cancel')
+    },
+    next: {
+        '1': 'Policy.option',
+        '2': 'Exit'
+    }
+})
+
+menu.state('Register.Auto.Complete', {
+    run: async() => {
             var firstname = await menu.session.get('firstname');
             var lastname = await menu.session.get('lastname');
+            var gender = await menu.session.get('gender');
             var mobile = await menu.session.get('mobile');
             if (mobile && mobile.startsWith('+233')) {
                 // Remove Bearer from string
@@ -251,12 +290,10 @@ menu.state('Register.Auto.Complete', {
                     menu.end(data.message || 'Registration not Successful')
                 }
             })
-        }
     },
     next: {
         '0': 'Start'
-    },
-    defaultNext: 'Register.Auto.Gender'
+    }
 });
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -360,47 +397,6 @@ menu.state('Exit', {
         menu.end('')
     }
 })
-
-
-
-menu.state('Policy',{
-    run: async() => {
-        menu.con('Select Policy Type:' +
-        '\n1. Standard' +
-        '\n2. Bronze' +
-        '\n3. Silver' +
-        '\n4. Gold' +
-        '\n5. Diamond')
-    },
-    next: {
-        '*\\d+': 'Policy.Type'
-    }
-})
-
-menu.state('Policy.Type',{
-    run: async() => {
-        menu.con('Select Payment Plan:' +
-        '\n1. Daily' +
-        '\n2. Weekly' +
-        '\n3. Monthly')
-    },
-    next: {
-        '*\\d+': 'Policy.Option'
-    }
-})
-
-menu.state('Policy.Option',{
-    run: async() => {
-        menu.con('Dear Jason Addy please confirm your registration for the Gold policy with a weekly plan of GH2' +
-        '\n1. Confirm' +
-        '\n2. Cancel')
-    },
-    next: {
-        '1': 'Policy.option',
-        '2': 'Exit'
-    }
-})
-
 
 
 menu.state('Deposit.amount',{
