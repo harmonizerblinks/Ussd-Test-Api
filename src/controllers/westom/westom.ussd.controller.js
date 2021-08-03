@@ -264,9 +264,14 @@ menu.state('verify', {
 
 //////////-------------START SESSION FUNCTION--------------//////////////
 module.exports.startSession = (req, res) => {
-    menu.run(req.body, ussdResult => {
+    let args = req.body;
+    if (args.Type == 'initiation') {
+        args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
+    }
+    // console.log(args);
+    menu.run(args, ussdResult => {
+        if(args.Operator) {menu.session.set('network', args.Operator); }
         res.send(ussdResult);
-        menu.session.get('network', req.body.networkCode)
     });
 }
 

@@ -40,7 +40,7 @@ module.exports = function(app) {
     var kamcu = require('../controllers/kamcu/kamcu.officer.ussd.controller.js');
 
     // Westom
-    var westom = require('../controllers/westom/insurance.ussd.controller');
+    var westom = require('../controllers/westom/westom.ussd.controller');
 
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
