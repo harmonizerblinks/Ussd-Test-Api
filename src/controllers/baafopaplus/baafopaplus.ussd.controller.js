@@ -454,27 +454,6 @@ menu.state('CheckBalance.balance',{
     defaultNext: 'CheckBalance.amount'
 });
 
-menu.state('Other',{
-    run: () => {
-        menu.con('1. Change Pin' + '\n2. Open Account' + '\n3. Mini Satement')
-    },
-    next: {
-        '1': 'User.account',
-        '2': 'Account',
-        '3': 'Statement',
-    }
-});
-
-menu.state('Account',{
-    run: () => {
-        menu.con('Please contact Aslan Credit Union on +233264371378 for assistance with account opening. Thank you' +	
-        '\n\n0.	Return to Main Menu')
-    },
-    next: {
-        '0': 'Start'
-    }
-});
-
 
 ///////////////--------------CLAIMS STARTS--------------////////////////
 
