@@ -265,13 +265,9 @@ async function fetchOfficer(val, callback) {
         if (val && val.startsWith('+233')) {
             // Remove Bearer from string
             val = val.replace('+233','0');
-        } else if (val && val.startsWith('233'))
-        {
-            // Remove Bearer from string
-            val = val.replace('233','0');
         }
         console.log(val);
-        var api_endpoint = apiurl + 'getOfficer/'+ access.key + '/'+ val;
+        var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
         // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
