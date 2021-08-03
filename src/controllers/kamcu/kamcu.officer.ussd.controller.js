@@ -46,7 +46,9 @@ menu.startState({
         // Fetch Customer information
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
-            if(data.officerid) { 
+            if(data.active) { 
+                menu.session.set('officer', response);
+                menu.session.set('pin', response.pin);
                 menu.con('Welcome to KAMCU Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
@@ -116,13 +118,6 @@ async function fetchOfficer(val, callback) {
             }
             // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
-            // console.log(resp);
-            if(response.active)
-            {
-                menu.session.set('officer', response);
-                menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
             
             await callback(response);
         });
