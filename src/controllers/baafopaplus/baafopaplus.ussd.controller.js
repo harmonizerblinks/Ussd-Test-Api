@@ -54,7 +54,7 @@ menu.startState({
         
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
+            console.log(1,data); 
             if(data.active) {     
                 menu.con('Dear '+ data.fullname +', Welcome to Boafo Pa Plus.' + 
                 '\nSelect an Option.' + 
@@ -107,9 +107,12 @@ menu.state('Start', {
 
 menu.state('Register', {
     run: async() => {
-        let mobile = menu.args.phoneNumber;
+        let mobile = menu.val;
+        if (mobile == 0) {
+            mobile = menu.args.phoneNumber;
+            menu.session.set('mobile', mobile);        
+        }
         // console.log(mobile)
-        menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
             if(data.lastname && data.lastname == null){
                 var name = data.firstname;
@@ -402,7 +405,19 @@ menu.state('Exit', {
 
 menu.state('Payment',{
     run: async() => {
-        menu.con('You are currently on the Gold Policy Plan. How much would you like to pay?')
+        let mobile = menu.val;
+        if (mobile == 1) {
+            mobile = menu.args.phoneNumber;
+            menu.session.set('mobile', mobile);        
+        }
+        menu.session.set('mobile', mobile);        
+        await fetchCustomer(mobile, (data) => {
+            if(data.active) {
+                menu.con('You are currently on the Gold Policy Plan. How much would you like to pay?')
+            }else{
+                menu.end('Mobile Number not Registered.')
+            }
+        })
     },
     next: {
         '*\\d+': 'Deposit.view',
@@ -435,16 +450,19 @@ menu.state('Deposit.view',{
 menu.state('Deposit.confirm', {
     run: async() => {
         // access user input value save in session
-        // //var cust = await menu.session.get('cust');
+        var cust = await menu.session.get('cust');
         var amount = await menu.session.get('amount');
-        // var account = await menu.session.get('account');
-        // var network = await menu.session.get('network');
-        // var mobile = menu.args.phoneNumber;
-        // var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
-        // await postDeposit(data, async(result)=> { 
-        //     // console.log(result) 
-        //     // menu.end(JSON.stringify(result)); 
-        // });
+        var account = await menu.session.get('account');
+        var network = await menu.session.get('network');
+        var mobile = await menu.session.get('mobile');
+        if (mobile == undefined) {
+            mobile = menu.args.phoneNumber;
+        }
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        await postDeposit(data, async(result)=> { 
+            // console.log(result) 
+            // menu.end(JSON.stringify(result)); 
+        });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
 });
@@ -479,59 +497,81 @@ menu.state('Claims', {
 
 menu.state('Agent', {
     run: () => {
-        menu.con('Enter phone number of person:')
+        menu.con('Choose your Preferred Option:' +
+        '\n1. Register for Someone' +
+        '\n2. Pay for Someone')
     },
     next: {
-        '*\\d+': 'Agent'
+        '1': 'Register',
+        '2': 'Pay'
+    }
+})
+
+menu.state('Register', {
+    run: () => {
+        menu.con('Enter Phone Number of person:')
+    },
+    next: {
+        '*\\d+': 'Register'
     }
 })
 
 
-menu.state('Agent', {
-    run: async() => {
-        await fetchCustomer(menu.val, (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {
-                var index = 1;
-                // var accounts = await menu.session.get('accounts');
-                var account = data.accounts[index-1]
-                menu.session.set('account', account);
-                var amount = 3;
-                menu.session.set('amount', amount);
-                
-                menu.con('You are making a payment of GHS ' + amount +' into '+data.fullname+' account'+
-                '\n1. Confirm' +
-                '\n2. Cancel' +
-                '\n#. Main Menu')
-            } else {
-                menu.con('Mobile Number not Registered');
-            }
-        });
+menu.state('Pay', {
+    run: () => {
+        menu.con('Enter Phone Number of person:')
     },
     next: {
-        '#': 'Start',
-        '1': 'Deposit.confirm',
-        '2': 'Deposit.cancel',
-    },
-    defaultNext: 'Deposit.amount'
-});
-
-menu.state('Deposit.confirm', {
-    run: async() => {
-        // access user input value save in session
-        // var of = await menu.session.get('officer');
-        var amount = await menu.session.get('amount');
-        // var account = await menu.session.get('account');
-        // var network = await menu.session.get('network');
-        // var mobile = menu.args.phoneNumber;
-        // var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
-        // await postDeposit(data, async(result)=> { 
-        //     // console.log(result) 
-        //     // menu.end(JSON.stringify(result)); 
-        // });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        '*\\d+': 'Payment'
     }
-});
+})
+
+
+// menu.state('Agent', {
+//     run: async() => {
+//         await fetchCustomer(menu.val, (data)=> { 
+//             // console.log(1,data); 
+//             if(data.active) {
+//                 var index = 1;
+//                 // var accounts = await menu.session.get('accounts');
+//                 var account = data.accounts[index-1]
+//                 menu.session.set('account', account);
+//                 var amount = 3;
+//                 menu.session.set('amount', amount);
+                
+//                 menu.con('You are making a payment of GHS ' + amount +' into '+data.fullname+' account'+
+//                 '\n1. Confirm' +
+//                 '\n2. Cancel' +
+//                 '\n#. Main Menu')
+//             } else {
+//                 menu.con('Mobile Number not Registered');
+//             }
+//         });
+//     },
+//     next: {
+//         '#': 'Start',
+//         '1': 'Deposit.confirm',
+//         '2': 'Deposit.cancel',
+//     },
+//     defaultNext: 'Deposit.amount'
+// });
+
+// menu.state('Deposit.confirm', {
+//     run: async() => {
+//         // access user input value save in session
+//         // var of = await menu.session.get('officer');
+//         var amount = await menu.session.get('amount');
+//         // var account = await menu.session.get('account');
+//         // var network = await menu.session.get('network');
+//         // var mobile = menu.args.phoneNumber;
+//         // var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
+//         // await postDeposit(data, async(result)=> { 
+//         //     // console.log(result) 
+//         //     // menu.end(JSON.stringify(result)); 
+//         // });
+//         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+//     }
+// });
 
 
 
@@ -606,7 +646,7 @@ async function fetchCustomer(val, callback) {
             if (response.active) {
                 menu.session.set('name', response.name);
                 menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
+                menu.session.set('account', response.accounts[0]);
                 menu.session.set('cust', response);
                 menu.session.set('type', response.type);
                 menu.session.set('pin', response.pin);

@@ -48,7 +48,7 @@ module.exports = function(app) {
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
     app.post('/group', hmplus.ussdApp);
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
-    app.post('/leader', paynowafrica.ussd);
+    app.post('/leader', baafopaplus.ussdApp);
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
     app.post('/', kamcu.ussdApp);
 
