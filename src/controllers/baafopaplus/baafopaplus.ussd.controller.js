@@ -13,7 +13,7 @@ let paymentplanArray = ["", "Daily", "Weekly", "Monthly"];
 let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
-let access = { code: "ACU001", key: "1029398" };
+let access = { code: "WT001", key: "24624247" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -60,8 +60,8 @@ menu.startState({
                 '\nSelect an Option.' + 
                 '\n1. Payment' +
                 '\n2. Check Status' +
-                '\n4. Claims' +
-                '\n5. Agent');
+                '\n3. Claims' +
+                '\n4. Agent');
             } else {
                 menu.con('Welcome to Boafo Pa Plus. Press (0) zero to register \n0. Register');
             }
@@ -87,8 +87,8 @@ menu.state('Start', {
                 '\nSelect an Option.' + 
                 '\n1. Payment' +
                 '\n2. Check Status' +
-                '\n4. Claims' +
-                '\n5. Agent');
+                '\n3. Claims' +
+                '\n4. Agent');
             } else {
                 menu.con('Welcome to Boafo Pa Plus. Press (0) zero to register \n0. Register');
             }
@@ -230,7 +230,7 @@ menu.state('Register.Auto.Complete', {
             };
             await postCustomer(data, (data) => {
                 if (data.active) {
-                    menu.con('Your account has been registered successfully. Press (0) zero to continue to Main Menu..')
+                    menu.con('Your policy has been registered successfully. Press (0) zero to continue to Main Menu..')
                 }else{
                     menu.end(data.message || 'Registration not Successful')
                 }
@@ -380,7 +380,7 @@ menu.state('Register.Register.complete', {
         };
         await postCustomer(data, (data) => {
             if (data.active) {
-                menu.con('Your account has been registered successfully. Press (0) zero to continue to Main Menu..')
+                menu.con('Your policy has been registered successfully. Press (0) zero to continue to Main Menu..')
             }else{
                 menu.end(data.message || 'Registration not Successful')
             }
@@ -435,12 +435,12 @@ menu.state('Deposit.view',{
 menu.state('Deposit.confirm', {
     run: async() => {
         // access user input value save in session
-        //var cust = await menu.session.get('cust');
+        // //var cust = await menu.session.get('cust');
         var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
+        // var account = await menu.session.get('account');
+        // var network = await menu.session.get('network');
+        // var mobile = menu.args.phoneNumber;
+        // var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
         // await postDeposit(data, async(result)=> { 
         //     // console.log(result) 
         //     // menu.end(JSON.stringify(result)); 
@@ -519,16 +519,16 @@ menu.state('Agent', {
 menu.state('Deposit.confirm', {
     run: async() => {
         // access user input value save in session
-        var of = await menu.session.get('officer');
+        // var of = await menu.session.get('officer');
         var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
-        await postDeposit(data, async(result)=> { 
-            // console.log(result) 
-            // menu.end(JSON.stringify(result)); 
-        });
+        // var account = await menu.session.get('account');
+        // var network = await menu.session.get('network');
+        // var mobile = menu.args.phoneNumber;
+        // var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
+        // await postDeposit(data, async(result)=> { 
+        //     // console.log(result) 
+        //     // menu.end(JSON.stringify(result)); 
+        // });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
 });
