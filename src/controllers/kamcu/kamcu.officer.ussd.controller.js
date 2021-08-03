@@ -33,7 +33,6 @@ menu.sessionConfig({
     }
 });
 
-
 menu.on('error', (err) => {
     // handle errors
     console.log('Error', err);

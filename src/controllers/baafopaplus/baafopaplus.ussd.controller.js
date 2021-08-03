@@ -69,12 +69,11 @@ menu.startState({
     // next object links to next state based on user input
     next: {
         '0': 'Register',
-        '1': 'Deposit',
+        '1': 'Payment',
         '2': 'Withdrawal',
-        '3': 'CheckBalance',
-        '4': 'Other',
-        '5': 'Contact',
-        '*[0-9]+': 'User.newpin'
+        '3': 'CheckStatus',
+        '4': 'Claims',
+        '5': 'Agent',
     }
 });
 
@@ -104,74 +103,6 @@ menu.state('Start', {
         '5': 'Contact',
         '0': 'Register',
         '*[0-9]+': 'User.newpin'
-    },
-    defaultNext: 'Start'
-});
-
-
-menu.state('User.account',{
-    run: () => {
-        menu.con('Enter your current 4 digits PIN')
-    },
-    next: {
-        '*\\d+': 'User.pin'
-    }
-});
-
-menu.state('User.pin',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        if(menu.val === pin) {
-            var newpin = Number(menu.val);
-            menu.session.set('newpin', newpin);
-            menu.con('Enter new 4 digits PIN');
-        } else {
-            menu.end('Incorrect Pin. Enter zero(0) to continue');
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'User.newpin'
-    },
-    defaultNext: 'Start'
-});
-
-menu.state('User.newpin',{
-    run: () => {
-        if(menu.val.length == 4) {
-            var newpin = menu.val;
-            menu.session.set('newpin', newpin);
-            menu.con('Re-enter the 4 digits');
-        } else {
-            menu.end('Pin must be 4 digits');
-        }
-    },
-    next: {
-        '*\\d+': 'User.verifypin'
-    },
-    defaultNext: 'Start'
-})
-
-menu.state('User.verifypin', {
-    run: async() => {
-        var pin = await menu.session.get('newpin');
-        if(menu.val === pin) {
-            var newpin = Number(menu.val);
-            // var cust = await menu.session.get('cust');
-            // console.log(cust);
-            var mobile = await menu.session.get('mobile');
-            var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
-            await postChangePin(value, (data)=> { 
-                // console.log(1,data); 
-                menu.session.set('pin', newpin);
-                menu.con(data.message);
-            });
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start'
     },
     defaultNext: 'Start'
 });
@@ -218,7 +149,7 @@ menu.state('Register.Auto.Gender', {
         '\n2. Female') 
 },
     next: {
-        '*\\d+': 'Register.Auto.Complete',
+        '*\\d+': 'Policy',
     }
 });
 
@@ -257,7 +188,10 @@ menu.state('Policy.Type',{
 
 menu.state('Policy.Option',{
     run: async() => {
-        menu.con('Dear Jason Addy please confirm your registration for the Gold policy with a weekly plan of GH2' +
+        var firstname = await menu.session.get('firstname');
+        var lastname = await menu.session.get('lastname');
+        var fullname = firstname+' '+lastname;
+        menu.con('Dear '+ fullname +', please confirm your registration for the Gold policy with a weekly plan of GHS '+ policyamount +
         '\n1. Confirm' +
         '\n2. Cancel')
     },
@@ -281,15 +215,15 @@ menu.state('Register.Auto.Complete', {
                 mobile = mobile.replace('233', '0');
             }            
             var data = {
-                fullname: firstname+' '+lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", icareid: icareId
+                fullname: firstname+' '+lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD"
             };
-            await postCustomer(data, (data) => {
-                if (data.active) {
+            // await postCustomer(data, (data) => {
+            //     if (data.active) {
                     menu.con('Your account has been registered successfully. Press (0) zero to continue to Main Menu..')
-                }else{
-                    menu.end(data.message || 'Registration not Successful')
-                }
-            })
+                // }else{
+                //     menu.end(data.message || 'Registration not Successful')
+                // }
+            // })
     },
     next: {
         '0': 'Start'
@@ -464,119 +398,6 @@ menu.state('Deposit.cancel', {
     }
 });
 
-menu.state('Withdrawal',{
-    run: () => {
-        menu.con('Enter your PIN to make a Withdrawal');
-    },
-    next: {
-        '*\\d+': 'Withdrawal.account'
-    }
-})
-
-menu.state('Withdrawal.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        console.info(pin, menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'Withdrawal.amount'
-    },
-    defaultNext: 'Withdrawal'
-})
-
-menu.state('Withdrawal.amount',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        menu.session.set('account', account);
-        await fetchBalance(account.code, async(result)=> { 
-            // console.log(result) 
-            if(result.balance > 0) {
-                account.balance = result.balance;
-                menu.session.set('account', account);
-                menu.session.set('balance', result.balance);
-                menu.con('How much would you like to withdraw from account number '+account.code+'?');
-            } else {
-                menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
-            }
-        });
-        // menu.con('How much would you like to withdraw from account number '+account.code+'?');
-    },
-    next: {
-        '*\\d+': 'Withdrawal.view',
-    },
-    defaultNext: 'Withdrawal.amount'
-})
-
-menu.state('Withdrawal.view',{
-    run: async() => {
-        // use menu.val to access user input value
-        var amount = Number(menu.val);
-        // save user input in session
-        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
-        menu.session.set('amount', amount);
-        var cust = await menu.session.get('cust');
-        var account = await menu.session.get('account');
-        // var balance = await menu.session.get('account');
-        // console.log(cust);
-        if(account.balance >= amount) {
-            menu.con(cust.fullname +', you are making a withdrawal of GHS ' + amount +' from your '+account.type+' account' +
-            '\n1. Confirm' +
-            '\n2. Cancel' +
-            '\n#. Main Menu');
-        } else {
-            menu.con('Not Enough Fund in Account. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '#': 'Start',
-        '1': 'Withdrawal.confirm',
-        '2': 'Withdrawal.cancel',
-    },
-    defaultNext: 'Withdrawal.amount'
-});
-
-menu.state('Withdrawal.confirm', {
-    run: async() => {
-        // access user input value save in session
-        //var cust = await menu.session.get('cust');
-        var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code,merchantid:account.merchantid };
-        await postWithdrawal(data, async(result)=> { 
-            console.log(result) 
-            // menu.end(JSON.stringify(result)); 
-            menu.end(result.message);
-        });
-        // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
-    }
-});
-
-menu.state('Withdrawal.cancel', {
-    run: () => {
-        // Cancel Withdrawal request
-        menu.end('Thank you for using People Pension Trust.');
-    }
-});
 
 menu.state('CheckBalance',{
     run: () => {
@@ -655,118 +476,15 @@ menu.state('Account',{
 });
 
 
-menu.state('Statement',{
-    run: () => {
-        menu.con('Enter your PIN to check Account Mini statement');
-    },
-    next: {
-        '*\\d+': 'Statement.account'
-    },
-    defaultNext: 'Statement'
-});
+///////////////--------------CLAIMS STARTS--------------////////////////
 
-menu.state('Statement.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'Statement.transactions'
-    },
-    defaultNext: 'Statement'
+menu.state('Claims', {
+    run: () => {
+        menu.end('You will be contacted shortly.')
+    }
 })
 
-menu.state('Statement.transactions',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        // menu.session.set('account', account);
-        await fetchStatement(account.code, async(data)=> { 
-            console.log(data)
-            var accts = ''; var count = 1;
-            await data.forEach(async(val) => {
-                // console.log(val);
-                accts += '\n'+count+'. '+ new Date(val.date).toLocaleDateString() +' '+val.type.toUpperCase() + '- GHC ' +val.amount;
-                count +=1;
-            });
-            menu.con('Transaction Details' + accts)
-        });
-    },
-    next: {
-        '0': 'Start',
-    },
-    defaultNext: 'Statement.amount'
-});
 
-
-menu.state('Contact', {
-    run: () => {
-        // use menu.con() to send response without terminating session      
-        menu.con('1. Stop auto-debit' +
-            '\n2. Name' +
-            '\n3. Email' +
-            '\n4. Mobile' +
-            '\n5. Website');
-    },
-    // next object links to next state based on user input
-    next: {
-        '1': 'AutoDebit',
-        '2': 'Contact.name',
-        '3': 'Contact.email',
-        '4': 'Contact.mobile',
-        '5': 'Contact.website'
-    }
-});
-
-menu.state('AutoDebit', {
-    run: () => {
-        // Cancel Savings request
-        menu.end('Auto Debit disabled successfully.');
-    }
-});
-
-menu.state('Contact.name', {
-    run: () => {
-        // Cancel Savings request
-        menu.end('Aslan Credit Union.');
-    }
-});
-
-menu.state('Contact.email', {
-    run: () => {
-        // Cancel Savings request
-        menu.end('Coming Soon.');
-    }
-});
-
-menu.state('Contact.mobile', {
-    run: () => {
-        // Contact Mobile
-        menu.end('+233 264 371 378');
-    }
-});
-
-menu.state('Contact.website', {
-    run: () => {
-        // Contact Website
-        menu.end('Coming Soon.');
-    }
-});
 
 
 // Pension USSD
