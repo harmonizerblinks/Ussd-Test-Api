@@ -158,8 +158,6 @@ menu.state('User.pin',{
     defaultNext: 'Start'
 });
 
-
-
 menu.state('User.newpin',{
     run: () => {
         if(menu.val.length == 4) {

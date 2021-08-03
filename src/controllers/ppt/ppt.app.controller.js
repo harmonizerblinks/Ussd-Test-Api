@@ -18,34 +18,69 @@ let access = { code: "446785909", key: "164383692" };
 
 // POST a User
 exports.Register = async(req, res) => {
-    console.log(req.body);
-    const user = req.body;
-    user.password = bcrypt.hashSync(req.body.password, 10);
-    user.email = req.body.email.toLowerCase();
+    var value = req.body;
+    var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
+    var reqs = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end(function (resp) { 
+        if (resp.error) {
+            res.status(404).send({
+                message: resp.error
+            }); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+    // console.log(req.body);
+    // const user = req.body;
+    // user.password = bcrypt.hashSync(req.body.password, 10);
+    // user.email = req.body.email.toLowerCase();
     
-    user.save()
-        .then(async(data) => {
-            console.info('saved successfully');
-            const token = jwt.sign({
-                type: 'user',
-                data: {
-                    id: data._id,
-                    fullname: data.fullname,
-                    isAdmin: data.isAdmin,
-                    mmobile: data.mobile,
-                    email: user.email
-                },
-            }, config.secret, {
-                expiresIn: 684800
-            });
-            console.log(token);
-            res.send({ success: true, access_token: token, date: Date.now });
-            // res.send(data);
-        }).catch(err => {
+    // user.save()
+    //     .then(async(data) => {
+    //         console.info('saved successfully');
+    //         const token = jwt.sign({
+    //             type: 'user',
+    //             data: {
+    //                 id: data._id,
+    //                 fullname: data.fullname,
+    //                 isAdmin: data.isAdmin,
+    //                 mmobile: data.mobile,
+    //                 email: user.email
+    //             },
+    //         }, config.secret, {
+    //             expiresIn: 684800
+    //         });
+    //         console.log(token);
+    //         res.send({ success: true, access_token: token, date: Date.now });
+    //         // res.send(data);
+    //     }).catch(err => {
+    //         res.status(500).send({
+    //             message: err.message
+    //         });
+    //     });
+};
+
+exports.getinfo = (req, res) => {
+    console.log('getinfo');
+    var req = unirest('POST', apiUrl + 'agentinfo')
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    .end(function (res) { 
+        if (resp.error) {
             res.status(500).send({
-                message: err.message
+                message: resp.error
             });
-        });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
 };
     
 
@@ -180,6 +215,10 @@ exports.getMember = async(req, res) => {
             res.send({
                 success: true, register: true, pin: false
             });
+        } else {
+            res.send({
+                success: false, register: false, pin: false
+            });
         }
     });
 };
@@ -213,7 +252,7 @@ exports.getSchemeinfo = async(req, res) => {
         if (resp.error) {
             console.log(resp.error);
             res.status(500).send({ 
-                success: false, register: false, message: 'Current Password is not correct' 
+                success: false, register: false, message: 'Current Password is not correct'
             });
         }
         // console.log(resp.body);
@@ -250,7 +289,6 @@ exports.getMemberinfo = async(req, res) => {
 };
 
 // Login user
-
 exports.login = (req, res) => {
     const val = req.body.mobile;
     if (val && val.startsWith('+233')) {
@@ -305,7 +343,6 @@ exports.login = (req, res) => {
 // Logout user
 exports.logout = (req, res) => {
     if (req.user) {
-        
         res.send({
             message: "Logout succesful"
         });
@@ -402,7 +439,6 @@ exports.Statement = (req, res) => {
         res.send(response.payments);
     });
 };
-
 
 // Post Payment
 exports.Deposit = (req, res) => {

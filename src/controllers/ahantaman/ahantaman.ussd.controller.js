@@ -933,7 +933,6 @@ async function postChangePin(val, callback) {
     return true
 }
 
-
 async function getCharge(val, callback) {
     var amount = value 
     return true

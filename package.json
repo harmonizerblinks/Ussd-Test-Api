@@ -2,7 +2,7 @@
   "name": "aslan-ussd-api",
   "version": "1.0.0",
   "description": "All Ussd integratin to Aslan portal",
-  "main": "src/app.js",
+  "main": "src/index.js",
   "engines": {
     "node": "10.x"
   },
