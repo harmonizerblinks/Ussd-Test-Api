@@ -228,13 +228,13 @@ menu.state('Register.Auto.Complete', {
             var data = {
                 fullname: firstname+' '+lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD"
             };
-            // await postCustomer(data, (data) => {
-            //     if (data.active) {
+            await postCustomer(data, (data) => {
+                if (data.active) {
                     menu.con('Your account has been registered successfully. Press (0) zero to continue to Main Menu..')
-                // }else{
-                //     menu.end(data.message || 'Registration not Successful')
-                // }
-            // })
+                }else{
+                    menu.end(data.message || 'Registration not Successful')
+                }
+            })
     },
     next: {
         '0': 'Start'
@@ -400,33 +400,24 @@ menu.state('Exit', {
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-menu.state('Deposit.amount',{
+menu.state('Payment',{
     run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        menu.session.set('account', account);
-        menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?')
+        menu.con('You are currently on the Gold Policy Plan. How much would you like to pay?')
     },
     next: {
         '*\\d+': 'Deposit.view',
     },
-    defaultNext: 'Deposit.amount'
+    defaultNext: 'Payment'
 })
 
 menu.state('Deposit.view',{
     run: async() => {
-        // use menu.val to access user input value
         var amount = Number(menu.val);
-        // save user input in session
         menu.session.set('amount', amount);
-        var cust = await menu.session.get('cust');
-        // console.log(cust);
         if(amount > 10000) {
             menu.con('Invalid Amount Provided. Enter (0) to continue.');
         } else {
-            menu.con(cust.fullname +', you are making a deposit of GHS '+amount+' into your account'+
+            menu.con('Dear, [Full Name], you are making a deposit of GHS '+ amount +' into your account'+
             '\n1. Confirm' +
             '\n2. Cancel' +
             '\n#. Main Menu');
@@ -438,7 +429,7 @@ menu.state('Deposit.view',{
         '1': 'Deposit.confirm',
         '2': 'Deposit.cancel',
     },
-    defaultNext: 'Deposit.amount'
+    defaultNext: 'Payment'
 });
 
 menu.state('Deposit.confirm', {
@@ -450,10 +441,10 @@ menu.state('Deposit.confirm', {
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Account Number '+account.code,merchantid:account.merchantid };
-        await postDeposit(data, async(result)=> { 
-            // console.log(result) 
-            // menu.end(JSON.stringify(result)); 
-        });
+        // await postDeposit(data, async(result)=> { 
+        //     // console.log(result) 
+        //     // menu.end(JSON.stringify(result)); 
+        // });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
 });
@@ -461,7 +452,7 @@ menu.state('Deposit.confirm', {
 menu.state('Deposit.cancel', {
     run: () => {
         // Cancel Deposit request
-        menu.end('Thank you for using Aslan Credit Union.');
+        menu.end('Thank you for using Baafo Pa Plus.');
     }
 });
 
@@ -469,7 +460,7 @@ menu.state('Deposit.cancel', {
 
 menu.state('CheckStatus',{
     run: () => {
-        menu.con('Your Montlhy Total for Gold Policy Type is GHS 340. Your current balance for policy number 000000241 is GHS 30.' + '\n\nPress zero (0) to return to the Main Menu');
+        menu.con('Your Gold Policy Plan is currently active' + '\n\nPress zero (0) to return to the Main Menu');
     },
     next: {
         '0': 'Start'
