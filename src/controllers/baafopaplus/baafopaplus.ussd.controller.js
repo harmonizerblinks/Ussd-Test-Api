@@ -5,7 +5,8 @@ let sessions = {};
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Private", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"];
-let policyArray = [undefined, 1, 2, 3, 4];
+let policyArray = ["", {product: "Standard Policy Plan", amount: 5}, {product:"Bronze Policy Plan", amount: 1}, {product:"Silver Policy Plan", amount: 3}, {product:"Gold Policy Plan", amount: 5}, {product:"Diamond Policy Plan", amount: 10}];
+let paymentplanArray = ["", "Daily", "Weekly", "Monthly"];
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -70,10 +71,9 @@ menu.startState({
     next: {
         '0': 'Register',
         '1': 'Payment',
-        '2': 'Withdrawal',
-        '3': 'CheckStatus',
-        '4': 'Claims',
-        '5': 'Agent',
+        '2': 'CheckStatus',
+        '3': 'Claims',
+        '4': 'Agent',
     }
 });
 
@@ -96,13 +96,11 @@ menu.state('Start', {
     },
     // next object links to next state based on user input
     next: {
-        '1': 'Deposit',
-        '2': 'Withdrawal',
-        '3': 'CheckBalance',
-        '4': 'Other',
-        '5': 'Contact',
         '0': 'Register',
-        '*[0-9]+': 'User.newpin'
+        '1': 'Payment',
+        '2': 'CheckStatus',
+        '3': 'Claims',
+        '4': 'Agent'
     },
     defaultNext: 'Start'
 });
@@ -113,7 +111,6 @@ menu.state('Register', {
         // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            console.log(data.body)
             if(data.lastname && data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
@@ -169,34 +166,48 @@ menu.state('Policy',{
         }
     },
     next: {
-        '*\\d+': 'Policy.Type'
+        '*\\d+': 'Policy.Type',
     },
     defaultNext: 'Register.Auto.Gender'
 })
 
 menu.state('Policy.Type',{
     run: async() => {
-        menu.con('Select Payment Plan:' +
-        '\n1. Daily' +
-        '\n2. Weekly' +
-        '\n3. Monthly')
+        if(menu.val > 5){
+            menu.con('Invalid option. Press (0) zero to try again.')
+        }else{
+            menu.session.set('policyoption', policyArray[Number(menu.val)])
+            menu.con('Select Payment Plan:' +
+            '\n1. Daily' +
+            '\n2. Weekly' +
+            '\n3. Monthly')
+        }
     },
     next: {
-        '*\\d+': 'Policy.Option'
-    }
+        '*\\d+': 'Policy.Option',
+        '0': 'Policy'
+    },
+    defaultNext: 'Policy'
 })
 
 menu.state('Policy.Option',{
     run: async() => {
-        var firstname = await menu.session.get('firstname');
-        var lastname = await menu.session.get('lastname');
-        var fullname = firstname+' '+lastname;
-        menu.con('Dear '+ fullname +', please confirm your registration for the Gold policy with a weekly plan of GHS '+ policyamount +
-        '\n1. Confirm' +
-        '\n2. Cancel')
+        if(menu.val > 3){
+            menu.con('Invalid option. Press (0) zero to try again.')
+        }else{
+            let paymentplan = paymentplanArray[Number(menu.val)]
+            menu.session.set('paymentplan', paymentplan)
+            let policyoption = await menu.session.get('policyoption');
+            var firstname = await menu.session.get('firstname');
+            var lastname = await menu.session.get('lastname');
+            var fullname = firstname+' '+lastname;
+            menu.con('Dear '+ fullname +', please confirm your registration for the '+ policyoption.product +' with a '+ paymentplan +' Plan of GHS '+ policyoption.amount +
+            '\n1. Confirm' +
+            '\n2. Cancel')
+        }
     },
     next: {
-        '1': 'Policy.option',
+        '1': 'Register.Auto.Complete',
         '2': 'Exit'
     }
 })
@@ -273,6 +284,7 @@ menu.state('Register.gender', {
                 let gender = genderArray[Number(menu.val)];
                 menu.session.set('gender', gender);
                 var firstname = await menu.session.get('firstname');
+                var lastname = await menu.session.get('lastname');
                 var mobile = await menu.session.get('mobile');
                 if (mobile && mobile.startsWith('+233')) {
                     // Remove Bearer from string
@@ -286,17 +298,71 @@ menu.state('Register.gender', {
                 '\nLast Name - '+ lastname + 
                 '\nMobile Number - '+ mobile +
                 '\n\n0. Make Changes' +
-                '\n1. Confirm')
+                '\n1. Continue')
             }
     },
     next: {
         '0': 'Register.register',
-        '1': 'Register.complete',
+        '1': 'Register.continue',
     },
     defaultNext: 'Registration.lastname'
 })
 
-menu.state('Register.complete', {
+menu.state('Register.continue',{
+    run: async() => {
+            menu.con('Select Policy Type:' +
+            '\n1. Standard' +
+            '\n2. Bronze' +
+            '\n3. Silver' +
+            '\n4. Gold' +
+            '\n5. Diamond')    
+    },
+    next: {
+        '*\\d+': 'Register.Policy.Type'
+    }
+})
+
+menu.state('Register.Policy.Type',{
+    run: async() => {
+        if(menu.val > 2){
+            menu.con('Invalid option. Press (0) zero to try again.')
+        }else{
+        menu.session.set('policyoption', policyArray[Number(menu.val)])
+        menu.con('Select Payment Plan:' +
+        '\n1. Daily' +
+        '\n2. Weekly' +
+        '\n3. Monthly')
+        }
+    },
+    next: {
+        '*\\d+': 'Register.Policy.Option',
+        '0': 'Register.continue'
+    }
+})
+
+menu.state('Register.Policy.Option',{
+    run: async() => {
+        if(menu.val > 3){
+            menu.con('Invalid option. Press (0) zero to try again.')
+        }else{
+            let paymentplan = paymentplanArray[Number(menu.val)]
+            menu.session.set('paymentplan', paymentplan)
+            let policyoption = await menu.session.get('policyoption');
+            var firstname = await menu.session.get('firstname');
+            var lastname = await menu.session.get('lastname');
+            var fullname = firstname+' '+lastname;
+            menu.con('Dear '+ fullname +', please confirm your registration for the '+ policyoption.product +' with a '+ paymentplan +' Plan of GHS '+ policyoption.amount +
+            '\n1. Confirm' +
+            '\n2. Cancel')
+        }
+    },
+    next: {
+        '1': 'Register.Register.complete',
+        '2': 'Exit'
+    }
+})
+
+menu.state('Register.Register.complete', {
     run: async() => {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
@@ -332,6 +398,7 @@ menu.state('Exit', {
     }
 })
 
+//////////////////////////////////////////////////////////////////////////////////////
 
 menu.state('Deposit.amount',{
     run: async() => {
@@ -398,64 +465,18 @@ menu.state('Deposit.cancel', {
     }
 });
 
+//////////////////////////////////////////////////////////////////////////////////////
 
-menu.state('CheckBalance',{
+menu.state('CheckStatus',{
     run: () => {
-        menu.con('Enter your PIN to check balance');
+        menu.con('Your Montlhy Total for Gold Policy Type is GHS 340. Your current balance for policy number 000000241 is GHS 30.' + '\n\nPress zero (0) to return to the Main Menu');
     },
     next: {
-        '*\\d+': 'CheckBalance.account'
+        '0': 'Start'
     },
-    defaultNext: 'CheckBalance'
 });
 
-menu.state('CheckBalance.account',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
-            });
-            menu.con('Please Select an Account' + accts)
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'CheckBalance.balance'
-    },
-    defaultNext: 'CheckBalance'
-})
-
-menu.state('CheckBalance.balance',{
-    run: async() => {
-        var index = Number(menu.val);
-        var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
-        var account = accounts[index-1]
-        // menu.session.set('account', account);
-        await fetchBalance(account.code, async(result)=> { 
-            console.log(result) 
-            if(result.balance != null) { account.balance = result.balance; }
-            menu.session.set('account', account);
-            menu.session.set('balance', result.balance);
-            menu.con('Your '+account.type+' balance is GHS '+ result.balance+ '\nEnter zero(0) to continue');
-        });
-    },
-    next: {
-        '0': 'Start',
-    },
-    defaultNext: 'CheckBalance.amount'
-});
-
-
-///////////////--------------CLAIMS STARTS--------------////////////////
+//////////////////////////////////////////////////////////////////////////////////////
 
 menu.state('Claims', {
     run: () => {
@@ -463,6 +484,63 @@ menu.state('Claims', {
     }
 })
 
+//////////////////////////////////////////////////////////////////////////////////////
+
+menu.state('Agent', {
+    run: () => {
+        menu.con('Enter phone number of person:')
+    },
+    next: {
+        '*\\d+': 'Agent'
+    }
+})
+
+
+menu.state('Agent', {
+    run: async() => {
+        await fetchCustomer(menu.val, (data)=> { 
+            // console.log(1,data); 
+            if(data.active) {
+                var index = 1;
+                // var accounts = await menu.session.get('accounts');
+                var account = data.accounts[index-1]
+                menu.session.set('account', account);
+                var amount = 3;
+                menu.session.set('amount', amount);
+                
+                menu.con('You are making a payment of GHS ' + amount +' into '+data.fullname+' account'+
+                '\n1. Confirm' +
+                '\n2. Cancel' +
+                '\n#. Main Menu')
+            } else {
+                menu.con('Mobile Number not Registered');
+            }
+        });
+    },
+    next: {
+        '#': 'Start',
+        '1': 'Deposit.confirm',
+        '2': 'Deposit.cancel',
+    },
+    defaultNext: 'Deposit.amount'
+});
+
+menu.state('Deposit.confirm', {
+    run: async() => {
+        // access user input value save in session
+        var of = await menu.session.get('officer');
+        var amount = await menu.session.get('amount');
+        var account = await menu.session.get('account');
+        var network = await menu.session.get('network');
+        var mobile = menu.args.phoneNumber;
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
+        await postDeposit(data, async(result)=> { 
+            // console.log(result) 
+            // menu.end(JSON.stringify(result)); 
+        });
+        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+    }
+});
 
 
 
