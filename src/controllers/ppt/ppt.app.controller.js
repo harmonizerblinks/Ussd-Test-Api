@@ -474,6 +474,35 @@ exports.Deposit = (req, res) => {
     });
 };
 
+exports.Withdrawal = (req, res) => {
+    const mobile = req.user.mobile;
+    const val = req.body;
+    // var method = "";
+    var value = { merchant:access.code,account:val.account,type:'Withdrawal',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Withdrawal from Scheme Number '+val.account, merchantid:1 };
+    
+    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+
+    console.log(api_endpoint);
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp);
+            var respon = JSON.parse(resp.raw_body);
+            // if (response.error) throw new Error(response.error);
+            return res.status(500).send({
+                message: respon.message || "Unable to proccess Payment at the moment"
+            });
+        }
+        // if (res.error) throw new Error(res.error); 
+        var response = JSON.parse(resp.raw_body);
+        // await callback(response);
+        res.send({ output: 'Withdrawal Request Sent', message: response.message });
+    });
+};
 
 exports.getOccupations = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllOccupations?AppId=' + chanel.code + '&AppKey=' + chanel.key;

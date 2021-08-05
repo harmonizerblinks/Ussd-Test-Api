@@ -38,8 +38,9 @@ module.exports = function(app) {
     app.get('/app/profile', verify.verifyToken, apps.profile);
     
     // Payment
-    app.post('/app/beneficary', verify.verifyToken, apps.addBeneficiary);
+    app.post('/app/beneficiary', verify.verifyToken, apps.addBeneficiary);
     app.put('/app/member', verify.verifyToken, apps.addBeneficiary);
     app.post('/app/payment', verify.verifyToken, apps.Deposit);
+    app.post('/app/update', verify.verifyToken, apps.Deposit);
 
 }
