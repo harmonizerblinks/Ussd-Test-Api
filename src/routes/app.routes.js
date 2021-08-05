@@ -25,6 +25,10 @@ module.exports = function(app) {
 
     // Retrieve user Detail
     app.get('/app/getMember/:mobile', apps.getMember);
+    app.get('/app/getinfo/:mobile', apps.getinfo);
+    app.get('/app/getOccupations', verify.verifyToken, apps.getOccupations);
+    app.get('/app/getRegions', verify.verifyToken, apps.getRegions);
+    app.get('/app/getIdType', verify.verifyToken, apps.getIdType);
     app.get('/app/getMemberinfo', verify.verifyToken, apps.getMemberinfo);
     app.get('/app/getScheme/:scheme', verify.verifyToken, apps.getScheme);
     app.get('/app/getSchemeinfo/:scheme', verify.verifyToken, apps.getSchemeinfo);
@@ -34,6 +38,8 @@ module.exports = function(app) {
     app.get('/app/profile', verify.verifyToken, apps.profile);
     
     // Payment
+    app.post('/app/beneficary', verify.verifyToken, apps.addBeneficiary);
+    app.put('/app/member', verify.verifyToken, apps.addBeneficiary);
     app.post('/app/payment', verify.verifyToken, apps.Deposit);
 
 }

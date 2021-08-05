@@ -11,10 +11,12 @@ let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
 let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "446785909", key: "164383692" };
+let chanel = { code: "446785909", key: "164383692" };
 
 // POST a User
 exports.Register = async(req, res) => {
@@ -34,43 +36,36 @@ exports.Register = async(req, res) => {
         // console.log(res.raw_body);
         res.send(res.raw_body);
     });
-    // console.log(req.body);
-    // const user = req.body;
-    // user.password = bcrypt.hashSync(req.body.password, 10);
-    // user.email = req.body.email.toLowerCase();
-    
-    // user.save()
-    //     .then(async(data) => {
-    //         console.info('saved successfully');
-    //         const token = jwt.sign({
-    //             type: 'user',
-    //             data: {
-    //                 id: data._id,
-    //                 fullname: data.fullname,
-    //                 isAdmin: data.isAdmin,
-    //                 mmobile: data.mobile,
-    //                 email: user.email
-    //             },
-    //         }, config.secret, {
-    //             expiresIn: 684800
-    //         });
-    //         console.log(token);
-    //         res.send({ success: true, access_token: token, date: Date.now });
-    //         // res.send(data);
-    //     }).catch(err => {
-    //         res.status(500).send({
-    //             message: err.message
-    //         });
-    //     });
+};
+
+exports.addBeneficiary = async(req, res) => {
+    var value = req.body;
+    value.appId = chanel.code; value.appKey = chanel.key;
+    var api_endpoint = apiurlpms + 'AddBeneficiary';
+    var reqs = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end(function (resp) { 
+        if (resp.error) {
+            res.status(404).send({
+                message: resp.error
+            }); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
 };
 
 exports.getinfo = (req, res) => {
     console.log('getinfo');
-    var req = unirest('POST', apiUrl + 'agentinfo')
+    var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key+ '/' + req.params.mobile;
+    var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
     .end(function (res) { 
         if (resp.error) {
             res.status(500).send({
@@ -479,20 +474,58 @@ exports.Deposit = (req, res) => {
     });
 };
 
-// Pension USSD
-exports.ussdApp = async(req, res) => {
-    // Create a 
-    let args = req.body;
-    if (args.Type == 'initiation') {
-        args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
-    }
-    console.log(args);
-    menu.run(args, ussdResult => {
-        menu.session.set('network', args.Operator);
-        res.send(ussdResult);
+
+exports.getOccupations = async(req, res) => {  
+    var api_endpoint = apiurlpms + 'GetAllOccupations?AppId=' + chanel.code + '&AppKey=' + chanel.key;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, message: resp.error || 'Unable to Fetch Regions' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
     });
 };
 
+exports.getRegions = async(req, res) => {  
+    var api_endpoint = apiurlpms + 'GetAllRegions?AppId=' + chanel.code + '&AppKey=' + chanel.key;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, message: resp.error || 'Unable to Fetch Regions' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
+    });
+};
+
+
+exports.getIdType = async(req, res) => {  
+    var api_endpoint = apiurlpms + 'GetAllIdType?AppId=' + chanel.code + '&AppKey=' + chanel.key;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, message: resp.error || 'Unable to Fetch Regions' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
+    });
+};
 
 function buyAirtime(phone, val) {
     return true
@@ -543,7 +576,6 @@ async function getInfo(val, callback) {
         .headers({
             'Content-Type': 'application/json'
         })
-        .send(JSON.stringify(val))
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
