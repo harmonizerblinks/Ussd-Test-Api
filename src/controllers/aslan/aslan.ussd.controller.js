@@ -1,4 +1,4 @@
-const UssdMenu = require('ussd-menu-builder');
+const UssdMenu = require('ussd-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
@@ -823,8 +823,8 @@ async function postDeposit(val, callback) {
         console.log(JSON.stringify(val));
         if (resp.error) { 
             console.log(resp.error);
-            await postDeposit(val);
-            await callback(resp);
+            // await postDeposit(val);
+            await callback(resp.error);
         }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);

@@ -1,4 +1,4 @@
-const UssdMenu = require('ussd-menu-builder');
+const UssdMenu = require('ussd-builder');
 let menu = new UssdMenu({provider: 'hubtel'});
 var unirest = require('unirest');
 let sessions = {};
@@ -606,7 +606,7 @@ menu.state('Icare.mobile', {
         var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
         await getSchemeInfo(data, async(data) => {
             if (data.scheme) {
-                let account = data.scheme
+                let account = {code: data.scheme.schemenumber}
                 menu.session.set('account', account);
                 await fetchCustomer(mobile, (data)=> { 
                     // console.log(1,data);  
@@ -659,9 +659,9 @@ menu.state('Icare.Deposit.mobile', {
         var data = {appId: access.code, appKey: access.key, mobile: menu.val}
         await getSchemeInfo(data, async(data) => {
             if (data.scheme) {
-                let account = data.scheme
+                let account = {code: data.scheme.schemenumber}
                 menu.session.set('account', account);
-                await fetchCustomer(mobile, (data)=> { 
+                await fetchCustomer(menu.val, (data)=> { 
                     // console.log(1,data);  
                     if(data.active) {
                         menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
@@ -718,8 +718,8 @@ menu.state('Deposit.send', {
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
+        console.log(data) 
         await postDeposit(data, async(result)=> { 
-            // console.log(result) 
             // menu.end(JSON.stringify(result)); 
         }); 
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
@@ -748,7 +748,7 @@ menu.state('CheckBalance',{
         var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
         await getSchemeInfo(data, async(data) => {
             if (data.scheme) {
-                let account = data.scheme
+                let account = {code: data.scheme.schemenumber}
                 menu.session.set('account', account);
                 await fetchBalance(account.code, async(result)=> { 
                     console.log(result) 
@@ -776,7 +776,7 @@ menu.state('Withdrawal',{
         var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
         await getSchemeInfo(data, async(data) => {
             if (data.scheme) {
-                let account = data.scheme
+                let account = {code: data.scheme.schemenumber}
                 menu.session.set('account', account);
                 await fetchBalance(account.code, async(result)=> { 
                     // console.log(result) 
@@ -1006,7 +1006,7 @@ async function getSchemeInfo(val, callback) {
     }    
 
     var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
-    var req = unirest('GET', api_endpoint)
+    var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
