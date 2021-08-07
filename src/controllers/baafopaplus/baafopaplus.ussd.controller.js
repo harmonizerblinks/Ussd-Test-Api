@@ -1,4 +1,4 @@
-const UssdMenu = require('ussd-menu-builder');
+const UssdMenu = require('ussd-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
@@ -13,7 +13,7 @@ let paymentplanArray = ["", "Daily", "Weekly", "Monthly"];
 let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
-let access = { code: "WT001", key: "24624247" };
+let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -54,7 +54,7 @@ menu.startState({
         
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            console.log(1,data); 
+            // console.log(1,data); 
             if(data.active) {     
                 menu.con('Dear '+ data.fullname +', Welcome to Boafo Pa Plus.' + 
                 '\nSelect an Option.' + 

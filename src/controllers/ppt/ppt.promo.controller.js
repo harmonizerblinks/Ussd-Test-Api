@@ -1,4 +1,4 @@
-const UssdMenu = require('ussd-menu-builder');
+const UssdMenu = require('ussd-builder');
 let menu = new UssdMenu({provider: 'hubtel'});
 let sessions = {};
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
