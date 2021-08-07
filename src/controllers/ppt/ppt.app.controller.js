@@ -10,18 +10,64 @@ let sessions = {};
 let genderArray = ["", "Male", "Female"]
 
 // let apiurl = "http://localhost:5000/Ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
-let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
+// // let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+// let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
+// let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
+// let access = { code: "446785909", key: "164383692" };
+// let chanel = { code: "446785909", key: "164383692" };
 
-// let access = { code: "ARB", key: "10198553" };
-let access = { code: "446785909", key: "164383692" };
-let chanel = { code: "446785909", key: "164383692" };
+let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+let apiurlpms = "https://api.alias-solutions.net:8442/api/services/app/Channels/";
+let apiurl1 = "https://app.alias-solutions.net:5009/otp/";
+let access = { code: "PPT", key: "178116723" };
+let chanel = { code: "766098501", key: "178116723" };
 
 // POST a User
 exports.Register = async(req, res) => {
     var value = req.body;
+    console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
+    var reqs = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end(function (resp) { 
+        if (resp.error) {
+            console.log(resp.error)
+            res.status(404).send({
+                message: resp.error
+            }); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+};
+
+exports.getMemberbyNumber = (req, res) => {
+    console.log('getinfo');
+    var api_endpoint = apiurl + 'getMemberProfileByMemberNumber?AppId=' + access.code + '&AppKey=' + access.key+ '/' + req.user.id;
+    var req = unirest('GET', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    .end(function (res) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+};
+
+exports.updateMember = async(req, res) => {
+    var value = req.body;
+    value.appId = chanel.code; value.appKey = chanel.key;
+    var api_endpoint = apiurlpms + 'UpdateMemberProfile';
     var reqs = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -77,7 +123,6 @@ exports.getinfo = (req, res) => {
         res.send(res.raw_body);
     });
 };
-    
 
 exports.agentinfo = (req, res) => {
     console.log('agentinfo');
@@ -117,7 +162,6 @@ exports.agentPayment = (req, res) => {
         res.send(res.raw_body);
     });
 };
-
 
 exports.sendOtp = async(req, res) => {
     var val = req.body;
@@ -217,7 +261,6 @@ exports.getMember = async(req, res) => {
         }
     });
 };
-
 
 exports.getScheme = async(req, res) => {
     const val = req.params.scheme;   
@@ -435,6 +478,28 @@ exports.Statement = (req, res) => {
     });
 };
 
+exports.getStatement = (req, res) => {
+    const val = req.body;
+    console.log(val);
+    console.log('getstatement');
+    var api_endpoint = apiurl + 'getStatementBySchemeNumber?AppId=' + access.code + '&AppKey=' + access.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+    var req = unirest('GET', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    .end(function (res) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+};
+
 // Post Payment
 exports.Deposit = (req, res) => {
     const mobile = req.user.mobile;
@@ -479,7 +544,7 @@ exports.Withdrawal = (req, res) => {
     const val = req.body;
     // var method = "";
     var value = { merchant:access.code,account:val.account,type:'Withdrawal',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Withdrawal from Scheme Number '+val.account, merchantid:1 };
-    
+
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
 
     console.log(api_endpoint);
@@ -537,7 +602,6 @@ exports.getRegions = async(req, res) => {
         res.send(response.result);
     });
 };
-
 
 exports.getIdType = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllIdType?AppId=' + chanel.code + '&AppKey=' + chanel.key;

@@ -7,7 +7,7 @@ module.exports = function(app) {
     // const user = require('../middleware/verifysignup.middleware.js');
 
     // Register 
-    // app.post('/api/register', apps.createUser);
+    app.post('/app/register', apps.Register);
 
     // App user Login
     app.post('/app/login', apps.login);
