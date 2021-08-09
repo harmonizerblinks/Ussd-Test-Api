@@ -31,7 +31,8 @@ module.exports = function(app) {
     app.get('/app/getIdType', verify.verifyToken, apps.getIdType);
     app.get('/app/getMemberinfo', verify.verifyToken, apps.getMemberinfo);
     app.get('/app/getScheme/:scheme', verify.verifyToken, apps.getScheme);
-    app.get('/app/getSchemeinfo/:scheme', verify.verifyToken, apps.getSchemeinfo);
+    // app.get('/app/getSchemeinfo/:scheme', verify.verifyToken, apps.getSchemeinfo);
+    app.get('/app/getSchemeinfo/:scheme', apps.getSchemeinfo);
     app.get('/app/getMiniStatement/:scheme', verify.verifyToken, apps.getMemberinfo);
     app.post('/app/Statement', verify.verifyToken, apps.Statement);
     // Retrieve user Detail
