@@ -31,13 +31,13 @@ menu.sessionConfig({
         // store key-value pair in current session
         sessions[sessionId][key] = value;
         // console.log(sessions[sessionId]);
-        console.log(key, value, 'Saved');
+        // console.log(key, value, 'Saved');
         callback();
     },
     get: (sessionId, key, callback) => {
         // retrieve value by key in current session
         let value = sessions[sessionId][key];
-        console.log(key, value, 'Get');
+        // console.log(key, value, 'Get');
         // console.log(sessions[sessionId]);
         callback(null, value);
     }
@@ -686,13 +686,13 @@ menu.state('Contact.website', {
 exports.ussdApp = async(req, res) => {
     // Create a 
     let args = req.body;
-    if (args.Type == 'initiation') {
-        args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
-    }
+    // if (args.Type == 'initiation') {
+    //     args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
+    // }
     // console.log(args);
     // let resp = await menu.run(args)
     // res.send(resp);
-    await menu.run(args, ussdResult => {
+    await menu.run(req.body, ussdResult => {
         // menu.session.set('network', args.Operator);
         res.send(ussdResult);
     });
