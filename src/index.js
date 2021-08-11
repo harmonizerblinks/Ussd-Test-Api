@@ -80,7 +80,8 @@ app.use(xss());
 // console.log('working')
 
 // require('./routes/users.routes.js')(app);
-require('./routes/app.routes.js')(app);
+require('./routes/app.ppt.routes.js')(app);
+require('./routes/app.ppt.test.routes.js')(app);
 require('./routes/ussd.routes.js')(app);
 
 // Handler for 404 - Resource Not Found
