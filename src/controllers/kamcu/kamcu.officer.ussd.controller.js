@@ -45,7 +45,7 @@ menu.startState({
         // Fetch Customer information
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
-            if(data && data.name) { 
+            if(data && data.active) { 
                 menu.session.set('officer', response);
                 menu.session.set('pin', response.pin);
                 menu.con('Welcome to KAMCU Agent Collections' + 
