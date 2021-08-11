@@ -22,6 +22,7 @@ let apiurl1 = "https://app.alias-solutions.net:5009/otp/";
 let access = { code: "PPT", key: "178116723" };
 let chanel = { code: "766098501", key: "178116723" };
 
+
 // POST a User
 exports.Register = async(req, res) => {
     var value = req.body;
