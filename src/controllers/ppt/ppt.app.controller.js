@@ -482,21 +482,23 @@ exports.getStatement = (req, res) => {
     const val = req.body;
     console.log(val);
     console.log('getstatement');
-    var api_endpoint = apiurl + 'getStatementBySchemeNumber?AppId=' + access.code + '&AppKey=' + access.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+    var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + access.code + '&AppKey=' + access.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+    console.log(api_endpoint);
     var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
-    .end(function (res) { 
+    .end((resp)=> { 
         if (resp.error) {
             res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
     });
 };
 
