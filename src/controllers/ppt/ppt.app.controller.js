@@ -483,7 +483,7 @@ exports.getStatement = (req, res) => {
     const val = req.body;
     console.log(val);
     console.log('getstatement');
-    var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + access.code + '&AppKey=' + access.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+    var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
     console.log(api_endpoint);
     var req = unirest('GET', api_endpoint)
     .headers({
