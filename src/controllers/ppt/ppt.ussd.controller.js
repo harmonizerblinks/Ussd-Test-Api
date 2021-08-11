@@ -140,12 +140,15 @@ menu.state('User.newpin',{
             var newpin = menu.val;
             menu.session.set('newpin', newpin);
             menu.con('Re-enter the 4 digits');
-        } else {
+        } else if(menu.val.length == ( 1 || 2 )) {
+            menu.con('Invalid option. Press (0) zero to continue to the Main Menu');
+        }else {
             menu.end('Pin must be 4 digits');
         }
     },
     next: {
-        '*\\d+': 'User.verifypin'
+        '*\\d+': 'User.verifypin',
+        '0': 'Start'
     },
     defaultNext: 'Start'
 })
@@ -780,7 +783,7 @@ menu.state('Withdrawal',{
                 menu.session.set('account', account);
                 await fetchBalance(account.code, async(result)=> { 
                     // console.log(result) 
-                    if(result.balance > 0) {
+                    if(result.contribution > 0) {
                         account.balance = result.contribution;
                         menu.session.set('account', account);
                         menu.session.set('balance', result.savings);
