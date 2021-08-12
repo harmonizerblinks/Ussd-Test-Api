@@ -1,5 +1,5 @@
 var unirest = require('unirest');
-const UssdMenu = require('ussd-menu-builder');
+const UssdMenu = require('ussd-builder');
 let menu = new UssdMenu({provider: 'africasTalking'});
 
 // var apiurl = 'https://localhost:5001/Integration/';

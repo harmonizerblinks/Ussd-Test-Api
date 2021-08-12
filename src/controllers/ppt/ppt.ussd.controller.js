@@ -140,12 +140,15 @@ menu.state('User.newpin',{
             var newpin = menu.val;
             menu.session.set('newpin', newpin);
             menu.con('Re-enter the 4 digits');
-        } else {
+        } else if(menu.val.length == ( 1 || 2 )) {
+            menu.con('Invalid option. Press (0) zero to continue to the Main Menu');
+        }else {
             menu.end('Pin must be 4 digits');
         }
     },
     next: {
-        '*\\d+': 'User.verifypin'
+        '*\\d+': 'User.verifypin',
+        '0': 'Start'
     },
     defaultNext: 'Start'
 })
@@ -775,13 +778,14 @@ menu.state('Withdrawal',{
     run: async() => {
         var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
         await getSchemeInfo(data, async(data) => {
+            console.log(data);
             if (data.scheme) {
-                let account = {code: data.scheme.schemenumber}
+                let account = {user: data, code: data.scheme.schemenumber}
                 menu.session.set('account', account);
                 await fetchBalance(account.code, async(result)=> { 
                     // console.log(result) 
-                    if(result.balance > 0) {
-                        account.balance = result.contribution;
+                    if(result.savings > 0) {
+                        account.balance = result.savings;
                         menu.session.set('account', account);
                         menu.session.set('balance', result.savings);
                         menu.con('How much would you like to withdraw from account number '+account.code+'?');
@@ -810,10 +814,10 @@ menu.state('Withdrawal.view',{
         menu.session.set('amount', amount);
         var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
-        // var balance = await menu.session.get('account');
+        var balance = await menu.session.get('balance');
         // console.log(cust);
-        if(account.balance >= amount) {
-            menu.con(cust.fullname +', you are making a Withdrawal Request of GHS ' + amount +' from your '+account.type+' account' +
+        if(balance >= amount) {
+            menu.con(cust.fullname +', you are making a Withdrawal Request of GHS ' + amount +' from your '+account.user.scheme.schemetype+' account' +
             '\n1. Confirm' +
             '\n2. Cancel' +
             '\n#. Main Menu');

@@ -1,4 +1,4 @@
-const UssdMenu = require('ussd-menu-builder');
+const UssdMenu = require('ussd-builder');
 let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};

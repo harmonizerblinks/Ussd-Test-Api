@@ -46,8 +46,8 @@ menu.startState({
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
             if(data && data.active) { 
-                menu.session.set('officer', response);
-                menu.session.set('pin', response.pin);
+                menu.session.set('officer', data);
+                menu.session.set('pin', data.pin);
                 menu.con('Welcome to KAMCU Agent Collections' + 
                     '\nEnter Member Account Number.');
             } else {
@@ -67,8 +67,8 @@ menu.state('Start', {
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
             if(data.active) { 
-                menu.session.set('officer', response);
-                menu.session.set('pin', response.pin);
+                menu.session.set('officer', data);
+                menu.session.set('pin', data.pin);
                 menu.con('Welcome to KAMCU Agent Collections' + 
                     '\nEnter Member Account Number.');
             } else {
@@ -127,9 +127,10 @@ menu.state('Deposit.send', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
+        var data = { account:account.code,network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',reference:'Deposit', officerid: of.officerid};
+        // console.log(data);
         await postDeposit(data, async(result)=> { 
-            // console.log(result) 
+            // console.log(result.message) 
             // menu.end(JSON.stringify(result)); 
         });
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
@@ -175,7 +176,7 @@ async function fetchOfficer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
+            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
         });
@@ -199,4 +200,26 @@ async function fetchAccount(val, callback) {
         
         await callback(response);
     });
+}
+
+async function postDeposit(val, callback) {
+    var api_endpoint = apiurl + 'Agent/Deposit/' + access.code;
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        // console.log(JSON.stringify(val));
+        if (resp.error) { 
+            console.log(resp.error);
+            // await postDeposit(val);
+            await callback(resp);
+        }
+        // if (res.error) throw new Error(res.error); 
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        await callback(response);
+    });
+    return true
 }
