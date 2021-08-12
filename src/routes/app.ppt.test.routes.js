@@ -42,7 +42,7 @@ module.exports = function(app) {
     // Payment
     app.post('/test/beneficiary', verify.verifyToken, apps.addBeneficiary);
     app.put('/test/member', verify.verifyToken, apps.updateMember);
-    app.put('/test/memberbynumber/:number', verify.verifyToken, apps.getMemberbyNumber);
+    app.get('/test/getMemberbynumber', verify.verifyToken, apps.getMemberbyNumber);
     app.post('/test/payment', verify.verifyToken, apps.Deposit);
     app.post('/test/update', verify.verifyToken, apps.Deposit);
 

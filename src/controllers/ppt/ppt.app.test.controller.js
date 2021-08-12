@@ -46,21 +46,23 @@ exports.Register = async(req, res) => {
 
 exports.getMemberbyNumber = (req, res) => {
     console.log('getinfo');
-    var api_endpoint = apiurl + 'getMemberProfileByMemberNumber?AppId=' + access.code + '&AppKey=' + access.key+ '/' + req.user.id;
+    var api_endpoint = apiurlpms + 'getMemberProfileByMemberNumber?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&MemberNumber=' + req.user.id;
+    console.log(api_endpoint);
     var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
-    .end(function (res) { 
+    .end((resp)=> { 
         if (resp.error) {
             res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
     });
 };
 
@@ -73,14 +75,16 @@ exports.updateMember = async(req, res) => {
         'Content-Type': 'application/json'
     })
     .send(JSON.stringify(value))
-    .end(function (resp) { 
+    .end((resp)=> { 
         if (resp.error) {
             res.status(404).send({
                 message: resp.error
             }); 
         }
         // console.log(res.raw_body);
-        res.send(res.raw_body);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
     });
 };
 
@@ -606,7 +610,7 @@ exports.getRegions = async(req, res) => {
 };
 
 exports.getIdType = async(req, res) => {  
-    var api_endpoint = apiurlpms + 'GetAllIdType?AppId=' + chanel.code + '&AppKey=' + chanel.key;
+    var api_endpoint = apiurlpms + 'GetAllIdTypes?AppId=' + chanel.code + '&AppKey=' + chanel.key;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
