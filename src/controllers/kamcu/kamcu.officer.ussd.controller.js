@@ -127,7 +127,8 @@ menu.state('Deposit.send', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
+        var data = { account:account.code,network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',reference:'Deposit', officerid: of.officerid};
+        // console.log(data);
         await postDeposit(data, async(result)=> { 
             // console.log(result.message) 
             // menu.end(JSON.stringify(result)); 
@@ -205,7 +206,7 @@ async function fetchAccount(val, callback) {
 }
 
 async function postDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Deposit/' + access.code + '/'+ access.key;
+    var api_endpoint = apiurl + 'Agent/Deposit/' + access.code;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
