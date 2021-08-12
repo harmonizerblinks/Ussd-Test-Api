@@ -1,4 +1,4 @@
-const UssdMenu = require('ussd-menu-builder');
+const UssdMenu = require('ussd-builder');
 const unirest = require('unirest');
 const generator = require('generate-serial-number')
 let menu = new UssdMenu();
