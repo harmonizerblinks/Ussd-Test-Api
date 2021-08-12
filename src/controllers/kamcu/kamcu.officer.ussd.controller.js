@@ -130,7 +130,7 @@ menu.state('Deposit.send', {
         var data = { account:account.code,network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',reference:'Deposit', officerid: of.officerid};
         // console.log(data);
         await postDeposit(data, async(result)=> { 
-            // console.log(result.message) 
+            console.log(result.message) 
             // menu.end(JSON.stringify(result)); 
         });
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
