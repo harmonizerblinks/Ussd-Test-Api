@@ -136,9 +136,6 @@ menu.state('Deposit.send', {
     }
 });
 
-
-
-
 exports.ussdApp = async(req, res) => {
     // Create a 
     let args = req.body;
