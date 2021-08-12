@@ -34,6 +34,7 @@ module.exports = function(app) {
     // app.get('/app/getSchemeinfo/:scheme', verify.verifyToken, apps.getSchemeinfo);
     app.get('/app/getSchemeinfo/:scheme', apps.getSchemeinfo);
     app.get('/app/getMiniStatement/:scheme', verify.verifyToken, apps.getMemberinfo);
+    app.post('/app/Statements', verify.verifyToken, apps.getStatement);
     app.post('/app/Statement', verify.verifyToken, apps.Statement);
     // Retrieve user Detail
     app.get('/app/profile', verify.verifyToken, apps.profile);
