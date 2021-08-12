@@ -52,7 +52,6 @@ exports.getMemberbyNumber = (req, res) => {
     .headers({
         'Content-Type': 'application/json'
     })
-    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
     .end((resp)=> { 
         if (resp.error) {
             res.status(500).send({
