@@ -242,7 +242,7 @@ menu.state('Pay', {
     next: {
         '4': 'Pay.account',
         '5': 'Srp',
-        '*[0-3]+': 'Pay.view'
+        '*[1-3]+': 'Pay.view'
     }
 })
 

@@ -107,7 +107,6 @@ menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -203,7 +202,7 @@ async function fetchAccount(val, callback) {
 }
 
 async function postDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Agent/Deposit/' + access.code;
+    var api_endpoint = apiurl + 'Agent/Deposit/' + access.code + '/' + access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
