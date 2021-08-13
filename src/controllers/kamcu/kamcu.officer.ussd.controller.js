@@ -107,7 +107,6 @@ menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -130,7 +129,7 @@ menu.state('Deposit.send', {
         var data = { account:account.code,network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',reference:'Deposit', officerid: of.officerid};
         // console.log(data);
         await postDeposit(data, async(result)=> { 
-            // console.log(result.message) 
+            console.log(result.message) 
             // menu.end(JSON.stringify(result)); 
         });
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
@@ -203,7 +202,7 @@ async function fetchAccount(val, callback) {
 }
 
 async function postDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Agent/Deposit/' + access.code;
+    var api_endpoint = apiurl + 'Agent/Deposit/' + access.code + '/' + access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
