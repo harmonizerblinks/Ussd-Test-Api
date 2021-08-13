@@ -72,7 +72,6 @@ menu.startState({
         '3': 'CheckBalance',
         '4': 'Withdrawal',
         '5': 'Contact',
-        '*[0-9]+': 'User.newpin'
     }
 });
 
@@ -101,81 +100,10 @@ menu.state('Start', {
         '3': 'CheckBalance',
         '4': 'Withdrawal',
         '5': 'Contact',
-        '*[0-9]+': 'User.newpin'
     },
     defaultNext: 'Start'
 });
 
-
-menu.state('pin',{
-    run: () => {
-        menu.con('Enter your current 4 digits PIN')
-    },
-    next: {
-        '*\\d+': 'User.pin'
-    }
-});
-
-menu.state('User.pin',{
-    run: async() => {
-        var pin = await menu.session.get('pin');
-        if(menu.val === pin) {
-            var newpin = Number(menu.val);
-            menu.session.set('newpin', newpin);
-            menu.con('Enter new 4 digits PIN');
-        } else {
-            menu.end('Incorrect Pin. Enter zero(0) to continue');
-        }
-    },
-    next: {
-        '0': 'Start',
-        '*\\d+': 'User.newpin'
-    },
-    defaultNext: 'Start'
-});
-
-menu.state('User.newpin',{
-    run: () => {
-        if(menu.val.length == 4) {
-            var newpin = menu.val;
-            menu.session.set('newpin', newpin);
-            menu.con('Re-enter the 4 digits');
-        } else if(menu.val.length == ( 1 || 2 )) {
-            menu.con('Invalid option. Press (0) zero to continue to the Main Menu');
-        }else {
-            menu.end('Pin must be 4 digits');
-        }
-    },
-    next: {
-        '*\\d+': 'User.verifypin',
-        '0': 'Start'
-    },
-    defaultNext: 'Start'
-})
-
-menu.state('User.verifypin', {
-    run: async() => {
-        var pin = await menu.session.get('newpin');
-        if(menu.val === pin) {
-            var newpin = Number(menu.val);
-            // var cust = await menu.session.get('cust');
-            // console.log(cust);
-            var mobile = await menu.session.get('mobile');
-            var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
-            await postChangePin(value, (data)=> { 
-                // console.log(1,data); 
-                menu.session.set('pin', newpin);
-                menu.con(data.message);
-            });
-        } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
-        }
-    },
-    next: {
-        '0': 'Start'
-    },
-    defaultNext: 'Start'
-});
 
 menu.state('Register', {
     run: async() => {
