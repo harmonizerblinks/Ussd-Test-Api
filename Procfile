@@ -1,1 +1,1 @@
-web: npm run start-watch
+web: node src/index.js
