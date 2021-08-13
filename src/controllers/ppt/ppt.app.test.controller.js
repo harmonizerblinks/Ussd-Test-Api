@@ -576,7 +576,7 @@ exports.Withdrawal = (req, res) => {
 
 exports.getOccupations = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllOccupations?AppId=' + chanel.code + '&AppKey=' + chanel.key;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -593,7 +593,7 @@ exports.getOccupations = async(req, res) => {
 
 exports.getRegions = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllRegions?AppId=' + chanel.code + '&AppKey=' + chanel.key;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -610,7 +610,7 @@ exports.getRegions = async(req, res) => {
 
 exports.getIdType = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllIdTypes?AppId=' + chanel.code + '&AppKey=' + chanel.key;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -619,7 +619,7 @@ exports.getIdType = async(req, res) => {
                 success: false, message: resp.error || 'Unable to Fetch Regions' 
             });
         }
-        // console.log(resp.body);
+        // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         res.send(response.result);
     });
