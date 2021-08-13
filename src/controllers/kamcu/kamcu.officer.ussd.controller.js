@@ -91,7 +91,7 @@ menu.state('Deposit', {
                 menu.session.set('account', data)
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
-                menu.con('Account not Registered. Enter (0) to Continue');
+                menu.end('Account not Registered. Please try again');
             }
         });
     },
@@ -105,8 +105,6 @@ menu.state('Deposit', {
 
 menu.state('Deposit.view', {
     run: async() => {
-        let acct = menu.session.set('account');
-        if(acct === null) menu.end("Invalid input")
         let amount = menu.val;
         menu.session.set('amount', amount);
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
