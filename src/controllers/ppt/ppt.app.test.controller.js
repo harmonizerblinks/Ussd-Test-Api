@@ -69,7 +69,7 @@ exports.updateMember = async(req, res) => {
     var value = req.body;
     value.appId = chanel.code; value.appKey = chanel.key;
     var api_endpoint = apiurlpms + 'UpdateMemberProfile';
-    var reqs = unirest('POST', api_endpoint)
+    var reqs = unirest('PUT', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
@@ -233,16 +233,15 @@ exports.setPassword = async(req, res) => {
 };
 
 exports.getMember = async(req, res) => {
-    const val = req.params.mobile;
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }else if(val && val.startsWith('233')) {
-        // Remove Bearer from string
-        val = val.replace('233', '0');
-    }    
+    var val = req.params.mobile;
+    // if (val && val.startsWith('+233')) {
+    //     val = val.replace('+233', '0');
+    // }else if(val && val.startsWith('233')) {
+    //     val = val.replace('233', '0');
+    // }
+    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -251,9 +250,13 @@ exports.getMember = async(req, res) => {
                 success: false, register: false, message: 'Mobile Number does not Exist', error: resp 
             });
         }
-        // console.log(resp.body);
+        console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        if (response.active && response.pin == null) {
+        if (response.active && response.pin != null) {
+            res.send({
+                success: true, register: true, pin: true
+            });
+        } else if (response.active && response.pin == null) {
             res.send({
                 success: true, register: true, pin: false
             });
@@ -305,13 +308,14 @@ exports.getSchemeinfo = async(req, res) => {
 
 exports.getMemberinfo = async(req, res) => {
     const val = req.user.mobile;
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }else if(val && val.startsWith('233')) {
-        // Remove Bearer from string
-        val = val.replace('233', '0');
-    }    
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233', '0');
+    // }else if(val && val.startsWith('233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('233', '0');
+    // }
+    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'Memberinfo/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -332,15 +336,16 @@ exports.getMemberinfo = async(req, res) => {
 // Login user
 exports.login = (req, res) => {
     const val = req.body.mobile;
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }else if(val && val.startsWith('233')) {
-        // Remove Bearer from string
-        val = val.replace('233', '0');
-    }    
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233', '0');
+    // }else if(val && val.startsWith('233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('233', '0');
+    // }
+    if (val && val.startsWith('+')){ val = val.replace('+', ''); }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -349,7 +354,7 @@ exports.login = (req, res) => {
                 success: false, register: false, message: 'Password is not correct' 
             });
         }
-        
+        console.log(resp.raw_body);
         var data = JSON.parse(resp.raw_body);
         if (data.active && data.pin == null) {
             res.send({
@@ -741,13 +746,13 @@ async function fetchIcareCustomer(val, callback) {
 
 async function fetchCustomer(val, callback) {
     // try {
-        if (val && val.startsWith('+233')) {
-            // Remove Bearer from string
-            val = val.replace('+233', '0');
-        }else if(val && val.startsWith('233')) {
-            // Remove Bearer from string
-            val = val.replace('233', '0');
-        }    
+        // if (val && val.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('+233', '0');
+        // }else if(val && val.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('233', '0');
+        // }    
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
