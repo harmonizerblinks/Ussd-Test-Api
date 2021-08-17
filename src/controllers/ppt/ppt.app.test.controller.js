@@ -169,8 +169,8 @@ exports.agentPayment = (req, res) => {
 exports.sendOtp = async(req, res) => {
     var val = req.body;
        
-    var api_endpoint = apiurl1  + val.mobile + '/' + val.type + '?id=' + val.source;
-    // console.log(api_endpoint);
+    var api_endpoint = apiurl1 + val.type + '?mobile='+ val.mobile +'&id=' + val.source;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -188,8 +188,8 @@ exports.sendOtp = async(req, res) => {
 exports.verifyOtp = async(req, res) => {
     const val = req.body;
        
-    var api_endpoint = apiurl1 + 'verify/' + val.mobile + '/' + val.otp + '?id=' + val.source;
-    // console.log(api_endpoint);
+    var api_endpoint = apiurl1 + 'verify/' +'/' + val.otp + '?mobile='+ val.mobile +'&id=' + val.source;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
