@@ -186,9 +186,9 @@ exports.sendOtp = async(req, res) => {
 }
 
 exports.verifyOtp = async(req, res) => {
-    const val = req.body;
+    var val = req.body;
        
-    var api_endpoint = apiurl1 + 'verify/' +'/' + val.otp + '?mobile='+ val.mobile +'&id=' + val.source;
+    var api_endpoint = apiurl1 + 'verify/' + val.otp + '?mobile='+ val.mobile +'&id=' + val.source;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
@@ -206,6 +206,7 @@ exports.verifyOtp = async(req, res) => {
 
 exports.setPassword = async(req, res) => {
     const mobile = req.body.mobile;
+    console.log(mobile);
     const newpin = bcrypt.hashSync(req.body.newpin, 10);
     if (mobile == null || req.body.newpin == null) {
         return res.status(500).send({
@@ -214,6 +215,7 @@ exports.setPassword = async(req, res) => {
     }
     var value = { type: 'Customer', mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
     var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
+    console.log(api_endpoint)
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -222,10 +224,15 @@ exports.setPassword = async(req, res) => {
         .end( async(resp)=> { 
             if (resp.error) {
                 return res.status(500).send({
-                message: "Error updating user Password "
+                    message: "Error updating user Pin "
                 });; 
             }
-            // console.log(resp.raw_body);
+            console.log(resp.raw_body);
+            if (resp.raw_body.code != 1) {
+                return res.status(500).send({
+                    message: "Error While Setting User Pin"
+                });; 
+            }
             res.send({
                 message: "Password Set successfully"
             });
@@ -239,7 +246,7 @@ exports.getMember = async(req, res) => {
     // }else if(val && val.startsWith('233')) {
     //     val = val.replace('233', '0');
     // }
-    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -269,7 +276,7 @@ exports.getMember = async(req, res) => {
 };
 
 exports.getScheme = async(req, res) => {
-    const val = req.params.scheme;   
+    var val = req.params.scheme;   
     var api_endpoint = apiurl + 'Schemeinfo/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -288,7 +295,7 @@ exports.getScheme = async(req, res) => {
 };
 
 exports.getSchemeinfo = async(req, res) => {
-    const val = req.params.scheme;   
+    var val = req.params.scheme;   
     var api_endpoint = apiurl + 'Schemeinfo/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -307,7 +314,7 @@ exports.getSchemeinfo = async(req, res) => {
 };
 
 exports.getMemberinfo = async(req, res) => {
-    const val = req.user.mobile;
+    var val = req.user.mobile;
     // if (val && val.startsWith('+233')) {
     //     // Remove Bearer from string
     //     val = val.replace('+233', '0');
@@ -315,7 +322,7 @@ exports.getMemberinfo = async(req, res) => {
     //     // Remove Bearer from string
     //     val = val.replace('233', '0');
     // }
-    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'Memberinfo/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -335,7 +342,7 @@ exports.getMemberinfo = async(req, res) => {
 
 // Login user
 exports.login = (req, res) => {
-    const val = req.body.mobile;
+    var val = req.body.mobile;
     // if (val && val.startsWith('+233')) {
     //     // Remove Bearer from string
     //     val = val.replace('+233', '0');
@@ -343,7 +350,7 @@ exports.login = (req, res) => {
     //     // Remove Bearer from string
     //     val = val.replace('233', '0');
     // }
-    if (val && val.startsWith('+')){ val = val.replace('+', ''); }
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -458,7 +465,7 @@ exports.changePassword = async(req, res) => {
 
 // Post Statement
 exports.Statement = (req, res) => {
-    const val = req.body;
+    var val = req.body;
     console.log(val);
     
     val.appid = access.code; val.appkey = access.key;
@@ -487,7 +494,7 @@ exports.Statement = (req, res) => {
 };
 
 exports.getStatement = (req, res) => {
-    const val = req.body;
+    var val = req.body;
     console.log(val);
     console.log('getstatement');
     var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + access.code + '&AppKey=' + access.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
@@ -513,7 +520,7 @@ exports.getStatement = (req, res) => {
 // Post Payment
 exports.Deposit = (req, res) => {
     const mobile = req.user.mobile;
-    const val = req.body;
+    var val = req.body;
     // var method = "";
     if(val.method == "CARD") {
         res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
@@ -551,7 +558,7 @@ exports.Deposit = (req, res) => {
 
 exports.Withdrawal = (req, res) => {
     const mobile = req.user.mobile;
-    const val = req.body;
+    var val = req.body;
     // var method = "";
     var value = { merchant:access.code,account:val.account,type:'Withdrawal',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Withdrawal from Scheme Number '+val.account, merchantid:1 };
 
