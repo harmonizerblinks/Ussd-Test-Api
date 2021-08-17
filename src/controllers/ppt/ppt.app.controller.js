@@ -42,21 +42,22 @@ exports.Register = async(req, res) => {
 
 exports.getMemberbyNumber = (req, res) => {
     console.log('getinfo');
-    var api_endpoint = apiurl + 'getMemberProfileByMemberNumber?AppId=' + access.code + '&AppKey=' + access.key+ '/' + req.user.id;
+    var api_endpoint = apiurlpms + 'getMemberProfileByMemberNumber?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&MemberNumber=' + req.user.id;
+    console.log(api_endpoint);
     var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
-    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
-    .end(function (res) { 
+    .end((resp)=> { 
         if (resp.error) {
             res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
     });
 };
 
@@ -69,14 +70,16 @@ exports.updateMember = async(req, res) => {
         'Content-Type': 'application/json'
     })
     .send(JSON.stringify(value))
-    .end(function (resp) { 
+    .end((resp)=> { 
         if (resp.error) {
             res.status(404).send({
                 message: resp.error
             }); 
         }
         // console.log(res.raw_body);
-        res.send(res.raw_body);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
     });
 };
 
@@ -162,8 +165,8 @@ exports.agentPayment = (req, res) => {
 exports.sendOtp = async(req, res) => {
     var val = req.body;
        
-    var api_endpoint = apiurl1  + val.mobile + '/' + val.type + '?id=' + val.source;
-    // console.log(api_endpoint);
+    var api_endpoint = apiurl1 + val.type + '?mobile='+ val.mobile +'&id=' + val.source;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -181,8 +184,8 @@ exports.sendOtp = async(req, res) => {
 exports.verifyOtp = async(req, res) => {
     const val = req.body;
        
-    var api_endpoint = apiurl1 + 'verify/' + val.mobile + '/' + val.otp + '?id=' + val.source;
-    // console.log(api_endpoint);
+    var api_endpoint = apiurl1 + 'verify/' +'/' + val.otp + '?mobile='+ val.mobile +'&id=' + val.source;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -226,16 +229,15 @@ exports.setPassword = async(req, res) => {
 };
 
 exports.getMember = async(req, res) => {
-    const val = req.params.mobile;
+    var val = req.params.mobile;
     // if (val && val.startsWith('+233')) {
-    //     // Remove Bearer from string
     //     val = val.replace('+233', '0');
     // }else if(val && val.startsWith('233')) {
-    //     // Remove Bearer from string
     //     val = val.replace('233', '0');
-    // }    
+    // }
+    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -244,7 +246,7 @@ exports.getMember = async(req, res) => {
                 success: false, register: false, message: 'Mobile Number does not Exist', error: resp 
             });
         }
-        // console.log(resp.body);
+        console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         if (response.active && response.pin != null) {
             res.send({
@@ -308,7 +310,8 @@ exports.getMemberinfo = async(req, res) => {
     // }else if(val && val.startsWith('233')) {
     //     // Remove Bearer from string
     //     val = val.replace('233', '0');
-    // }    
+    // }
+    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'Memberinfo/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -335,9 +338,10 @@ exports.login = (req, res) => {
     // }else if(val && val.startsWith('233')) {
     //     // Remove Bearer from string
     //     val = val.replace('233', '0');
-    // }    
+    // }
+    if (val && val.startsWith('+')){ val = val.replace('+', ''); }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -346,7 +350,7 @@ exports.login = (req, res) => {
                 success: false, register: false, message: 'Password is not correct' 
             });
         }
-        
+        console.log(resp.raw_body);
         var data = JSON.parse(resp.raw_body);
         if (data.active && data.pin == null) {
             res.send({
@@ -482,7 +486,7 @@ exports.getStatement = (req, res) => {
     const val = req.body;
     console.log(val);
     console.log('getstatement');
-    var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+    var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + access.code + '&AppKey=' + access.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
     console.log(api_endpoint);
     var req = unirest('GET', api_endpoint)
     .headers({
@@ -573,7 +577,7 @@ exports.Withdrawal = (req, res) => {
 
 exports.getOccupations = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllOccupations?AppId=' + chanel.code + '&AppKey=' + chanel.key;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -590,7 +594,7 @@ exports.getOccupations = async(req, res) => {
 
 exports.getRegions = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllRegions?AppId=' + chanel.code + '&AppKey=' + chanel.key;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -606,8 +610,8 @@ exports.getRegions = async(req, res) => {
 };
 
 exports.getIdType = async(req, res) => {  
-    var api_endpoint = apiurlpms + 'GetAllIdType?AppId=' + chanel.code + '&AppKey=' + chanel.key;
-    // console.log(api_endpoint);
+    var api_endpoint = apiurlpms + 'GetAllIdTypes?AppId=' + chanel.code + '&AppKey=' + chanel.key;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -616,7 +620,7 @@ exports.getIdType = async(req, res) => {
                 success: false, message: resp.error || 'Unable to Fetch Regions' 
             });
         }
-        // console.log(resp.body);
+        // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         res.send(response.result);
     });
@@ -738,13 +742,13 @@ async function fetchIcareCustomer(val, callback) {
 
 async function fetchCustomer(val, callback) {
     // try {
-        if (val && val.startsWith('+233')) {
-            // Remove Bearer from string
-            val = val.replace('+233', '0');
-        }else if(val && val.startsWith('233')) {
-            // Remove Bearer from string
-            val = val.replace('233', '0');
-        }    
+        // if (val && val.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('+233', '0');
+        // }else if(val && val.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('233', '0');
+        // }    
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
