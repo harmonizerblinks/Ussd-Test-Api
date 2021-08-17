@@ -69,7 +69,7 @@ menu.startState({
     },
     // next object links to next state based on user input
     next: {
-        '0': 'Register',
+        '0': 'Register.Auto',
         '1': 'Payment',
         '2': 'CheckStatus',
         '3': 'Claims',
@@ -96,7 +96,7 @@ menu.state('Start', {
     },
     // next object links to next state based on user input
     next: {
-        '0': 'Register',
+        '0': 'Register.Auto',
         '1': 'Payment',
         '2': 'CheckStatus',
         '3': 'Claims',
@@ -105,7 +105,7 @@ menu.state('Start', {
     defaultNext: 'Start'
 });
 
-menu.state('Register', {
+menu.state('Register.Auto', {
     run: async() => {
         let mobile = menu.val;
         if (mobile == 0) {
