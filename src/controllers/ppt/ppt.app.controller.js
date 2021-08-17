@@ -319,7 +319,7 @@ exports.getMemberinfo = async(req, res) => {
     //     // Remove Bearer from string
     //     val = val.replace('233', '0');
     // }
-    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'Memberinfo/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
