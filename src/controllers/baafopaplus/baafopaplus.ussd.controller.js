@@ -7,6 +7,8 @@ let sessions = {};
 let genderArray = ["", "Male", "Female"];
 let policyArray = ["", {product: "Standard Policy Plan", amount: 5}, {product:"Bronze Policy Plan", amount: 1}, {product:"Silver Policy Plan", amount: 3}, {product:"Gold Policy Plan", amount: 5}, {product:"Diamond Policy Plan", amount: 10}];
 let paymentplanArray = ["", "Daily", "Weekly", "Monthly"];
+var numbers = /^[0-9]+$/;
+
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
@@ -69,7 +71,7 @@ menu.startState({
     },
     // next object links to next state based on user input
     next: {
-        '0': 'Register',
+        '0': 'Register.Auto',
         '1': 'Payment',
         '2': 'CheckStatus',
         '3': 'Claims',
@@ -96,7 +98,7 @@ menu.state('Start', {
     },
     // next object links to next state based on user input
     next: {
-        '0': 'Register',
+        '0': 'Register.Auto',
         '1': 'Payment',
         '2': 'CheckStatus',
         '3': 'Claims',
@@ -105,12 +107,16 @@ menu.state('Start', {
     defaultNext: 'Start'
 });
 
-menu.state('Register', {
+menu.state('Register.Auto', {
     run: async() => {
         let mobile = menu.val;
         if (mobile == 0) {
             mobile = menu.args.phoneNumber;
             menu.session.set('mobile', mobile);        
+        }else
+        if (mobile.value.match(numbers))
+        {
+            menu.con('Invalid Input. Press # to return to the Main Menu')
         }
         // console.log(mobile)
         await getInfo(mobile, async(data) =>{
@@ -512,7 +518,7 @@ menu.state('Register', {
         menu.con('Enter Phone Number of person:')
     },
     next: {
-        '*\\d+': 'Register'
+        '*\\d+': 'Register.Auto'
     }
 })
 
