@@ -18,7 +18,6 @@ let access = { code: "PPT", key: "178116723" };
 let chanel = { code: "766098501", key: "178116723" };
 
 
-
 // POST a User
 exports.Register = async(req, res) => {
     var value = req.body;
@@ -321,7 +320,7 @@ exports.getMemberinfo = async(req, res) => {
     // }
     if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'Memberinfo/' + val;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
