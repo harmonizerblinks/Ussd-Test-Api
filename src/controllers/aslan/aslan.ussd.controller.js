@@ -281,7 +281,7 @@ menu.state('Register.complete', {
         };
         await postCustomer(data, (data) => {
             if (data.active) {
-                menu.con('Your account has been registered successfully. Press (0) zero to continue to Main Menu..')
+                menu.con('Your account has been registered successfully. Press (0) zero to continue to Main Menu.')
             }else{
                 menu.end(data.message || 'Registration not Successful')
             }
