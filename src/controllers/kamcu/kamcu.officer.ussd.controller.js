@@ -105,6 +105,8 @@ menu.state('Deposit', {
 
 menu.state('Deposit.view', {
     run: async() => {
+        let acct = menu.session.set('account');
+        if(acct === null) menu.end("Invalid input");
         let amount = menu.val;
         menu.session.set('amount', amount);
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
