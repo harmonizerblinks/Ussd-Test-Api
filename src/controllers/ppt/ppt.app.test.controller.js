@@ -9,8 +9,8 @@ let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
-// let apiurl = "http://localhost:5000/Ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiurl = "http://localhost:5000/Ussd/";
+// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
 let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 let access = { code: "446785909", key: "164383692" };
@@ -205,7 +205,9 @@ exports.verifyOtp = async(req, res) => {
 }
 
 exports.setPassword = async(req, res) => {
-    const mobile = req.body.mobile;
+    var mobile = req.body.mobile;
+    console.log(mobile);
+    if (mobile && mobile.startsWith('+')){ mobile = mobile.replace('+', ''); } 
     console.log(mobile);
     const newpin = bcrypt.hashSync(req.body.newpin, 10);
     if (mobile == null || req.body.newpin == null) {
@@ -223,11 +225,13 @@ exports.setPassword = async(req, res) => {
         .send(JSON.stringify(value))
         .end( async(resp)=> { 
             if (resp.error) {
+                console.log(resp.error);
                 return res.status(500).send({
                     message: "Error updating user Pin "
                 });; 
             }
             console.log(resp.raw_body);
+            console.log(resp);
             if (resp.raw_body.code != 1) {
                 return res.status(500).send({
                     message: "Error While Setting User Pin"
