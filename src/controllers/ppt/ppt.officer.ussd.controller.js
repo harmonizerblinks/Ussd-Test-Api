@@ -172,7 +172,6 @@ menu.state('Deposit', {
         }
         await filterPersonalSchemeOnly(mobile, async(data) => {
             if (data.active){
-                console.log(data);
                 menu.session.set('mobile', mobile);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?');
             }else{

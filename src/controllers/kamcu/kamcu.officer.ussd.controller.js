@@ -5,6 +5,7 @@ let sessions = {};
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
 let apiurl = "https://app.alias-solutions.net:5003/ussd/";
+let regex = /^[a-zA-Z ]*$/;
 
 let access = { code: "KCU006", key: "60198553" };
 

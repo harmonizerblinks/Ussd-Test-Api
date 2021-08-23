@@ -5,6 +5,7 @@ let sessions = {};
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let optionArray = ["", "DAILY", "WEEKLY", "MONTHLY"];
+const regex = /^[a-zA-Z ]*$/;
 
 //Test Credentials
 // let apiurl = "http://localhost:5000/Ussd/";
@@ -558,24 +559,18 @@ menu.state('Icare.complete', {
 menu.state('Icare.mobile', {
     run: async() => {
         var mobile = await menu.session.get('mobile');        
-        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
-        await getSchemeInfo(data, async(data) => {
-            if (data.scheme) {
-                let account = {code: data.scheme.schemenumber}
-                menu.session.set('account', account);
-                await fetchCustomer(mobile, (data)=> { 
-                    // console.log(1,data);  
-                    if(data.active) {
-                        menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-                    } else {
-                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
-                    }
-                });
+        await filterPersonalSchemeOnly(mobile, (data)=> { 
+            if(data.active && data.accounts) {
+                console.log(1,data);  
+                menu.session.set('account', data)
+                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+            } else if(data.active && data.accounts == null) {
+                menu.con('Mobile Number does not have a Personal Pension Scheme.')
             } else {
-                menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
             }
-        })
-    },
+        });
+},
     next: {
         '0': 'Start',
         '*\\d+': 'Deposit.view'
@@ -605,29 +600,24 @@ menu.state('Icare.Deposit', {
         menu.con('Enter Mobile Number of Person')
     },
     next: {
-        '*\\d+': 'Icare.Deposit.mobile'
+        '*[0-9]{10,}': 'Icare.Deposit.mobile'
     }
 })
 
 menu.state('Icare.Deposit.mobile', {
     run: async() => {
-        var data = {appId: access.code, appKey: access.key, mobile: menu.val}
-        await getSchemeInfo(data, async(data) => {
-            if (data.scheme) {
-                let account = {code: data.scheme.schemenumber}
-                menu.session.set('account', account);
-                await fetchCustomer(menu.val, (data)=> { 
-                    // console.log(1,data);  
-                    if(data.active) {
-                        menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-                    } else {
-                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
-                    }
-                });
-            } else {
-                menu.end('Dear Customer, the number you have dialed has not been registered. Enter (0) to Continue')
-            }
-        })
+            var mobile = menu.val;  
+            await filterPersonalSchemeOnly(mobile, (data)=> { 
+                console.log(data)
+                if(data.active && data.accounts) {
+                    menu.session.set('account', data)
+                    menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+                } else if(data.active && data.accounts == null) {
+                    menu.con('Mobile Number does not have a Personal Pension Scheme.')
+                } else {
+                    menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                }
+            });
     },
     next: {
         '0': 'Start',
@@ -657,10 +647,10 @@ menu.state('Deposit.send', {
         var account = await menu.session.get('account');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
+        var data = { merchant:access.code,account:account.accounts.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.accounts.code};
         // console.log(data) 
         await postDeposit(data, async(result)=> { 
-            // menu.end(JSON.stringify(result)); 
+            console.log(result.body)
         }); 
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
@@ -1173,9 +1163,9 @@ async function postWithdrawal(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         // if (res.error) throw new Error(res.error); 
-        // console.log(resp.raw_body);
         if(resp.error)
         {
+            console.log(resp.raw_body);
             // console.log("errrr")
             await callback(resp);
         }
@@ -1270,9 +1260,19 @@ async function fetchCustomerAccount(val, callback) {
 
 
 
-// function filterPersonalScheme(schemes) {
-//     schemes.forEach(val => {
-//         val.type.includes('PERSONAL') ? menu.session.set('account', val) : ' ';
-//     });
-//     // return string.charAt(0).toUpperCase() + string.slice(1);
-// }
+async function filterPersonalSchemeOnly(val, callback) {
+    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        await callback(response);
+    });
+}
