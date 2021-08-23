@@ -437,10 +437,11 @@ menu.state('Icare.next', {
         // console.log(mobile)
         if (mobile && mobile.startsWith('0')) {
             // Remove Bearer from string
-            mobile = mobile.replace('0', '+233');
+            mobile = '+233' + mobile.substr(1);
         }else if(mobile && mobile.startsWith('233')) {
             // Remove Bearer from string
-            mobile = mobile.replace('233', '+233');
+            mobile = '+233' + mobile.substr(3);
+            // mobile = mobile.replace('233', '+233');
         }
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{

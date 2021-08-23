@@ -159,10 +159,12 @@ menu.state('Deposit', {
         let mobile = menu.val;
         if (mobile && mobile.startsWith('0')) {
             // Remove Bearer from string
-            mobile = mobile.replace('0', '+233');
+            // mobile = mobile.replace('0', '+233');
+            mobile = '+233' + mobile.substr(1);
         }else if(mobile && mobile.startsWith('233')) {
             // Remove Bearer from string
-            mobile = mobile.replace('233', '+233');
+            mobile = '+233' + mobile.substr(3);
+            // mobile = mobile.replace('233', '+233');
         } 
         await fetchCustomer(mobile, (data)=> { 
             // console.log(1,data);  

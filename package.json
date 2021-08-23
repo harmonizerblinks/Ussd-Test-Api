@@ -38,6 +38,7 @@
     "mongoose": "^5.11.11",
     "mongoose-unique-validator": "^2.0.3",
     "nodemailer": "^6.4.17",
+    "pm2": "^5.1.1",
     "socket.io": "^3.0.5",
     "unirest": "^0.6.0",
     "ussd-builder": "^1.1.1",
