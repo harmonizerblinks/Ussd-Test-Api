@@ -1138,7 +1138,8 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            // console.log(resp.error);
+            console.log(resp.error);
+            console.log(resp.raw_body);
             // await postDeposit(val);
             await callback(resp);
         }

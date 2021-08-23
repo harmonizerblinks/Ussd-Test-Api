@@ -61,17 +61,10 @@ menu.startState({
             } 
             else {
                 await fetchCustomer(menu.args.phoneNumber, async(data) =>{
-                    // console.log('Fetch Customer Started' ); 
+                    menu.session.get('cust', data)
                     if(data.code)
                     {
                         let mobile = menu.args.phoneNumber;
-                        // if (mobile && mobile.startsWith('+233')) {
-                        //     // Remove Bearer from string
-                        //     mobile = mobile.replace('+233', '0');
-                        // }else if(val && val.startsWith('233')) {
-                        //     // Remove Bearer from string
-                        //     mobile = mobile.replace('233', '0');
-                        // }    
                         var postIcare = {
                             name: data.fullname, mobile: mobile
                         };
@@ -84,14 +77,6 @@ menu.startState({
                         })
                     } else {
                         let mobile = menu.args.phoneNumber;
-                        // console.log(mobile)
-                        // if (mobile && mobile.startsWith('+233')) {
-                        //     // Remove Bearer from string
-                        //     mobile = mobile.replace('+233', '0');
-                        // }else if(mobile && mobile.startsWith('233')) {
-                        //     // Remove Bearer from string
-                        //     mobile = mobile.replace('233', '0');
-                        // }    
                         menu.session.set('mobile', mobile);        
                         await getInfo(mobile, async(data) =>{
                             // console.log('Get Info Started'); 
@@ -143,8 +128,8 @@ menu.state('Start', {
         // Fetch Customer information
         
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
-        await fetchIcareCustomer(menu.args.phoneNumber, async(data)=> { 
-            // console.log('Fetch Icare Started', data); 
+        await fetchIcareCustomer(menu.args.phoneNumber, async(data)=> {
+            menu.session.set('icare', data) 
             if(data.icareid) {
                 menu.con('Welcome to Icare for Peoples Pensions Trust. Choose your Preferred Option:' +
                 '\n1. Register for Someone' +
@@ -168,7 +153,7 @@ menu.state('Start', {
                             name: data.fullname, mobile: mobile
                         };
                         await postIcareCustomer(postIcare, (data) => {
-                            // console.log(data.body)
+                            menu.session.set('icare', data)
                             menu.con('Welcome to Peoples Pensions Trust. Choose your Preferred Option:' +
                             '\n1. Register for Someone' +
                             '\n2. Pay for Someone'
@@ -176,14 +161,6 @@ menu.state('Start', {
                         })
                     } else {
                         let mobile = menu.args.phoneNumber;
-                        // console.log(mobile)
-                        // if (mobile && mobile.startsWith('+233')) {
-                        //     // Remove Bearer from string
-                        //     mobile = mobile.replace('+233', '0');
-                        // }else if(mobile && mobile.startsWith('233')) {
-                        //     // Remove Bearer from string
-                        //     mobile = mobile.replace('233', '0');
-                        // }    
                         menu.session.set('mobile', mobile);        
                         await getInfo(mobile, async(data) =>{
                             // console.log('Get Info Started'); 
@@ -455,11 +432,18 @@ menu.state('Icare.mobile', {
 
 menu.state('Deposit.Once', {
     run: async() => {
-        let moblie = await menu.session.get('mobile');
-        await fetchCustomer(mobile, (data) => {
-            menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-        })
-    },
+        let mobile = await menu.session.get('mobile');
+        await filterPersonalSchemeOnly(mobile, (data)=> { 
+            if(data.active && data.accounts) {
+                menu.session.set('account', data)
+                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+            } else if(data.active && data.accounts == null) {
+                menu.con('Mobile Number does not have a Personal Pension Scheme.')
+            } else {
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+            }
+        });
+},
     next: {
         '*\\d+': 'Pay.Confirm.Amount'
     }
@@ -468,10 +452,12 @@ menu.state('Deposit.Once', {
 menu.state('Deposit.Registration.Once', {
     run: async() => {
         var mobile = await menu.session.get('mobile');        
-        await fetchCustomer(mobile, (data)=> { 
-            // console.log(1,data);  
-            if(data.active) {
+        await filterPersonalSchemeOnly(mobile, (data)=> { 
+            if(data.active && data.accounts) {
+                menu.session.set('account', data)
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+            } else if(data.active && data.accounts == null) {
+                menu.con('Mobile Number does not have a Personal Pension Scheme.')
             } else {
                 menu.con('Mobile Number not Registered. Enter (0) to Continue');
             }
@@ -486,15 +472,18 @@ menu.state('Deposit.Registration.Once', {
 
 menu.state('Deposit', {
     run: async() => {
-        await fetchCustomer(menu.val, (data)=> { 
-            // console.log(1,data);  
-            if(data.active) {
+        var mobile = menu.val;  
+        await filterPersonalSchemeOnly(mobile, (data)=> { 
+            if(data.active && data.accounts) {
+                menu.session.set('account', data)
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+            } else if(data.active && data.accounts == null) {
+                menu.con('Mobile Number does not have a Personal Pension Scheme.')
             } else {
-                menu.con('Dear Customer, the number you have dialed has not been registered. Enter (0) to Continue');
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
             }
         });
-    },
+},
     next: {
         '0': 'Start',
         '*\\d+': 'Pay.Confirm.Amount'
@@ -611,7 +600,7 @@ menu.state('Deposit.send', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.accounts.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
             // console.log(result) 
             // menu.end(JSON.stringify(result)); 
@@ -727,10 +716,8 @@ async function postIcareCustomer(val, callback) {
             if (response.active) {
                 menu.session.set('name', response.fullname);
                 menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
                 menu.session.set('cust', response);
                 menu.session.set('pin', response.pin);
-                menu.session.set('icareid', response.icareid)
             }else{
                 return null;
             }
@@ -801,14 +788,6 @@ async function fetchIcareCustomer(val, callback) {
                 await callback(resp);
             }else{
                 var response = JSON.parse(resp.raw_body);
-                if (response.active) {
-                    menu.session.set('name', response.fullname);
-                    menu.session.set('mobile', val);
-                    menu.session.set('accounts', response.accounts);
-                    menu.session.set('cust', response);
-                    menu.session.set('pin', response.pin);
-                    // menu.session.set('limit', response.result.limit);
-                }
             }
             // console.log(resp.raw_body);
 
