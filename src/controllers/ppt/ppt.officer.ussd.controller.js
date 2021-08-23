@@ -171,7 +171,7 @@ menu.state('Deposit', {
             mobile = '+233' + mobile.substr(3);
         }
         await filterPersonalSchemeOnly(mobile, async(data) => {
-            if (data.active){
+            if (data.active && data.accounts.length > 0){
                 console.log(data);
                 menu.session.set('mobile', mobile);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?');
