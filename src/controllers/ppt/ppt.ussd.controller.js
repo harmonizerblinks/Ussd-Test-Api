@@ -44,7 +44,7 @@ menu.sessionConfig({
 
 menu.on('error', (err) => {
     // handle errors
-    console.log('Error', err);
+    // console.log('Error', err);
     menu.end(err);
 });
 
@@ -114,7 +114,7 @@ menu.state('Register', {
         // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            console.log(data.body)
+            // console.log(data.body)
             if(data.lastname && data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
@@ -186,7 +186,7 @@ menu.state('Register.lastname', {
             '\n1. Confirm')
     },
     next: {
-        '0': 'Register.register',
+        '0': 'Register.change',
         '1': 'Register.complete',
     }
 })
@@ -229,20 +229,29 @@ menu.state('Register.complete', {
 
 menu.state('Exit', {
     run: () => {
-        menu.end('')
+        menu.end('Thank you for using People Pension Trust.');
     }
 })
 
 
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
 menu.state('Pay', {
-    run: () => {
-        menu.con('Choose Option:' +
+    run: async() => {
+        const cust_name =await  menu.session.get('name');
+        if(cust_name)
+        {
+            menu.con('Choose Option:' +
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
         '\n4. Only once' + 
         '\n5. Stop Repeat Payment')
+        }
+        else
+        {
+            menu.go('InvalidInput');
+        }
+        
     },
     next: {
         '4': 'Pay.account',
@@ -379,7 +388,7 @@ menu.state('Pay.send', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        console.log(account);
+        // console.log(account);
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.schemenumber,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
@@ -394,10 +403,18 @@ menu.state('Pay.send', {
 ///////////////--------------ICARE ROUTE STARTS--------------////////////////
 
 menu.state('Icare', {
-    run: () => {
-        menu.con('Choose Preferred Option:' +
-        '\n1. Register for Someone' +
-        '\n2. Pay for Someone')
+    run: async () => {
+        const cust_name = await menu.session.get('name');
+        if(cust_name)
+        {
+            menu.con('Choose Preferred Option:' +
+            '\n1. Register for Someone' +
+            '\n2. Pay for Someone')
+        }
+        else
+        {
+            menu.go('InvalidInput');
+        }
     },
     next: {
         '1': 'Icare.register',
@@ -654,7 +671,7 @@ menu.state('Deposit.send', {
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
-        console.log(data) 
+        // console.log(data) 
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
         }); 
@@ -687,7 +704,7 @@ menu.state('CheckBalance',{
                 let account = {code: data.scheme.schemenumber}
                 menu.session.set('account', account);
                 await fetchBalance(account.code, async(result)=> { 
-                    console.log(result) 
+                    // console.log(result) 
                     if(result.balance != null) { account.balance = result.balance; }
                     menu.session.set('account', account);
                     menu.session.set('balance', result.balance);
@@ -711,7 +728,7 @@ menu.state('Withdrawal',{
     run: async() => {
         var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
         await getSchemeInfo(data, async(data) => {
-            console.log(data);
+            // console.log(data);
             if (data.scheme) {
                 let account = {user: data, code: data.scheme.schemenumber}
                 menu.session.set('account', account);
@@ -723,7 +740,7 @@ menu.state('Withdrawal',{
                         menu.session.set('balance', result.savings);
                         menu.con('How much would you like to withdraw from account number '+account.code+'?');
                     } else {
-                        menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
+                        menu.end('Error Retrieving Account Balance with '+account.code+', please try again');
                     }
                 });
             } else {
@@ -744,18 +761,21 @@ menu.state('Withdrawal.view',{
         var amount = Number(menu.val);
         // save user input in session
         if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
-        menu.session.set('amount', amount);
-        var cust = await menu.session.get('cust');
-        var account = await menu.session.get('account');
-        var balance = await menu.session.get('balance');
-        // console.log(cust);
-        if(balance >= amount) {
-            menu.con(cust.fullname +', you are making a Withdrawal Request of GHS ' + amount +' from your '+account.user.scheme.schemetype+' account' +
-            '\n1. Confirm' +
-            '\n2. Cancel' +
-            '\n#. Main Menu');
-        } else {
-            menu.end('Not Enough Savings in Account. please try again')
+        else
+        {
+            menu.session.set('amount', amount);
+            var cust = await menu.session.get('cust');
+            var account = await menu.session.get('account');
+            var balance = await menu.session.get('balance');
+            // console.log(cust);
+            if(balance >= amount) {
+                menu.con(cust.fullname +', you are making a Withdrawal Request of GHS ' + amount +' from your '+account.user.scheme.schemetype+' account' +
+                '\n1. Confirm' +
+                '\n2. Cancel' +
+                '\n#. Main Menu');
+            } else {
+                menu.con('Not Enough Savings in Account. Enter zero(0) to continue')
+            }
         }
     },
     next: {
@@ -776,12 +796,21 @@ menu.state('Withdrawal.confirm', {
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Scheme Number '+account.code,merchantid:account.merchantid };
+        
         await postWithdrawal(data, async(result)=> { 
-            console.log(result) 
-            // menu.end(JSON.stringify(result)); 
-            menu.end(result.message);
+            // console.log(result) 
+            // menu.end(JSON.stringify(result));
+            if(result.Message)
+            {
+                menu.end(result.Message);
+            }
+            else
+            {
+                menu.end('Sorry, Withdrawal could not be processed');
+            }
         });
         // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+            
     }
 });
 
@@ -838,6 +867,11 @@ menu.state('Contact.website', {
     }
 });
 
+menu.state('InvalidInput', {
+    run: () => {
+        menu.end('Sorry you selected the wrong option:');
+    },
+});
 
 /////////////////------------------USSD SESSION STARTS------------------/////////////////////
 // Pension USSD
@@ -885,11 +919,13 @@ async function postCustomer(val, callback) {
         .end(async(resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
+                // console.log(resp.error);
                 // return res;
                 await callback(resp);
             }
             // console.log(resp.raw_body);
+            else
+            {
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.name);
@@ -900,6 +936,7 @@ async function postCustomer(val, callback) {
                 // menu.session.set('limit', response.result.limit);
             }
             await callback(response);
+            }
         });
     return true
 }
@@ -922,13 +959,15 @@ async function getInfo(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
+                // console.log(resp.error);
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
+            else
+            {// console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
+            }
         });
     return true
 }
@@ -951,13 +990,14 @@ async function getSchemeInfo(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
+                // console.log(resp.error);
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
+            else {// console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
+            }
         });
     return true
 }
@@ -972,13 +1012,15 @@ async function postIcareCustomer(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
+                // console.log(resp.error);
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
+            else
+            {// console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
+            }
         });
     return true
 }
@@ -994,12 +1036,14 @@ async function fetchIcareCustomer(val, callback) {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
+                // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
                 await callback(resp);
             }
             // console.log(resp.raw_body);
+            else
+            {
             var response = JSON.parse(resp.raw_body);
             if (response.active) {
                 menu.session.set('name', response.fullname);
@@ -1011,6 +1055,7 @@ async function fetchIcareCustomer(val, callback) {
             }
 
             await callback(response);
+            }
         });
     // }
     // catch(err) {
@@ -1033,23 +1078,26 @@ async function fetchCustomer(val, callback) {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
+                // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
                 await callback(resp);
             }
             // console.log(resp.body);
-            var response = JSON.parse(resp.raw_body);
-            if (response.active) {
-                menu.session.set('name', response.fullname);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
+            else
+            {
+                var response = JSON.parse(resp.raw_body);
+                if (response.active) {
+                    menu.session.set('name', response.fullname);
+                    menu.session.set('mobile', val);
+                    menu.session.set('accounts', response.accounts);
+                    menu.session.set('cust', response);
+                    menu.session.set('pin', response.pin);
+                    // menu.session.set('limit', response.result.limit);
+                }
 
-            await callback(response);
+                await callback(response);
+            }
         });
     // }
     // catch(err) {
@@ -1064,17 +1112,20 @@ async function fetchBalance(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
+            // console.log(resp.error);
             await callback(resp);
         }
         // console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        if(response.balance)
+        else 
         {
-            menu.session.set('balance', response.balance);
+            var response = JSON.parse(resp.raw_body);
+            if(response.balance)
+            {
+                menu.session.set('balance', response.balance);
+            }
+            
+            await callback(response);
         }
-        
-        await callback(response);
     });
 }
 
@@ -1088,13 +1139,16 @@ async function postAutoDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
+            // console.log(resp.error);
             // await postDeposit(val);
             await callback(resp);
         }
-        // if (res.error) throw new Error(res.error); 
-        var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        else
+        {
+            // if (res.error) throw new Error(res.error); 
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        }
     });
     return true
 }
@@ -1109,13 +1163,16 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
+            // console.log(resp.error);
             // await postDeposit(val);
             await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
-        var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        else
+        {
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        }
     });
     return true
 }
@@ -1130,8 +1187,17 @@ async function postWithdrawal(val, callback) {
     .end( async(resp)=> { 
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        if(resp.error)
+        {
+            // console.log("errrr")
+            await callback(resp);
+        }
+        else
+        {
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+
+        }
     });
     return true
 }
@@ -1145,9 +1211,16 @@ async function postChangePin(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         // if (resp.error) throw new Error(resp.error); 
-        console.log(resp.raw_body);      
+        // console.log(resp.raw_body);      
+        if(resp.error)
+        {
+            await callback(resp);
+        }
+        else
+        {
         var response = JSON.parse(resp.raw_body);
         await callback(response);
+        }
     });
     return true
 }
@@ -1167,7 +1240,7 @@ async function fetchCustomerAccounts(val, callback) {
     //     val = val.replace('+233','0');
     // }
     var api_endpoint = apiurl + 'getCustomerAccounts/' + access.code+'/'+access.key + '/' + val;
-    console.log(api_endpoint);
+    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
@@ -1176,10 +1249,12 @@ async function fetchCustomerAccounts(val, callback) {
             // return res;
             await callback(resp);
         }
-        // console.log(resp.raw_body);
+        else
+        {// console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
         await callback(response);
+        }
     });
 }
 
@@ -1189,7 +1264,7 @@ async function fetchCustomerAccount(val, callback) {
     //     val.mobile = val.mobile.replace('+233','0');
     // }
     var api_endpoint = apiurl + 'getCustomerAccount/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
-    console.log(api_endpoint);
+    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
@@ -1198,10 +1273,11 @@ async function fetchCustomerAccount(val, callback) {
             // return res;
             await callback(resp);
         }
-        // console.log(resp.raw_body);
+        else{// console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
         await callback(response);
+        }
     });
 }
 
