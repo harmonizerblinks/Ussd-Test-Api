@@ -284,7 +284,7 @@ menu.state('Icare.next', {
         // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            console.log(data.body)
+            // console.log(data.body)
             if(data.lastname && data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ")
@@ -579,10 +579,6 @@ menu.state('Pay.Confirm.Amount', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
-
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
@@ -597,10 +593,6 @@ menu.state('Pay.Confirm.Amount', {
 menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.session.get('amount');
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
-        menu.session.set('account', account);
-
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
