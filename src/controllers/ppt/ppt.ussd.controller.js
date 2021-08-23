@@ -267,15 +267,16 @@ menu.state('Pay.account', {
             if (data.scheme) {
                 let account = data.scheme
                 menu.session.set('account', account);
-                await fetchCustomer(menu.args.phoneNumber, (data)=> {
-                    if (data.active) {
-                        menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
-                    }else{
-                        menu.end(`Error in Retrieving Customer Details.`)        
+                await fetchCustomer(menu.args.phoneNumber, (data)=> { 
+                    // console.log(1,data);  
+                    if(data.active) {
+                        menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+                    } else {
+                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
                     }
-                })     
+                });
             } else {
-                menu.end('Dear Customer, you do not have a person pension scheme')
+                menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
             }
         })
 },
@@ -301,17 +302,18 @@ menu.state('Pay.view', {
                 if (data.scheme) {
                     let account = data.scheme
                     menu.session.set('account', account);
-                    await fetchCustomer(menu.args.phoneNumber, (data)=> {
-                        if (data.active) {
-                            menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
-                        }else{
-                            menu.end(`Error in Retrieving Customer Details.`)        
+                    await fetchCustomer(menu.args.phoneNumber, (data)=> { 
+                        // console.log(1,data);  
+                        if(data.active) {
+                            menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+                        } else {
+                            menu.con('Mobile Number not Registered. Enter (0) to Continue');
                         }
-                    })     
+                    });
                 } else {
-                    menu.end('Dear Customer, you do not have a person pension scheme')
+                    menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
                 }
-            })
+                })
         }
     },
     next: {
@@ -565,11 +567,11 @@ menu.state('Icare.mobile', {
                     if(data.active) {
                         menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                     } else {
-                        menu.end('Mobile Number not Registered. Enter (0) to Continue');
+                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
                     }
                 });
-                } else {
-                menu.end('Dear Customer, you do not have a Pension pension scheme')
+            } else {
+                menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
             }
         })
     },
@@ -622,7 +624,7 @@ menu.state('Icare.Deposit.mobile', {
                     }
                 });
             } else {
-                menu.end('Dear Customer, you do not have a person pension scheme')
+                menu.end('Dear Customer, the number you have dialed has not been registered. Enter (0) to Continue')
             }
         })
     },
