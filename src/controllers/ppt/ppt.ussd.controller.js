@@ -561,7 +561,6 @@ menu.state('Icare.mobile', {
         var mobile = await menu.session.get('mobile');        
         await filterPersonalSchemeOnly(mobile, (data)=> { 
             if(data.active && data.accounts) {
-                console.log(1,data);  
                 menu.session.set('account', data)
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else if(data.active && data.accounts == null) {
@@ -608,7 +607,6 @@ menu.state('Icare.Deposit.mobile', {
     run: async() => {
             var mobile = menu.val;  
             await filterPersonalSchemeOnly(mobile, (data)=> { 
-                console.log(data)
                 if(data.active && data.accounts) {
                     menu.session.set('account', data)
                     menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
@@ -650,7 +648,7 @@ menu.state('Deposit.send', {
         var data = { merchant:access.code,account:account.accounts.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.accounts.code};
         // console.log(data) 
         await postDeposit(data, async(result)=> { 
-            console.log(result.body)
+            // console.log(result.body)
         }); 
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
@@ -1261,6 +1259,10 @@ async function fetchCustomerAccount(val, callback) {
 
 
 async function filterPersonalSchemeOnly(val, callback) {
+    if (val && val.startsWith('0')) {
+        // Remove Bearer from string
+        val = '+233' + val.substr(1);
+    }
     var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)

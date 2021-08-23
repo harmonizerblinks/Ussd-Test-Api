@@ -857,18 +857,22 @@ function capitalizeFirstLetter(string) {
 }
 
 async function filterPersonalSchemeOnly(val, callback) {
-    var api_endpoint = apiurl + 'getCustomer/Pensonal/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
+    if (val && val.startsWith('0')) {
+        // Remove Bearer from string
+        val = '+233' + val.substr(1);
+    }
+    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
-        .end(async (resp) => {
-            if (resp.error) {
-                console.log(resp.error);
-                // var response = JSON.parse(res);
-                // return res;
-                await callback(resp);
-            }
-            // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            await callback(response);
-        });
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        await callback(response);
+    });
 }
