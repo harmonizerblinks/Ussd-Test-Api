@@ -172,13 +172,6 @@ menu.state('Register.lastname', {
             var firstname = await menu.session.get('firstname');
             // var mobile = await menu.session.get('mobile');
             var mobile = menu.args.phoneNumber;
-            // if (mobile && mobile.startsWith('+233')) {
-            //     // Remove Bearer from string
-            //     mobile = mobile.replace('+233', '0');
-            // }else if(mobile && mobile.startsWith('233')) {
-            //     // Remove Bearer from string
-            //     mobile = mobile.replace('233', '0');
-            // }    
             menu.con('Please confirm the registration details below to continue:' +
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
@@ -199,13 +192,6 @@ menu.state('Register.complete', {
         var icareId = await menu.session.get('icareid');
         // var mobile = await menu.session.get('mobile');
         var mobile = menu.args.phoneNumber;
-        // if (mobile && mobile.startsWith('+233')) {
-        //     // Remove Bearer from string
-        //     mobile = mobile.replace('+233', '0');
-        // }else if(mobile && mobile.startsWith('233')) {
-        //     // Remove Bearer from string
-        //     mobile = mobile.replace('233', '0');
-        // }    
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", icareid: icareId
         };
@@ -363,11 +349,7 @@ menu.state('Pay.Option.Complete', {
         var data = { merchant:access.code,account:account.schemenumber, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
         // console.log(data);
         await postAutoDeposit(data, async(data) => {
-            // if (data.status == 0) {
-            //     menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-            // } else {
-            //     menu.end('Application Server error. Please contact administrator');
-            // }
+
         });
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
@@ -391,7 +373,6 @@ menu.state('Pay.send', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        // console.log(account);
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.schemenumber,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
@@ -448,27 +429,14 @@ menu.state('Icare.next', {
         }
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            if(data.surname && data.surname == null || data.lastname == null){
-                var name = data.firstname;
-                var nameArray = name.split(" ")
-                // console.log(name)
-                if (nameArray.length > 2){
-                    var firstname = capitalizeFirstLetter(nameArray[0]);
-                    var lastname = capitalizeFirstLetter(nameArray[2]);
-                    menu.session.set('firstname', firstname)
-                    menu.session.set('lastname', lastname)
-                }else{
-                    var firstname = capitalizeFirstLetter(nameArray[0]);
-                    var lastname = capitalizeFirstLetter(nameArray[1]);
-                    menu.session.set('firstname', firstname)
-                    menu.session.set('lastname', lastname)
-                }
-
-            }else{
+            if(data.valid){
                 var firstname = data.firstname;
-                var lastname = data.surname || data.lastname;
+                var lastname =  data.lastname;
                 menu.session.set('firstname', firstname)
                 menu.session.set('lastname', lastname)
+
+            }else{
+                menu.end('Mobile Number not Valid')
             }
             menu.con('Please confirm Person\'s details:' +
             '\nFirst Name: ' + firstname +
@@ -540,12 +508,16 @@ menu.state('Icare.complete', {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD"
         };
         await postCustomer(data, (data) => {
-            menu.con('Choose Option:' +
-            '\n1. Daily' +
-            '\n2. Weekly'+
-            '\n3. Monthly' +
-            '\n4. Only once' + 
-            '\n5. Stop Repeat Payment')
+            if(data.active){
+                menu.con('Choose Option:' +
+                '\n1. Daily' +
+                '\n2. Weekly'+
+                '\n3. Monthly' +
+                '\n4. Only once' + 
+                '\n5. Stop Repeat Payment')
+            }else{
+                menu.end(data.message)
+            }
             });
     },
     next: {
@@ -917,15 +889,8 @@ async function postCustomer(val, callback) {
 }
 
 async function getInfo(val, callback) {
-    // if (val && val.startsWith('+233')) {
-    //     // Remove Bearer from string
-    //     val = val.replace('+233', '0');
-    // }else if(val && val.startsWith('233')) {
-    //     // Remove Bearer from string
-    //     val = val.replace('233', '0');
-    // }    
-
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint)
     var req = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -934,7 +899,8 @@ async function getInfo(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                // console.log(resp.error);
+                console.log(resp.error);
+                console.log(resp.raw_body);
                 // return res;
                 await callback(resp);
             }
