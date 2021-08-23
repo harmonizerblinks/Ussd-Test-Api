@@ -261,10 +261,10 @@ function buyAirtime(phone, val) {
 
 async function fetchOfficer(val, callback) {
     // try {
-        if (val && val.startsWith('+233')) {
-            // Remove Bearer from string
-            val = val.replace('+233','0');
-        }
+        // if (val && val.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('+233','0');
+        // }
         var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
         // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)

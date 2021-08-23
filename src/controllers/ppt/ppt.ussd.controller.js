@@ -266,7 +266,7 @@ menu.state('Pay.account', {
                     }
                 })     
             } else {
-                menu.end('Dear Customer, you do not have a scheme number')
+                menu.end('Dear Customer, you do not have a person pension scheme')
             }
         })
 },
@@ -300,7 +300,7 @@ menu.state('Pay.view', {
                         }
                     })     
                 } else {
-                    menu.end('Dear Customer, you do not have a scheme number')
+                    menu.end('Dear Customer, you do not have a person pension scheme')
                 }
             })
         }
@@ -418,6 +418,13 @@ menu.state('Icare.next', {
     run: async() => {
         let mobile = menu.val;
         // console.log(mobile)
+        if (mobile && mobile.startsWith('0')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('0', '+233');
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('233', '+233');
+        }   
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
             if(data.surname && data.surname == null || data.lastname == null){
@@ -508,13 +515,6 @@ menu.state('Icare.complete', {
         var lastname = await menu.session.get('lastname');
         // var name = await menu.session.get('name');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('0')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('0', '+233');
-        }else if(mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '+233');
-        }   
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD"
         };
@@ -553,7 +553,7 @@ menu.state('Icare.mobile', {
                     }
                 });
                 } else {
-                menu.end('Dear Customer, you do not have a scheme number')
+                menu.end('Dear Customer, you do not have a Pension pension scheme')
             }
         })
     },
@@ -605,8 +605,8 @@ menu.state('Icare.Deposit.mobile', {
                         menu.con('Mobile Number not Registered. Enter (0) to Continue');
                     }
                 });
-                } else {
-                menu.end('Dear Customer, you do not have a scheme number')
+            } else {
+                menu.end('Dear Customer, you do not have a person pension scheme')
             }
         })
     },
@@ -726,7 +726,7 @@ menu.state('Withdrawal',{
                         menu.con('Error Retrieving Account Balance with '+account.code+', please try again');
                     }
                 });
-                } else {
+            } else {
                 menu.end('Dear Customer, you do not have a scheme number')
             }
         })
@@ -755,7 +755,7 @@ menu.state('Withdrawal.view',{
             '\n2. Cancel' +
             '\n#. Main Menu');
         } else {
-            menu.con('Not Enough Savings in Account. Enter zero(0) to continue')
+            menu.end('Not Enough Savings in Account. please try again')
         }
     },
     next: {
