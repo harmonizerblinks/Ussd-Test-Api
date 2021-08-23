@@ -12,9 +12,9 @@ let genderArray = ["", "Male", "Female"]
 // let apiurl = "http://localhost:5000/Ussd/";
 
 let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+let access = { code: "PPT", key: "178116723" };
 let apiurlpms = "https://api.alias-solutions.net:8442/api/services/app/Channels/";
 let apiurl1 = "https://app.alias-solutions.net:5009/otp/";
-let access = { code: "PPT", key: "178116723" };
 let chanel = { code: "766098501", key: "178116723" };
 
 

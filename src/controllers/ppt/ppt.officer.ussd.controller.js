@@ -3,10 +3,10 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let sessions = {};
 // let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://api-maximus.paynowafrica.com/ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-
-let access = { code: "446785909", key: "164383692" };
+// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+// let access = { code: "446785909", key: "164383692" };
+let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+let access = { code: "PPT", key: "178116723" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {

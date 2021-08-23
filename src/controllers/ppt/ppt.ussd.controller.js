@@ -4,7 +4,7 @@ var unirest = require('unirest');
 let sessions = {};
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-let optionArray = ["", "Daily", "Weekly", "Monthly"]
+let optionArray = ["", "DAILY", "WEEKLY", "MONTHLY"];
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
