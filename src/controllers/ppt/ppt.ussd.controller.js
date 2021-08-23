@@ -6,11 +6,13 @@ let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let optionArray = ["", "DAILY", "WEEKLY", "MONTHLY"];
 
+//Test Credentials
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 // let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
 // let access = { code: "446785909", key: "164383692" };
 
+//Live Credentials
 let apiurl = "https://app.alias-solutions.net:5009/ussd/";
 let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
 let access = { code: "PPT", key: "178116723" };

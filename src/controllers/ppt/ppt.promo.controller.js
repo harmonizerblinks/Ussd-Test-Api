@@ -4,8 +4,11 @@ var unirest = require('unirest');
 let sessions = {};
 let optionArray = ["", "DAILY", "WEEKLY", "MONTHLY"];
 
+// Test Credentials
 // let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 // let access = { code: "446785909", key: "164383692" };
+
+// Live Credentials
 let apiurl = "https://app.alias-solutions.net:5009/ussd/";
 let access = { code: "PPT", key: "178116723" };
 
