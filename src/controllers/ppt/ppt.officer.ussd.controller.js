@@ -157,21 +157,19 @@ menu.state('User.verifypin', {
 menu.state('Deposit', {
     run: async() => {
         let mobile = menu.val;
+        // console.log(mobile)
         if (mobile && mobile.startsWith('0')) {
             // Remove Bearer from string
-            // mobile = mobile.replace('0', '+233');
             mobile = '+233' + mobile.substr(1);
         }else if(mobile && mobile.startsWith('233')) {
             // Remove Bearer from string
             mobile = '+233' + mobile.substr(3);
             // mobile = mobile.replace('233', '+233');
-        } 
+        }
+        menu.session.set('mobile', mobile);        
         await fetchCustomer(mobile, (data)=> { 
             // console.log(1,data);  
             if(data.active) {
-                // menu.session.set('name', response.name);
-                menu.session.set('mobile', mobile);
-                // menu.session.set('accounts', response.accounts);
                 menu.session.set('cust', response);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
