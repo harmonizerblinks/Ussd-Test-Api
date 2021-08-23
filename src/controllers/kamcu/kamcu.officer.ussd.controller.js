@@ -86,7 +86,6 @@ menu.state('Start', {
 menu.state('Deposit', {
     run: async() => {
         await fetchAccount(menu.val, (data)=> { 
-            // console.log(1,data);  
             if(data.active) {
                 menu.session.set('account', data)
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
@@ -105,7 +104,7 @@ menu.state('Deposit', {
 
 menu.state('Deposit.view', {
     run: async() => {
-        let acct = menu.session.set('account');
+        let acct = menu.session.get('account');
         if(acct === null) menu.end("Invalid input");
         let amount = menu.val;
         menu.session.set('amount', amount);
@@ -166,7 +165,6 @@ async function fetchOfficer(val, callback) {
             // Remove Bearer from string
             val = val.replace('233','0');
         }
-        console.log(val);
         var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
         // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
@@ -177,7 +175,6 @@ async function fetchOfficer(val, callback) {
                 // return res;
                 await callback(resp);
             }
-            console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
         });
