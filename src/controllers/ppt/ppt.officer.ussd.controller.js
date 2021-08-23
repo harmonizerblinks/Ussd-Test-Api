@@ -156,12 +156,24 @@ menu.state('User.verifypin', {
 
 menu.state('Deposit', {
     run: async() => {
-        await fetchCustomer(menu.val, (data)=> { 
+        let mobile = menu.val;
+        if (mobile && mobile.startsWith('0')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('0', '+233');
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = mobile.replace('233', '+233');
+        } 
+        await fetchCustomer(mobile, (data)=> { 
             // console.log(1,data);  
             if(data.active) {
+                // menu.session.set('name', response.name);
+                menu.session.set('mobile', mobile);
+                // menu.session.set('accounts', response.accounts);
+                menu.session.set('cust', response);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
-                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                menu.end('Mobile Number not Registered. Please Try again');
             }
         });
     },
@@ -193,14 +205,14 @@ menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        var accounts = await menu.session.get('accounts');
-        let account = await filterPersonalSchemeOnly(accounts);
+        var cust = await menu.session.get('cust');
+        let account = await filterPersonalSchemeOnly(cust.accounts);
         menu.session.set('account', account);
 
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
-        '\n1. Proceed' +
-        '\n0. Exit'
-        )
+            '\n1. Proceed' +
+            '\n0. Exit'
+        );
     },
     next: {
         '0': 'Deposit.cancel',
@@ -214,7 +226,7 @@ menu.state('Deposit.send', {
         var of = await menu.session.get('officer');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
@@ -240,7 +252,7 @@ exports.ussdApp = async(req, res) => {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
     menu.run(args, ussdResult => {
-        if(args.Operator) {menu.session.set('network', args.Operator); }
+        // if(args.Operator) {menu.session.set('network', args.Operator); }
         res.send(ussdResult);
     });
     // let args = {
@@ -307,14 +319,11 @@ async function fetchCustomer(val, callback) {
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            if(response.active)
-            {
-                menu.session.set('name', response.name);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                // menu.session.set('limit', response.result.limit);
-            }
+            // if(response.active)
+            // {
+                
+            //     // menu.session.set('limit', response.result.limit);
+            // }
             
             await callback(response);
         });
