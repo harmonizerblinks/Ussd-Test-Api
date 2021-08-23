@@ -491,7 +491,7 @@ menu.state('Deposit', {
             if(data.active) {
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
-                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                menu.con('Dear Customer, the number you have dialed has not been registered. Enter (0) to Continue');
             }
         });
     },
@@ -509,11 +509,15 @@ menu.state('Pay.view', {
         } else {
             var option = optionArray[index];
             menu.session.set('paymentoption', option);
-            var accounts = await menu.session.get('accounts');
-            let account = await filterPersonalSchemeOnly(accounts);
-            menu.session.set('account', account);
-            let name = await menu.session.get('name')
-            menu.con(`Dear ${name}, How much would you like to pay?`)        
+            await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
+                if (data.active){
+                    menu.session.set('account', data);
+                    let name = await menu.session.get('name')
+                    menu.con(`Dear ${name}, How much would you like to pay?`)        
+                }else{
+                    menu.end('Dear Customer, you do not have a scheme number')
+                }
+            });
         }
     },
     next: {
@@ -735,6 +739,8 @@ async function postIcareCustomer(val, callback) {
                 menu.session.set('cust', response);
                 menu.session.set('pin', response.pin);
                 menu.session.set('icareid', response.icareid)
+            }else{
+                return null;
             }
 
             await callback(response);
@@ -770,6 +776,8 @@ async function fetchCustomer(val, callback) {
                 menu.session.set('cust', response);
                 menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
+            }else{
+                return null;
             }
 
             await callback(response);
@@ -799,17 +807,18 @@ async function fetchIcareCustomer(val, callback) {
                 // var response = JSON.parse(res);
                 // return res;
                 await callback(resp);
+            }else{
+                var response = JSON.parse(resp.raw_body);
+                if (response.active) {
+                    menu.session.set('name', response.fullname);
+                    menu.session.set('mobile', val);
+                    menu.session.set('accounts', response.accounts);
+                    menu.session.set('cust', response);
+                    menu.session.set('pin', response.pin);
+                    // menu.session.set('limit', response.result.limit);
+                }
             }
             // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            if (response.active) {
-                menu.session.set('name', response.fullname);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
 
             await callback(response);
         });
@@ -847,8 +856,19 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-async function filterPersonalSchemeOnly(accounts) {
-    return accounts.find(obj => {
-        return obj.type.includes('PERSONAL');
-    });
+async function filterPersonalSchemeOnly(val, callback) {
+    var api_endpoint = apiurl + 'getCustomer/Pensonal/' + access.code + '/' + access.key + '/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.error);
+                // var response = JSON.parse(res);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        });
 }
