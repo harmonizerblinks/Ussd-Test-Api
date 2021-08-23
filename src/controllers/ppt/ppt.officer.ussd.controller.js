@@ -52,6 +52,8 @@ menu.startState({
             // console.log(1,data);
             if(data.active) { 
                 console.log(data);
+                menu.session.set('officer', data);
+                // menu.session.set('pin', data.pin);
                 menu.con('Welcome to PPT Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
@@ -72,6 +74,7 @@ menu.state('Start', {
             // console.log(1,data);
             if(data.active) { 
                 console.log(1,data);
+                menu.session.set('officer', data);
                 menu.con('Welcome to PPT Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
@@ -170,7 +173,7 @@ menu.state('Deposit', {
         await filterPersonalSchemeOnly(mobile, async(data) => {
             if (data.active){
                 console.log(data);
-                // menu.session.set('account', data);
+                menu.session.set('mobile', mobile);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?');
             }else{
                 menu.end('Mobile Number not Registered. Please Try again');
@@ -219,18 +222,27 @@ menu.state('Deposit.view', {
 
 menu.state('Deposit.send', {
     run: async() => {
-        // access user input value save in session
-        var of = await menu.session.get('officer');
-        var amount = await menu.session.get('amount');
-        var account = await menu.session.get('account');
-        var network = menu.args.operator;
-        var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
-        await postDeposit(data, async(result)=> { 
-            console.log(result) 
-            // menu.end(JSON.stringify(result)); 
+        let mobile = await menu.session.get('mobile');
+        await filterPersonalSchemeOnly(mobile, async(data) => {
+            if (data.active){
+                console.log(data);
+                // menu.session.set('account', data.accounts);
+                        // access user input value save in session
+                var of = await menu.session.get('officer');
+                var amount = await menu.session.get('amount');
+                // var account = await menu.session.get('account');
+                var network = menu.args.operator;
+                var mobile = menu.args.phoneNumber;
+                var data = { merchant:access.code,account:data.accounts.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid };
+                await postDeposit(data, async(result)=> { 
+                    console.log(result) 
+                    // menu.end(JSON.stringify(result)); 
+                });
+                menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+            }else{
+                menu.end('Unable to Process Payment. Please Try again');
+            }
         });
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
 });
 
@@ -286,12 +298,6 @@ async function fetchOfficer(val, callback) {
             }
             // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
-            if(response.active)
-            {
-                menu.session.set('officer', response);
-                menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
             
             await callback(response);
         });
