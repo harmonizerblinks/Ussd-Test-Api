@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "test",
-    "start": "node src/index.js",
+    "start": "nodemon src/index.js",
+    "start-node": "node src/index.js",
     "start-watch": "nodemon src/index.js"
   },
   "repository": {
