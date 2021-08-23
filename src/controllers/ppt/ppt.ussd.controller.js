@@ -441,7 +441,7 @@ menu.state('Icare.next', {
         }else if(mobile && mobile.startsWith('233')) {
             // Remove Bearer from string
             mobile = mobile.replace('233', '+233');
-        }   
+        }
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
             if(data.surname && data.surname == null || data.lastname == null){
@@ -472,7 +472,7 @@ menu.state('Icare.next', {
             
             '\n\n0. Make Changes' +
             '\n1. Confirm')
-        })
+        });
     },
     next: {
         '0': 'Icare.change',
@@ -542,8 +542,7 @@ menu.state('Icare.complete', {
             '\n3. Monthly' +
             '\n4. Only once' + 
             '\n5. Stop Repeat Payment')
-            })
-
+            });
     },
     next: {
         '4': 'Icare.mobile',
@@ -633,21 +632,6 @@ menu.state('Icare.Deposit.mobile', {
     }
 });
 
-// menu.state('Deposit.account', {
-//     run: async() => {
-//         var schemes = ''; var count = 1;
-//         var accounts = await menu.session.get('accounts');
-//         accounts.forEach(val => {
-//             schemes += '\n' + count + '. ' + val.code;
-//             count += 1;
-//         });
-//         menu.con('Please select Preferred Scheme Number: ' + schemes)
-//     },
-//     next: {
-//         '*\\d+': 'Deposit.view',
-//     }
-// });
-
 menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.val;
@@ -668,7 +652,7 @@ menu.state('Deposit.send', {
         // access user input value save in session
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
         // console.log(data) 
