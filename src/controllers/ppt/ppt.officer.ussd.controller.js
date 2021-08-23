@@ -166,16 +166,13 @@ menu.state('Deposit', {
         }else if(mobile && mobile.startsWith('233')) {
             // Remove Bearer from string
             mobile = '+233' + mobile.substr(3);
-        } 
-        await fetchCustomer(mobile, (data)=> { 
-            // console.log(1,data);  
-            if(data.active) {
-                // menu.session.set('name', data.name);
-                menu.session.set('mobile', mobile);
-                // menu.session.set('accounts', data.accounts);
-                menu.session.set('cust', data);
-                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-            } else {
+        }
+        await filterPersonalSchemeOnly(mobile, async(data) => {
+            if (data.active){
+                console.log(data);
+                // menu.session.set('account', data);
+                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?');
+            }else{
                 menu.end('Mobile Number not Registered. Please Try again');
             }
         });
@@ -208,14 +205,7 @@ menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        let mobile = await menu.session.get('mobile');
-        await filterPersonalSchemeOnly(mobile, async(data) => {
-            if (data.active){
-                menu.session.set('account', data);
-            }else{
-                menu.end('Dear Customer, you do not have a scheme number')
-            }
-        });
+        // let mobile = await menu.session.get('mobile');
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
             '\n1. Proceed' +
             '\n0. Exit'
@@ -237,7 +227,7 @@ menu.state('Deposit.send', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 
-            // console.log(result) 
+            console.log(result) 
             // menu.end(JSON.stringify(result)); 
         });
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
@@ -315,7 +305,7 @@ async function fetchCustomer(val, callback) {
             val = '+233' + val.substring(1);
         }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-        // console.log(api_endpoint);
+        console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
             if (resp.error) { 
@@ -343,7 +333,7 @@ async function fetchCustomer(val, callback) {
 
 async function fetchBalance(val, callback) {
     var api_endpoint = apiurl + 'getBalance/' + access.code + '/'+ access.key + '/' + val;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
@@ -438,7 +428,7 @@ async function getCharge(val, callback) {
 
 async function filterPersonalSchemeOnly(val, callback) {
     var api_endpoint = apiurl + 'getCustomer/Pensonal/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
