@@ -25,6 +25,7 @@
   "license": "MIT",
   "homepage": "https://bitbucket.org/alias_solutions/aslan-ussd-api#readme",
   "dependencies": {
+    "@pm2/io": "^5.0.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",

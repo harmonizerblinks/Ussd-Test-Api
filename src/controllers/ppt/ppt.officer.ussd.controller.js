@@ -207,10 +207,14 @@ menu.state('Deposit.view', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        var cust = await menu.session.get('cust');
-        let account = await filterPersonalSchemeOnly(cust.accounts);
-        menu.session.set('account', account);
-
+        let mobile = await menu.session.get('mobile');
+        await filterPersonalSchemeOnly(mobile, async(data) => {
+            if (data.active){
+                menu.session.set('account', data);
+            }else{
+                menu.end('Dear Customer, you do not have a scheme number')
+            }
+        });
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
             '\n1. Proceed' +
             '\n0. Exit'
@@ -431,8 +435,19 @@ async function getCharge(val, callback) {
     return true
 }
 
-async function filterPersonalSchemeOnly(accounts) {
-    return accounts.find(obj => {
-        return obj.type.includes('PERSONAL');
-    });
+async function filterPersonalSchemeOnly(val, callback) {
+    var api_endpoint = apiurl + 'getCustomer/Pensonal/' + access.code + '/' + access.key + '/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.error);
+                // var response = JSON.parse(res);
+                // return res;
+                await callback(resp);
+            }
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        });
 }
