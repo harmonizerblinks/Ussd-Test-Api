@@ -565,7 +565,7 @@ menu.state('Icare.mobile', {
                     if(data.active) {
                         menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                     } else {
-                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                        menu.end('Mobile Number not Registered. Enter (0) to Continue');
                     }
                 });
                 } else {
@@ -728,7 +728,7 @@ menu.state('Withdrawal',{
                     }
                 });
             } else {
-                menu.end('Dear Customer, you do not have a scheme number')
+                menu.end('Dear Customer, you do not have a Pension Scheme')
             }
         })
         // menu.con('How much would you like to withdraw from account number '+account.code+'?');
