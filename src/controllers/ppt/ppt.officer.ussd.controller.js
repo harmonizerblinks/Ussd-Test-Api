@@ -51,6 +51,7 @@ menu.startState({
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
             if(data.active) { 
+                console.log(data);
                 menu.con('Welcome to PPT Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
@@ -70,6 +71,7 @@ menu.state('Start', {
         await fetchOfficer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data);
             if(data.active) { 
+                console.log(1,data);
                 menu.con('Welcome to PPT Agent Collections' + 
                     '\nEnter Member Phone Number.');
             } else {
@@ -167,10 +169,10 @@ menu.state('Deposit', {
         await fetchCustomer(mobile, (data)=> { 
             // console.log(1,data);  
             if(data.active) {
-                // menu.session.set('name', response.name);
+                // menu.session.set('name', data.name);
                 menu.session.set('mobile', mobile);
-                // menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
+                // menu.session.set('accounts', data.accounts);
+                menu.session.set('cust', data);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
                 menu.end('Mobile Number not Registered. Please Try again');
