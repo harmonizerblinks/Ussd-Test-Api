@@ -355,7 +355,7 @@ menu.state('Pay.Option.Complete', {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         var paymentoption = await menu.session.get('paymentoption');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.schemenumber, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
         // console.log(data);
