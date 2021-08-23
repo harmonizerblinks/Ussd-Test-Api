@@ -159,6 +159,7 @@ menu.state('User.verifypin', {
 menu.state('Deposit', {
     run: async() => {
         let mobile = menu.val;
+        // console.log(mobile)
         if (mobile && mobile.startsWith('0')) {
             // Remove Bearer from string
             mobile = '+233' + mobile.substr(1);
