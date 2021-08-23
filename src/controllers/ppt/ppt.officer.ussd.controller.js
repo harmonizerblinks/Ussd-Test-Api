@@ -224,7 +224,7 @@ menu.state('Deposit.send', {
         let mobile = await menu.session.get('mobile');
         await filterPersonalSchemeOnly(mobile, async(data) => {
             if (data.active){
-                console.log(data);
+                // console.log(data);
                 // menu.session.set('account', data.accounts);
                         // access user input value save in session
                 var of = await menu.session.get('officer');
