@@ -4,7 +4,6 @@ var unirest = require('unirest');
 let sessions = {};
 
 // let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let access = { code: "446785909", key: "164383692" };
 
@@ -59,13 +58,13 @@ menu.startState({
                     if(data.code)
                     {
                         let mobile = menu.args.phoneNumber;
-                        if (mobile && mobile.startsWith('+233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('+233', '0');
-                        }else if(val && val.startsWith('233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('233', '0');
-                        }    
+                        // if (mobile && mobile.startsWith('+233')) {
+                        //     // Remove Bearer from string
+                        //     mobile = mobile.replace('+233', '0');
+                        // }else if(val && val.startsWith('233')) {
+                        //     // Remove Bearer from string
+                        //     mobile = mobile.replace('233', '0');
+                        // }    
                         var postIcare = {
                             name: data.fullname, mobile: mobile
                         };
@@ -79,13 +78,13 @@ menu.startState({
                     } else {
                         let mobile = menu.args.phoneNumber;
                         // console.log(mobile)
-                        if (mobile && mobile.startsWith('+233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('+233', '0');
-                        }else if(mobile && mobile.startsWith('233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('233', '0');
-                        }    
+                        // if (mobile && mobile.startsWith('+233')) {
+                        //     // Remove Bearer from string
+                        //     mobile = mobile.replace('+233', '0');
+                        // }else if(mobile && mobile.startsWith('233')) {
+                        //     // Remove Bearer from string
+                        //     mobile = mobile.replace('233', '0');
+                        // }    
                         menu.session.set('mobile', mobile);        
                         await getInfo(mobile, async(data) =>{
                             // console.log('Get Info Started'); 
@@ -151,13 +150,13 @@ menu.state('Start', {
                     if(data.code)
                     {
                         let mobile = menu.args.phoneNumber;
-                        if (mobile && mobile.startsWith('+233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('+233', '0');
-                        }else if(val && val.startsWith('233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('233', '0');
-                        }    
+                        // if (mobile && mobile.startsWith('+233')) {
+                        //     // Remove Bearer from string
+                        //     mobile = mobile.replace('+233', '0');
+                        // }else if(val && val.startsWith('233')) {
+                        //     // Remove Bearer from string
+                        //     mobile = mobile.replace('233', '0');
+                        // }    
                         var postIcare = {
                             name: data.fullname, mobile: mobile
                         };
@@ -171,13 +170,13 @@ menu.state('Start', {
                     } else {
                         let mobile = menu.args.phoneNumber;
                         // console.log(mobile)
-                        if (mobile && mobile.startsWith('+233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('+233', '0');
-                        }else if(mobile && mobile.startsWith('233')) {
-                            // Remove Bearer from string
-                            mobile = mobile.replace('233', '0');
-                        }    
+                        // if (mobile && mobile.startsWith('+233')) {
+                        //     // Remove Bearer from string
+                        //     mobile = mobile.replace('+233', '0');
+                        // }else if(mobile && mobile.startsWith('233')) {
+                        //     // Remove Bearer from string
+                        //     mobile = mobile.replace('233', '0');
+                        // }    
                         menu.session.set('mobile', mobile);        
                         await getInfo(mobile, async(data) =>{
                             // console.log('Get Info Started'); 

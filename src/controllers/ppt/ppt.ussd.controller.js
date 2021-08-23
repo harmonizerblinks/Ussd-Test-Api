@@ -11,8 +11,8 @@ let optionArray = ["", "Daily", "Weekly", "Monthly"]
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
 
-// let access = { code: "ARB", key: "10198553" };
-let access = { code: "446785909", key: "164383692" };
+let access = { code: "PPT", key: "178116723" };
+// let access = { code: "446785909", key: "164383692" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -166,14 +166,15 @@ menu.state('Register.lastname', {
             let lastname = menu.val;
             menu.session.set('lastname', lastname);
             var firstname = await menu.session.get('firstname');
-            var mobile = await menu.session.get('mobile');
-            if (mobile && mobile.startsWith('+233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('+233', '0');
-            }else if(mobile && mobile.startsWith('233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('233', '0');
-            }    
+            // var mobile = await menu.session.get('mobile');
+            var mobile = menu.args.phoneNumber;
+            // if (mobile && mobile.startsWith('+233')) {
+            //     // Remove Bearer from string
+            //     mobile = mobile.replace('+233', '0');
+            // }else if(mobile && mobile.startsWith('233')) {
+            //     // Remove Bearer from string
+            //     mobile = mobile.replace('233', '0');
+            // }    
             menu.con('Please confirm the registration details below to continue:' +
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
@@ -192,14 +193,15 @@ menu.state('Register.complete', {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         var icareId = await menu.session.get('icareid');
-        var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }else if(mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }    
+        // var mobile = await menu.session.get('mobile');
+        var mobile = menu.args.phoneNumber;
+        // if (mobile && mobile.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('+233', '0');
+        // }else if(mobile && mobile.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('233', '0');
+        // }    
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", icareid: icareId
         };
@@ -477,13 +479,13 @@ menu.state('Icare.lastname', {
             menu.session.set('lastname', lastname);
             var firstname = await menu.session.get('firstname');
             var mobile = await menu.session.get('mobile');
-            if (mobile && mobile.startsWith('+233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('+233', '0');
-            }else if(mobile && mobile.startsWith('233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('233', '0');
-            }    
+            // if (mobile && mobile.startsWith('0')) {
+            //     // Remove Bearer from string
+            //     mobile = mobile.replace('0', '+233');
+            // }else if(mobile && mobile.startsWith('233')) {
+            //     // Remove Bearer from string
+            //     mobile = mobile.replace('233', '+233');
+            // }    
             menu.con('Please confirm the registration details below to continue:' +
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
@@ -503,13 +505,13 @@ menu.state('Icare.complete', {
         var lastname = await menu.session.get('lastname');
         // var name = await menu.session.get('name');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
+        if (mobile && mobile.startsWith('0')) {
             // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
+            mobile = mobile.replace('0', '+233');
         }else if(mobile && mobile.startsWith('233')) {
             // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }    
+            mobile = mobile.replace('233', '+233');
+        }   
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD"
         };
@@ -900,13 +902,13 @@ async function postCustomer(val, callback) {
 }
 
 async function getInfo(val, callback) {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }else if(val && val.startsWith('233')) {
-        // Remove Bearer from string
-        val = val.replace('233', '0');
-    }    
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233', '0');
+    // }else if(val && val.startsWith('233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('233', '0');
+    // }    
 
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
     var req = unirest('GET', api_endpoint)
@@ -929,13 +931,13 @@ async function getInfo(val, callback) {
 }
 
 async function getSchemeInfo(val, callback) {
-    if (val.mobile && val.mobile.startsWith('+233')) {
-        // Remove Bearer from string
-        val.mobile = val.mobile.replace('+233', '0');
-    }else if(val.mobile && val.mobile.startsWith('233')) {
-        // Remove Bearer from string
-        val.mobile = val.mobile.replace('233', '0');
-    }    
+    // if (val.mobile && val.mobile.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val.mobile = val.mobile.replace('+233', '0');
+    // }else if(val.mobile && val.mobile.startsWith('233')) {
+    //     // Remove Bearer from string
+    //     val.mobile = val.mobile.replace('233', '0');
+    // }    
 
     var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
     var req = unirest('POST', api_endpoint)
@@ -980,10 +982,10 @@ async function postIcareCustomer(val, callback) {
 
 async function fetchIcareCustomer(val, callback) {
     // try {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233', '0');
+    // }
     var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -1016,13 +1018,13 @@ async function fetchIcareCustomer(val, callback) {
 
 async function fetchCustomer(val, callback) {
     // try {
-        if (val && val.startsWith('+233')) {
-            // Remove Bearer from string
-            val = val.replace('+233', '0');
-        }else if(val && val.startsWith('233')) {
-            // Remove Bearer from string
-            val = val.replace('233', '0');
-        }    
+        // if (val && val.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('+233', '0');
+        // }else if(val && val.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('233', '0');
+        // }    
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -1157,10 +1159,10 @@ function capitalizeFirstLetter(string) {
 }
 
 async function fetchCustomerAccounts(val, callback) {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233','0');
-    }
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233','0');
+    // }
     var api_endpoint = apiurl + 'getCustomerAccounts/' + access.code+'/'+access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -1179,25 +1181,25 @@ async function fetchCustomerAccounts(val, callback) {
 }
 
 async function fetchCustomerAccount(val, callback) {
-if (val.mobile && val.mobile.startsWith('+233')) {
-    // Remove Bearer from string
-    val.mobile = val.mobile.replace('+233','0');
-}
-var api_endpoint = apiurl + 'getCustomerAccount/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
-console.log(api_endpoint);
-var request = unirest('GET', api_endpoint)
-.end(async(resp)=> { 
-    if (resp.error) { 
-        // console.log(resp.error);
-        // var response = JSON.parse(res);
-        // return res;
-        await callback(resp);
-    }
-    // console.log(resp.raw_body);
-    var response = JSON.parse(resp.raw_body);
-    
-    await callback(response);
-});
+    // if (val.mobile && val.mobile.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val.mobile = val.mobile.replace('+233','0');
+    // }
+    var api_endpoint = apiurl + 'getCustomerAccount/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            // console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        
+        await callback(response);
+    });
 }
 
 

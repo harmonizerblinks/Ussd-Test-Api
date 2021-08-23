@@ -83,13 +83,13 @@ menu.state('Confirm.officer', {
                 menu.con(`Dear ${data.fullname}, How much would you like to pay?`)
             }else{
                 let mobile = menu.args.phoneNumber;
-                if (mobile && mobile.startsWith('+233')) {
-                    // Remove Bearer from string
-                    mobile = mobile.replace('+233', '0');
-                }else if(mobile && mobile.startsWith('233')) {
-                    // Remove Bearer from string
-                    mobile = mobile.replace('233', '0');
-                }
+                // if (mobile && mobile.startsWith('+233')) {
+                //     // Remove Bearer from string
+                //     mobile = mobile.replace('+233', '0');
+                // }else if(mobile && mobile.startsWith('233')) {
+                //     // Remove Bearer from string
+                //     mobile = mobile.replace('233', '0');
+                // }
                 menu.session.set('mobile', mobile);        
                 await getInfo(mobile, async(data) =>{
                     console.log(data.body)
@@ -151,13 +151,13 @@ menu.state('Register.lastname', {
         menu.session.set('lastname', lastname);    
         var firstname = await menu.session.get('firstname');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }else if(mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }    
+        // if (mobile && mobile.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('+233', '0');
+        // }else if(mobile && mobile.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('233', '0');
+        // }    
         menu.con('Please confirm the registration details below to continue:' +
         '\nFirst Name - ' + firstname +
         '\nLast Name - '+ lastname + 
@@ -176,13 +176,13 @@ menu.state('Register.complete', {
         var lastname = await menu.session.get('lastname');
         var officer = await menu.session.get('officer');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }else if(mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }    
+        // if (mobile && mobile.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('+233', '0');
+        // }else if(mobile && mobile.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('233', '0');
+        // }    
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", referer_code: officer.code
         };
@@ -294,10 +294,10 @@ exports.ussdApp = async(req, res) => {
 
 async function fetchCustomer(val, callback) {
     // try {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233', '0');
+    // }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -351,10 +351,10 @@ async function postCustomer(val, callback) {
 
 async function fetchOfficer(val, callback) {
     // try {
-        if (val && val.startsWith('+233')) {
-            // Remove Bearer from string
-            val = val.replace('+233','0');
-        }
+        // if (val && val.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     val = val.replace('+233','0');
+        // }
         var api_endpoint = apiurl + 'getOfficer/' + access.code + '/'+ access.key + '/'+ val;
         // console.log(api_endpoint);
         var request = unirest('GET', api_endpoint)

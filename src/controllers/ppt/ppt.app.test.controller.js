@@ -9,8 +9,8 @@ let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
-let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+// let apiurl = "http://localhost:5000/Ussd/";
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
 let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 let access = { code: "446785909", key: "164383692" };
@@ -344,6 +344,29 @@ exports.getMemberinfo = async(req, res) => {
     });
 };
 
+exports.getMemberinfos = async(req, res) => {
+
+    var value = { appId: chanel.code, appKey: chanel.code, mobile: req.user.mobile};
+    
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    var api_endpoint = apiurlpms + 'Memberinfo/';
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .send(JSON.stringify(value))
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'User Record not Found' 
+            });
+        }
+        console.log(resp.body);
+        // var response = JSON.parse(resp.raw_body);
+        // response.pin = null;
+        res.send(resp.body);
+    });
+};
+
 // Login user
 exports.login = (req, res) => {
     var val = req.body.mobile;
@@ -384,7 +407,7 @@ exports.login = (req, res) => {
                     scheme: data.accounts[0].code
                 },
             }, config.secret, {
-                expiresIn: 684800
+                expiresIn: '6h'
             });
             console.log(token);
             res.send({ success: true, access_token: token, date: Date.now });
