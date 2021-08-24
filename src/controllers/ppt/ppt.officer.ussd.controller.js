@@ -232,7 +232,7 @@ menu.state('Deposit.send', {
                 // var account = await menu.session.get('account');
                 var network = menu.args.operator;
                 var mobile = menu.args.phoneNumber;
-                var data = { merchant:access.code,account:data.accounts.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid };
+                var data = { merchant:access.code,account:data.accounts.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'AGENT',withdrawal:false,reference:'Deposit', officerid: of.officerid };
                 await postDeposit(data, async(result)=> { 
                     console.log(result) 
                     // menu.end(JSON.stringify(result)); 
