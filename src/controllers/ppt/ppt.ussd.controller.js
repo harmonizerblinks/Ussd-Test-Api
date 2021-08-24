@@ -9,14 +9,14 @@ const regex = /^[a-zA-Z ]*$/;
 
 //Test Credentials
 // let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-// let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
-// let access = { code: "446785909", key: "164383692" };
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
+let access = { code: "446785909", key: "164383692" };
 
 //Live Credentials
-let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
-let access = { code: "PPT", key: "178116723" };
+// let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+// let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
+// let access = { code: "PPT", key: "178116723" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -249,21 +249,12 @@ menu.state('Pay', {
 
 menu.state('Pay.account', {
     run: async() => {
-        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
-        await getSchemeInfo(data, async(data) => {
-            if (data.scheme) {
-                let account = data.scheme
-                menu.session.set('account', account);
-                await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-                    // console.log(1,data);  
-                    if(data.active) {
-                        menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-                    } else {
-                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
-                    }
-                });
+        await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
+            if (data.active && data.accounts) {
+                menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
-                menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                // menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
             }
         })
 },
@@ -505,20 +496,17 @@ menu.state('Icare.complete', {
         // var name = await menu.session.get('name');
         var mobile = await menu.session.get('mobile');
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD"
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD", maritalstatus: "N/A"
         };
+        console.log(data);
         await postCustomer(data, (data) => {
-            if(data.active){
-                menu.con('Choose Option:' +
-                '\n1. Daily' +
-                '\n2. Weekly'+
-                '\n3. Monthly' +
-                '\n4. Only once' + 
-                '\n5. Stop Repeat Payment')
-            }else{
-                menu.end(data.message)
-            }
-            });
+            menu.con('Choose Option:' +
+            '\n1. Daily' +
+            '\n2. Weekly'+
+            '\n3. Monthly' +
+            '\n4. Only once' + 
+            '\n5. Stop Repeat Payment')
+        });
     },
     next: {
         '4': 'Icare.mobile',
@@ -866,7 +854,8 @@ async function postCustomer(val, callback) {
         .end(async(resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                // console.log(resp.error);
+                console.log(resp.error);
+                console.log(resp.raw_body);
                 // return res;
                 await callback(resp);
             }
@@ -874,14 +863,6 @@ async function postCustomer(val, callback) {
             else
             {
             var response = JSON.parse(resp.raw_body);
-            if (response.active) {
-                menu.session.set('name', response.name);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
             await callback(response);
             }
         });
@@ -914,15 +895,8 @@ async function getInfo(val, callback) {
 }
 
 async function getSchemeInfo(val, callback) {
-    // if (val.mobile && val.mobile.startsWith('+233')) {
-    //     // Remove Bearer from string
-    //     val.mobile = val.mobile.replace('+233', '0');
-    // }else if(val.mobile && val.mobile.startsWith('233')) {
-    //     // Remove Bearer from string
-    //     val.mobile = val.mobile.replace('233', '0');
-    // }    
-
     var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
+    console.log(api_endpoint)
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -931,7 +905,8 @@ async function getSchemeInfo(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                // console.log(resp.error);
+                console.log(resp.error);
+                console.log(resp.raw_body);
                 // return res;
                 await callback(resp);
             }

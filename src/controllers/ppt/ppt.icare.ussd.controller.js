@@ -7,12 +7,12 @@ let optionArray = ["", "DAILY", "WEEKLY", "MONTHLY"];
 
 // Test Credentials
 // let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-// let access = { code: "446785909", key: "164383692" };
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let access = { code: "446785909", key: "164383692" };
 
 // Live Credentials
-let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-let access = { code: "PPT", key: "178116723" };
+// let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+// let access = { code: "PPT", key: "178116723" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -452,7 +452,8 @@ menu.state('Deposit.Once', {
 menu.state('Deposit.Registration.Once', {
     run: async() => {
         var mobile = await menu.session.get('mobile');        
-        await filterPersonalSchemeOnly(mobile, (data)=> { 
+        await filterPersonalSchemeOnly(mobile, (data)=> {
+            console.log(data)
             if(data.active && data.accounts) {
                 menu.session.set('account', data)
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
@@ -663,14 +664,6 @@ async function postCustomer(val, callback) {
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            if (response.active) {
-                menu.session.set('name', response.name);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
             await callback(response);
         });
     return true

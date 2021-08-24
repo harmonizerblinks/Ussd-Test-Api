@@ -70,7 +70,7 @@ menu.state('code', {
         await fetchOfficer(referralcode, async(data) => {
             // console.log(data)
             if(data.active) {     
-                menu.con('Dear Customer, please confirm Refferer\'s Details: ' + '\n' + data.name + '\n\n1. Confirm \n0. Back')
+                menu.con('Dear Customer, please confirm Referrer\'s Details: ' + '\n' + data.name + '\n\n1. Confirm \n0. Back')
             }else{
                 menu.end('Dear Customer, your referral code is invalid.')
             }
@@ -85,18 +85,11 @@ menu.state('code', {
 menu.state('Confirm.officer', {
     run: async() => {
         await fetchCustomer(menu.args.phoneNumber, async(data) => {
-            // console.log(1, "First Check Done")
+            menu.session.set('cust', data);
             if(data.active) {     
                 menu.con(`Dear ${data.fullname}, How much would you like to pay?`)
             }else{
                 let mobile = menu.args.phoneNumber;
-                // if (mobile && mobile.startsWith('+233')) {
-                //     // Remove Bearer from string
-                //     mobile = mobile.replace('+233', '0');
-                // }else if(mobile && mobile.startsWith('233')) {
-                //     // Remove Bearer from string
-                //     mobile = mobile.replace('233', '0');
-                // }
                 menu.session.set('mobile', mobile);        
                 await getInfo(mobile, async(data) =>{
                     console.log(data.body)
@@ -195,6 +188,7 @@ menu.state('Register.complete', {
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {
+                menu.session.set('cust', data)
                 menu.con('Dear '+ data.name + ', you have successfully registered for the People\'s Pension Trust' + 
                 '\nHow much would you like to pay?');
             } else {
@@ -220,15 +214,12 @@ menu.state('pay', {
     run: async() => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            menu.con('Choose Option:' +
-            '\n1. Daily' +
-            '\n2. Weekly'+
-            '\n3. Monthly' +
-            '\n4. Only once' + 
-            '\n5. Stop Repeat Payment')
-        })
-
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. Only once' + 
+        '\n5. Stop Repeat Payment')
     },
     next: {
         '4': 'Pay.account',
@@ -321,14 +312,6 @@ async function fetchCustomer(val, callback) {
             }
             // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
-            if (response.active) {
-                menu.session.set('name', response.fullname);
-                menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
 
             await callback(response);
         });
@@ -423,5 +406,30 @@ async function postDeposit(val, callback) {
         var response = JSON.parse(resp.raw_body);
         await callback(response);
     });
+    return true
+}
+
+async function getInfo(val, callback) {
+    var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint)
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                console.log(resp.raw_body);
+                // return res;
+                await callback(resp);
+            }
+            else
+            {// console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+            }
+        });
     return true
 }
