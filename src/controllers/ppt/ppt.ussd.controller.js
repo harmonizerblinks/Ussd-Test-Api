@@ -221,7 +221,7 @@ menu.state('Register.complete', {
         
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
-        var network = menu.args.network;
+        var network = menu.args.operator;
         var amount = await menu.session.get('amount');
         var mobile = menu.args.phoneNumber;
         var data = {
