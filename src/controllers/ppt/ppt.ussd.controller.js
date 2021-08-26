@@ -4,7 +4,7 @@ var unirest = require('unirest');
 let sessions = {};
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-let optionArray = [null, 'DAILY', 'WEEKLY', 'MONTHLY', 'ONE TIME'];
+let optionArray = [null, 'DAILY', 'WEEKLY', 'MONTHLY', null];
 const regex = /^[a-zA-Z]*$/;
 
 //Test Credentials
@@ -213,12 +213,7 @@ menu.state('Register.frequency', {
 
 menu.state('Register.complete', {
     run: async() => {
-        var frequency = optionArray[Number(menu.val)];
-        if (frequency === 'ONE TIME')
-            frequency == null
-        else
-            return true
-        
+        var frequency = optionArray[Number(menu.val)];    
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         var network = menu.args.operator;
@@ -228,8 +223,7 @@ menu.state('Register.complete', {
             firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network
         };
         await postCustomer(data, (data) => {
-            console.log(data.body)
-            if (data.active) {
+            if (data.body.status_code == 1) {
                 menu.end('Request submitted successfully. You will receive a payment prompt shortly')
             } else {
                 menu.end(data.body.status_message || 'Error in creating customer. Please contact the administrator')
