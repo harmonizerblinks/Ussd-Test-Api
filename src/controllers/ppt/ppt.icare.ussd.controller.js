@@ -358,7 +358,7 @@ menu.state('Icare.complete', {
             '\n1. Daily' +
             '\n2. Weekly'+
             '\n3. Monthly' +
-            '\n4. Only once' + 
+            '\n4. One time' + 
             '\n5. Stop Repeat Payment')
         })
 
@@ -384,7 +384,7 @@ menu.state('Icare.options', {
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
-        '\n4. Only once' + 
+        '\n4. One time' + 
         '\n5. Stop Repeat Payment')
     },
     next: {
@@ -410,7 +410,7 @@ menu.state('Icare.frequency', {
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
-        '\n4. Only once' + 
+        '\n4. One time' + 
         '\n5. Stop Repeat Payment')
     },
     next: {
@@ -554,7 +554,7 @@ menu.state('Pay.Option.Amount', {
     // '\n1. Daily' +
     // '\n2. Weekly'+
     // '\n3. Monthly' +
-    // '\n4. Only once' + 
+    // '\n4. One time' + 
     // '\n5. Stop Repeat Payment')
 //     },
 //     next: {

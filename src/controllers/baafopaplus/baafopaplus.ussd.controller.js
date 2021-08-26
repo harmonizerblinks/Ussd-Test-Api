@@ -58,7 +58,7 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active) {     
-                menu.con('Dear '+ data.fullname +', Welcome to Boafo Pa Plus.' + 
+                menu.con('Dear '+ data.fullname +', Welcome to Enterprise Life Boafo Pa.' + 
                 '\nSelect an Option.' + 
                 '\n1. Payment' +
                 '\n2. Check Status' +
@@ -85,7 +85,7 @@ menu.state('Start', {
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
             if(data.active) {     
-                menu.con('Dear '+ data.fullname +', Welcome to Boafo Pa Plus.' + 
+                menu.con('Dear '+ data.fullname +', Welcome to Enterprise Life Boafo Pa.' + 
                 '\nSelect an Option.' + 
                 '\n1. Payment' +
                 '\n2. Check Status' +
@@ -113,10 +113,8 @@ menu.state('Register.Auto', {
         if (mobile == 0) {
             mobile = menu.args.phoneNumber;
             menu.session.set('mobile', mobile);        
-        }else
-        if (mobile.value.match(numbers))
-        {
-            menu.con('Invalid Input. Press # to return to the Main Menu')
+        }else{
+            menu.session.set('mobile', mobile);
         }
         // console.log(mobile)
         await getInfo(mobile, async(data) =>{
@@ -518,7 +516,7 @@ menu.state('Register', {
         menu.con('Enter Phone Number of person:')
     },
     next: {
-        '*\\d+': 'Register.Auto'
+        '*[0-9],{10,}+': 'Register.Auto'
     }
 })
 
@@ -528,7 +526,7 @@ menu.state('Pay', {
         menu.con('Enter Phone Number of person:')
     },
     next: {
-        '*\\d+': 'Payment'
+        '*[0-9],{10,}+': 'Payment'
     }
 })
 

@@ -218,7 +218,7 @@ menu.state('pay', {
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
-        '\n4. Only once' + 
+        '\n4. One time' + 
         '\n5. Stop Repeat Payment')
     },
     next: {

@@ -4,8 +4,8 @@ var unirest = require('unirest');
 let sessions = {};
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-let optionArray = ["", "DAILY", "WEEKLY", "MONTHLY"];
-const regex = /^[a-zA-Z ]*$/;
+let optionArray = [null, 'DAILY', 'WEEKLY', 'MONTHLY', 'ONE TIME'];
+const regex = /^[a-zA-Z]*$/;
 
 //Test Credentials
 // let apiurl = "http://localhost:5000/Ussd/";
@@ -140,7 +140,7 @@ menu.state('Register', {
     },
     next: {
         '0': 'Register.change',
-        '1': 'Register.complete',
+        '1': 'Register.amount',
     }
 });
 
@@ -181,36 +181,61 @@ menu.state('Register.lastname', {
     },
     next: {
         '0': 'Register.change',
-        '1': 'Register.complete',
+        '1': 'Register.amount',
     }
 })
 
-menu.state('Register.complete', {
+menu.state('Register.amount', {
     run: async() => {
         var firstname = await menu.session.get('firstname');
-        var lastname = await menu.session.get('lastname');
-        var icareId = await menu.session.get('icareid');
-        // var mobile = await menu.session.get('mobile');
-        var mobile = menu.args.phoneNumber;
-        var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", icareid: icareId
-        };
-        await postCustomer(data, (data) => {
-            // console.log(data)
-            menu.con('Choose Option:' +
-            '\n1. Daily' +
-            '\n2. Weekly'+
-            '\n3. Monthly' +
-            '\n4. Only once' + 
-            '\n5. Stop Repeat Payment')
-    
-        })
+        menu.con('Dear '+ firstname +', how much would you like to pay?')
+    },
+    next: {
+        '*[0-9]+': 'Register.frequency'
+    }
+});
+
+menu.state('Register.frequency', {
+    run: () => {
+        menu.session.set('amount', menu.val)
+        menu.con('Choose Option:' +
+        '\n1. Daily' +
+        '\n2. Weekly'+
+        '\n3. Monthly' +
+        '\n4. One time')
 
     },
     next: {
-        '4': 'Pay.account',
-        '5': 'Srp',
-        '*[0-3]+': 'Pay.view'
+        '*[0-4]+': 'Register.complete',
+    }
+});
+
+
+menu.state('Register.complete', {
+    run: async() => {
+        var frequency = optionArray[Number(menu.val)];
+        if (frequency === 'ONE TIME')
+            frequency == null
+        else
+            return true
+        
+        var firstname = await menu.session.get('firstname');
+        var lastname = await menu.session.get('lastname');
+        var network = menu.args.network;
+        var amount = await menu.session.get('amount');
+        var mobile = menu.args.phoneNumber;
+        var data = {
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network
+        };
+        await postCustomer(data, (data) => {
+            console.log(data.body)
+            if (data.active) {
+                menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+            } else {
+                menu.end(data.body.status_message || 'Error in creating customer. Please contact the administrator')
+            }
+        })
+
     }
 })
 
@@ -224,21 +249,12 @@ menu.state('Exit', {
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
 menu.state('Pay', {
     run: async() => {
-        const cust_name =await  menu.session.get('name');
-        if(cust_name)
-        {
-            menu.con('Choose Option:' +
+        menu.con('Choose Option:' +
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
-        '\n4. Only once' + 
-        '\n5. Stop Repeat Payment')
-        }
-        else
-        {
-            menu.go('InvalidInput');
-        }
-        
+        '\n4. One time' + 
+        '\n5. Stop Repeat Payment')        
     },
     next: {
         '4': 'Pay.account',
@@ -496,15 +512,14 @@ menu.state('Icare.complete', {
         // var name = await menu.session.get('name');
         var mobile = await menu.session.get('mobile');
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD", maritalstatus: "N/A"
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD"
         };
-        console.log(data);
         await postCustomer(data, (data) => {
             menu.con('Choose Option:' +
             '\n1. Daily' +
             '\n2. Weekly'+
             '\n3. Monthly' +
-            '\n4. Only once' + 
+            '\n4. One time' + 
             '\n5. Stop Repeat Payment')
         });
     },
@@ -543,7 +558,7 @@ menu.state('Icare.options', {
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
-        '\n4. Only once' + 
+        '\n4. One time' + 
         '\n5. Stop Repeat Payment')
     },
     next: {
