@@ -118,7 +118,7 @@ menu.state('Register', {
             // console.log(data.body)
             if(data.lastname && data.lastname == null){
                 var name = data.firstname;
-                var nameArray = name.split(" ")
+                var nameArray = name.split(" ");
                 var firstname = capitalizeFirstLetter(nameArray[0]);
                 var lastname = capitalizeFirstLetter(nameArray[1]);
                 menu.session.set('firstname', firstname)
@@ -261,6 +261,8 @@ menu.state('Pay.account', {
     run: async() => {
         await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
             if (data.active && data.accounts) {
+                console.log(data.accounts)
+                menu.session.set('account', data.accounts);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
                 menu.con('Mobile Number not Registered. Enter (0) to Continue');
@@ -347,7 +349,7 @@ menu.state('Pay.Option.Complete', {
         var paymentoption = await menu.session.get('paymentoption');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.schemenumber, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
+        var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
         // console.log(data);
         await postAutoDeposit(data, async(data) => {
 
@@ -376,7 +378,7 @@ menu.state('Pay.send', {
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.schemenumber,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
         }); 
