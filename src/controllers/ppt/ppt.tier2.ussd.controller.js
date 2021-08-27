@@ -108,7 +108,7 @@ menu.state('Tier2.end', {
         //     // Remove Bearer from string
         //     mobile = mobile.replace('233', '0');
         // }    
-        var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Tier 2 payment for ' + name};
+        var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'Tier2', withdrawal:false, reference:'Tier 2 payment for ' + name};
         console.log(data) 
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
