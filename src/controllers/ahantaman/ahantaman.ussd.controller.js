@@ -481,7 +481,7 @@ menu.state('Withdrawal.confirm', {
 menu.state('Withdrawal.cancel', {
     run: () => {
         // Cancel Withdrawal request
-        menu.end('Thank you for using People Pension Trust.');
+        menu.end('Thank you for using Ahantaman Rural Bank.');
     }
 });
 
