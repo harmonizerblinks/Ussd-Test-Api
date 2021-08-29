@@ -1080,6 +1080,29 @@ async function postAutoDeposit(val, callback) {
     return true
 }
 
+async function stopAutoDeposit(val, callback) {
+    var api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
+    var req = unirest('DELETE', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        // if (resp.error) throw new Error(resp.error); 
+        // console.log(resp.raw_body);      
+        if(resp.error)
+        {
+            await callback(resp);
+        }
+        else
+        {
+        var response = JSON.parse(resp.raw_body);
+        await callback(response);
+        }
+    });
+    return true
+}
+
 async function postDeposit(val, callback) {
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
@@ -1208,7 +1231,6 @@ async function fetchCustomerAccount(val, callback) {
         }
     });
 }
-
 
 
 async function filterPersonalSchemeOnly(val, callback) {
