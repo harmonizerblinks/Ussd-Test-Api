@@ -376,7 +376,7 @@ exports.login = (req, res) => {
                     scheme: data.accounts[0].code
                 },
             }, config.secret, {
-                expiresIn: 684800
+                expiresIn: '2h'
             });
             console.log(token);
             res.send({ success: true, access_token: token, date: Date.now });

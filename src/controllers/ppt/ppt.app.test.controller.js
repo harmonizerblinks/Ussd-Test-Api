@@ -32,14 +32,15 @@ exports.Register = async(req, res) => {
         'Content-Type': 'application/json'
     })
     .send(JSON.stringify(value))
-    .end(function (resp) { 
+    .end((resp)=> { 
         if (resp.error) {
             console.log(resp.error)
+            console.log(resp.raw_body)
             res.status(404).send({
                 message: resp.error
             }); 
         }
-        // console.log(res.raw_body);
+        console.log(res.raw_body);
         res.send(res.raw_body);
     });
 };
@@ -110,6 +111,26 @@ exports.addBeneficiary = async(req, res) => {
 exports.getinfo = (req, res) => {
     console.log('getinfo');
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key+ '/' + req.params.mobile;
+    var req = unirest('GET', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    .end(function (res) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+};
+
+exports.getIcare = (req, res) => {
+    console.log('geticare');
+    var api_endpoint = apiurl + 'getIIcare/Account/' + access.code + '/' + access.key+ '/' + req.params.mobile;
     var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -207,7 +228,7 @@ exports.verifyOtp = async(req, res) => {
 exports.setPassword = async(req, res) => {
     var mobile = req.body.mobile;
     console.log(mobile);
-    if (mobile && mobile.startsWith('+')){ mobile = mobile.replace('+', ''); } 
+    // if (mobile && mobile.startsWith('+')){ mobile = mobile.replace('+', ''); } 
     console.log(mobile);
     const newpin = bcrypt.hashSync(req.body.newpin, 10);
     if (mobile == null || req.body.newpin == null) {
@@ -215,24 +236,26 @@ exports.setPassword = async(req, res) => {
             message: "Mobile Number and Pin is Required"
         });; 
     }
-    var value = { type: 'Customer', mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
     console.log(api_endpoint)
-    var req = unirest('POST', api_endpoint)
+    var request = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
         .send(JSON.stringify(value))
         .end( async(resp)=> { 
-            if (resp.error) {
-                console.log(resp.error);
-                return res.status(500).send({
-                    message: "Error updating user Pin "
-                });; 
-            }
+            // if (resp.error) {
+            //     console.log(resp.raw_body);
+            //     return res.status(500).send({
+            //         message: "Error updating user Pin "
+            //     });; 
+            // }
             console.log(resp.raw_body);
-            console.log(resp);
-            if (resp.raw_body.code != 1) {
+            var response = JSON.parse(resp.raw_body);
+            console.log(response, response.code);
+            if (response.code != 1) {
                 return res.status(500).send({
                     message: "Error While Setting User Pin"
                 });; 
@@ -241,6 +264,42 @@ exports.setPassword = async(req, res) => {
                 message: "Password Set successfully"
             });
         });
+};
+
+exports.getMember = async(req, res) => {
+    var val = req.params.mobile;
+    // if (val && val.startsWith('+233')) {
+    //     val = val.replace('+233', '0');
+    // }else if(val && val.startsWith('233')) {
+    //     val = val.replace('233', '0');
+    // }
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Mobile Number does not Exist', error: resp 
+            });
+        }
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        if (response.active && response.pin != null) {
+            res.send({
+                success: true, register: true, pin: true
+            });
+        } else if (response.active && response.pin == null) {
+            res.send({
+                success: true, register: true, pin: false
+            });
+        } else {
+            res.send({
+                success: false, register: false, pin: false
+            });
+        }
+    });
 };
 
 exports.getMember = async(req, res) => {
@@ -407,7 +466,7 @@ exports.login = (req, res) => {
                     scheme: data.accounts[0].code
                 },
             }, config.secret, {
-                expiresIn: '6h'
+                expiresIn: '3h'
             });
             console.log(token);
             res.send({ success: true, access_token: token, date: Date.now });
