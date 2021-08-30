@@ -25,12 +25,15 @@ module.exports = function(app) {
 
     // Retrieve user Detail
     app.get('/test/getMember/:mobile', apps.getMember);
+    app.get('/test/getMember/Personal/:mobile', apps.getMemberPersonal);
     app.get('/test/getinfo/:mobile', apps.getinfo);
     app.get('/test/getOccupations', verify.verifyToken, apps.getOccupations);
     app.get('/test/getRegions', verify.verifyToken, apps.getRegions);
     app.get('/test/getIdType', verify.verifyToken, apps.getIdType);
     app.get('/test/getMemberinfo', verify.verifyToken, apps.getMemberinfo);
     app.get('/test/getScheme/:scheme', verify.verifyToken, apps.getScheme);
+    app.get('/test/getIcareAccounts', verify.verifyToken, apps.getIcareAccounts);
+    app.post('/test/postIcare', verify.verifyToken, apps.RegisterIcare);
     // app.get('/app/getSchemeinfo/:scheme', verify.verifyToken, apps.getSchemeinfo);
     app.get('/test/getSchemeinfo/:scheme', apps.getSchemeinfo);
     app.get('/test/getMiniStatement/:scheme', verify.verifyToken, apps.getMemberinfo);

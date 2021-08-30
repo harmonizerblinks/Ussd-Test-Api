@@ -184,7 +184,7 @@ menu.state('Register.complete', {
         //     mobile = mobile.replace('233', '0');
         // }    
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", referer_code: officer.code
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "N/A", gender: 'N/A', source: "USSD", referer_code: officer.code
         };
         await postCustomer(data, (data) => {
             if(data.schemenumber) {

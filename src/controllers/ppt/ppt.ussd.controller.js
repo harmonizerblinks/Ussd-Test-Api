@@ -116,7 +116,7 @@ menu.state('Register', {
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
             // console.log(data.body)
-            if(data.lastname && data.lastname == null){
+            if(data.firstname && data.lastname == null){
                 var name = data.firstname;
                 var nameArray = name.split(" ");
                 var firstname = capitalizeFirstLetter(nameArray[0]);
@@ -220,7 +220,7 @@ menu.state('Register.complete', {
         var amount = await menu.session.get('amount');
         var mobile = menu.args.phoneNumber;
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network, payermobile: mobile
         };
         await postCustomer(data, (data) => {
             if (data.body.status_code == 1) {
@@ -633,8 +633,25 @@ menu.state('Deposit.cancel', {
 });
 
 menu.state('Srp', {
-    run: () => {
-        menu.end('You have successfully cancelled your Repeat Payments')
+    run: async() => {
+        let mobile = menu.args.phoneNumber;
+        await filterPersonalSchemeOnly(mobile, async(data)=> { 
+            if(data.active && data.accounts) {
+                console.log(data);
+                let val={account:data.accounts.code,network:menu.args.operator,mobile:menu.args.phoneNumber, source:'USSD' };
+                await stopAutoDeposit(val, (result)=>{
+                    if(result.code) {
+                        menu.end('You have successfully cancelled your Repeat Payments');
+                    } else {
+                        menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                    }
+                });
+            } else if(data.active && data.accounts == null) {
+                menu.end('Mobile Number does not have a Personal Pension Scheme.')
+            } else {
+                menu.end('Mobile Number not Registered. Enter (0) to Continue');
+            }
+        });
     }
 });
 
@@ -1092,7 +1109,8 @@ async function stopAutoDeposit(val, callback) {
         // console.log(resp.raw_body);      
         if(resp.error)
         {
-            await callback(resp);
+            var respons = JSON.parse(resp.raw_body);
+            await callback(respons);
         }
         else
         {
