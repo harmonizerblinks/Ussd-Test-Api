@@ -50,7 +50,7 @@ module.exports = function(app) {
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
     app.post('/leader', ppt.ussdApp);
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
-    app.post('/', kamcu.ussdApp);
+    app.post('/', schoolbilling.ussdApp);
 
     app.post('/benin', benin.ussdApp);
 
