@@ -397,7 +397,7 @@ menu.state('Icare.options', {
     next: {
         '4': 'Icare.options.mobile',
         '5': 'Srp',
-        '*[0-3]+': 'Pay.view'
+        '*[0-3]+': 'Icare.Pay.For'
     }
 })
 
@@ -437,6 +437,23 @@ menu.state('Icare.mobile', {
     }
 })
 
+menu.state('Icare.Pay.For', {
+    run: () => {
+        var index = Number(menu.val);
+        if (index > 3) {
+            menu.con('Incorrect Selection. Enter zero(0) to retry again')
+        } else {
+            var option = optionArray[index];
+            menu.session.set('paymentoption', option);
+            menu.con('Enter Mobile Number of Person')
+        }
+    },
+    next: {
+        '*\\d+': 'Icare.Pay.For.AutoDebit',
+        '0': 'Start'
+    }
+})
+
 menu.state('Deposit.Once', {
     run: async() => {
         let mobile = await menu.session.get('mobile');
@@ -460,7 +477,6 @@ menu.state('Deposit.Registration.Once', {
     run: async() => {
         var mobile = await menu.session.get('mobile');        
         await filterPersonalSchemeOnly(mobile, (data)=> {
-            console.log(data)
             if(data.active && data.accounts) {
                 menu.session.set('account', data)
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
@@ -498,6 +514,25 @@ menu.state('Deposit', {
     }
 });
 
+menu.state('Icare.Pay.For.AutoDebit', {
+    run: async() => {
+        var mobile = menu.val
+        await filterPersonalSchemeOnly(mobile, async(data) => {
+            // console.log(data)
+            if (data.active){
+                menu.session.set('moblie', mobile);
+                menu.session.set('account', data);
+                menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
+            }else{
+                menu.end('Dear Customer, you do not have a scheme number')
+            }
+        });
+    },
+    next: {
+        '*\\d+': 'Pay.Option.Amount',
+    }
+});
+
 menu.state('Pay.view', {
     run: async() => {
     var index = Number(menu.val);
@@ -505,12 +540,12 @@ menu.state('Pay.view', {
             menu.con('Incorrect Selection. Enter zero(0) to retry again')
         } else {
             var option = optionArray[index];
+            var mobile = menu.args.phoneNumber ? await menu.session.get('mobile') : menu.args.phoneNumber;
             menu.session.set('paymentoption', option);
-            await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
+            await filterPersonalSchemeOnly(mobile, async(data) => {
                 if (data.active){
                     menu.session.set('account', data);
-                    let name = await menu.session.get('name')
-                    menu.con(`Dear ${name}, How much would you like to pay?`)        
+                    menu.con(`Dear ${data.fullname}, How much would you like to pay?`)        
                 }else{
                     menu.end('Dear Customer, you do not have a scheme number')
                 }
