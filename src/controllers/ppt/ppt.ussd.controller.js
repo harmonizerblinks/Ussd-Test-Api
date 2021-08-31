@@ -303,7 +303,7 @@ menu.state('Pay.view', {
                 } else {
                     menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
                 }
-                })
+            });
         }
     },
     next: {
@@ -576,7 +576,14 @@ menu.state('Icare.Deposit', {
 
 menu.state('Icare.Deposit.mobile', {
     run: async() => {
-            var mobile = menu.val;  
+            var mobile = menu.val;
+            if (mobile && mobile.startsWith('0')) {
+                // Remove Bearer from string
+                mobile = '+233' + mobile.substr(1);
+            }else if(mobile && mobile.startsWith('233')) {
+                // Remove Bearer from string
+                mobile = '+233' + mobile.substr(3);
+            }
             await filterPersonalSchemeOnly(mobile, (data)=> { 
                 if(data.active && data.accounts) {
                     menu.session.set('account', data)
@@ -638,7 +645,7 @@ menu.state('Srp', {
         await filterPersonalSchemeOnly(mobile, async(data)=> { 
             if(data.active && data.accounts) {
                 console.log(data);
-                let val={account:data.accounts.code,network:menu.args.operator,mobile:menu.args.phoneNumber, source:'USSD' };
+                let val={account:data.accounts.code,mobile:menu.args.phoneNumber, source:'USSD' };
                 await stopAutoDeposit(val, (result)=>{
                     if(result.code) {
                         menu.end('You have successfully cancelled your Repeat Payments');

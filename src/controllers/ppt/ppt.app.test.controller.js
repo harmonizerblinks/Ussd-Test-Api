@@ -72,7 +72,7 @@ exports.RegisterIcare = async(req, res) => {
 
 exports.getIcare = (req, res) => {
     console.log('geticare');
-    var api_endpoint = apiurl + 'getIIcare/Accounts/' + access.code + '/' + access.key+ '/' + req.user.mobile;
+    var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key+ '/' + req.user.mobile;
     var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -92,7 +92,8 @@ exports.getIcare = (req, res) => {
 
 exports.getIcareAccounts = (req, res) => {
     console.log('geticare');
-    var api_endpoint = apiurl + 'getIIcare/Accounts/' + access.code + '/' + access.key+ '/' + req.user.mobile;
+    var api_endpoint = apiurl + 'getIcare/Accounts/' + access.code + '/' + access.key+ '/' + req.user.mobile;
+    console.log(api_endpoint)
     var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'

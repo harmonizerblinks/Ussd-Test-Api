@@ -258,6 +258,13 @@ menu.state('Icare.register', {
 menu.state('Icare.next', {
     run: async() => {
         let mobile = menu.val;
+        if (mobile && mobile.startsWith('0')) {
+            // Remove Bearer from string
+            mobile = '+233' + mobile.substr(1);
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = '+233' + mobile.substr(3);
+        }
         // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
@@ -317,13 +324,13 @@ menu.state('Icare.lastname', {
             menu.session.set('lastname', lastname);
             var firstname = await menu.session.get('firstname');
             var mobile = await menu.session.get('mobile');
-            if (mobile && mobile.startsWith('+233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('+233', '0');
-            }else if(mobile && mobile.startsWith('233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('233', '0');
-            }       
+            // if (mobile && mobile.startsWith('+233')) {
+            //     // Remove Bearer from string
+            //     mobile = mobile.replace('+233', '0');
+            // }else if(mobile && mobile.startsWith('233')) {
+            //     // Remove Bearer from string
+            //     mobile = mobile.replace('233', '0');
+            // }       
             menu.con('Please confirm the registration details below to continue:' +
             '\nFirst Name - ' + firstname +
             '\nLast Name - '+ lastname + 
@@ -343,13 +350,13 @@ menu.state('Icare.complete', {
         var lastname = await menu.session.get('lastname');
         var icareId = await menu.session.get('icareid');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        }else if(mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }    
+        // if (mobile && mobile.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('+233', '0');
+        // }else if(mobile && mobile.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('233', '0');
+        // }    
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD", icareid: icareId
         };
