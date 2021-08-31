@@ -558,23 +558,22 @@ menu.state('Icare.options', {
         '\n5. Stop Repeat Payment')
     },
     next: {
-        '4': 'Icare.Deposit',
+        // '4': 'Icare.Deposit',
         '5': 'Srp',
-        '*[0-3]+': 'Pay.view'
+        '*[0-4]+': 'Icare.view'
     }
 })
 
-
-menu.state('Icare.Deposit', {
+menu.state('Icare.deposit', {
     run: () => {
         menu.con('Enter Mobile Number of Person')
     },
     next: {
-        '*[0-9]{10,}': 'Icare.Deposit.mobile'
+        '*[0-9]{10,}': 'Icare.deposit'
     }
 })
 
-menu.state('Icare.Deposit.mobile', {
+menu.state('Icare.deposit.mobile', {
     run: async() => {
             var mobile = menu.val;
             if (mobile && mobile.startsWith('0')) {
@@ -584,10 +583,17 @@ menu.state('Icare.Deposit.mobile', {
                 // Remove Bearer from string
                 mobile = '+233' + mobile.substr(3);
             }
+            menu.session.set('mobile', data)
             await filterPersonalSchemeOnly(mobile, (data)=> { 
                 if(data.active && data.accounts) {
                     menu.session.set('account', data)
-                    menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+                    menu.con('Choose Option:' +
+                    '\n1. Daily' +
+                    '\n2. Weekly'+
+                    '\n3. Monthly' +
+                    '\n4. One time' + 
+                    '\n5. Stop Repeat Payment');
+                    // menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                 } else if(data.active && data.accounts == null) {
                     menu.con('Mobile Number does not have a Personal Pension Scheme.')
                 } else {
@@ -600,6 +606,38 @@ menu.state('Icare.Deposit.mobile', {
         '*\\d+': 'Deposit.view'
     }
 });
+
+menu.state('Icare.view', {
+    run: async() => {
+    var index = Number(menu.val);
+        if (index > 3) {
+            menu.end('Incorrect Selection. Enter zero(0) to retry again')
+        } else {
+            var option = optionArray[index];
+            // console.log(option);
+            menu.session.set('paymentoption', option);
+            var mobile = await menu.session.get('mobile');
+            // let account = await filterPersonalSchemeOnly(accounts);
+            // menu.session.set('account', account);
+            var data = {appId: access.code, appKey: access.key, mobile: mobile}
+            await filterPersonalSchemeOnly(data, async(data) => {
+                if (data.accounts) {
+                    let account = data.accounts
+                    menu.session.set('account', account);
+                        // console.log(1,data);
+                    menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+                } else {
+                    menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
+                }
+            });
+        }
+    },
+    next: {
+        '0': 'Pay',
+        '*\\d+': 'Pay.Option.Amount',
+    }
+});
+
 
 menu.state('Deposit.view', {
     run: async() => {

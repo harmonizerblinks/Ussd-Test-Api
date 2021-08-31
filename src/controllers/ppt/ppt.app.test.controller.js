@@ -351,14 +351,16 @@ exports.getMember = async(req, res) => {
 };
 
 exports.getMemberPersonal = async(req, res) => {
-    var val = req.params.mobile;
-    // if (val && val.startsWith('+233')) {
-    //     val = val.replace('+233', '0');
-    // }else if(val && val.startsWith('233')) {
-    //     val = val.replace('233', '0');
-    // }
+    var mobile = req.params.mobile;
+    if (mobile && mobile.startsWith('0')) {
+        // Remove Bearer from string
+        mobile = '+233' + mobile.substr(1);
+    }else if(mobile && mobile.startsWith('233')) {
+        // Remove Bearer from string
+        mobile = '+233' + mobile.substr(3);
+    }
     // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
-    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + mobile;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
@@ -653,38 +655,58 @@ exports.Deposit = (req, res) => {
     var val = req.body;
     // var method = "";
     if(val.method == "CARD") {
-        res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
-    }
-    
-    var value = { account:val.account,type:'Deposit',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
-
-    var api_endpoint = apiurl;
-    if(val.frequency != "OneTime") {
-        api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
-    } else {
-        api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
-    }
-    console.log(api_endpoint);
-    var req = unirest('POST', api_endpoint)
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify(value))
-    .end( async(resp)=> { 
-        if (resp.error) { 
+        console.log('getstatement');
+        var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+        console.log(api_endpoint);
+        var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+        .end((resp)=> { 
+            if (resp.error) {
+                res.status(500).send({
+                    message: resp.error
+                });
+                // throw new Error(res.error); 
+            }
             console.log(resp.raw_body);
-            var respon = JSON.parse(resp.raw_body);
-            // if (response.error) throw new Error(response.error);
-            return res.status(500).send({
-                message: respon.message || "Unable to proccess Payment at the moment"
-            });
+            var response = JSON.parse(resp.raw_body);
+            res.send(response);
+        });
+        res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
+    } else {
+        
+        var value = { account:val.account,type:'Deposit',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
+
+        var api_endpoint = apiurl;
+        if(val.frequency != "OneTime") {
+            api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
+        } else {
+            api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
         }
-        // if (res.error) throw new Error(res.error);
-        console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        // await callback(response);
-        res.send({ output: 'Payment Request Sent', message: response.message });
-    });
+        console.log(api_endpoint);
+        var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(value))
+        .end( async(resp)=> { 
+            if (resp.error) { 
+                console.log(resp.raw_body);
+                var respon = JSON.parse(resp.raw_body);
+                // if (response.error) throw new Error(response.error);
+                return res.status(500).send({
+                    message: respon.message || "Unable to proccess Payment at the moment"
+                });
+            }
+            // if (res.error) throw new Error(res.error);
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            // await callback(response);
+            res.send({ output: 'Payment Request Sent', message: response.message });
+        });
+    }
 };
 
 exports.Withdrawal = (req, res) => {
