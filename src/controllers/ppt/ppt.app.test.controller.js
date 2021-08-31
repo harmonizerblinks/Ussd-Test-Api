@@ -196,11 +196,13 @@ exports.getinfo = (req, res) => {
 
 exports.agentinfo = (req, res) => {
     console.log('agentinfo');
-    var req = unirest('POST', apiUrl + 'agentinfo')
+    var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key+ '/' + req.params.mobile;
+    console.log(api_endpoint);
+    var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber}))
     .end(function (res) { 
         if (resp.error) {
             res.status(500).send({
