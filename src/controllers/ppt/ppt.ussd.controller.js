@@ -405,7 +405,7 @@ menu.state('Icare', {
     },
     next: {
         '1': 'Icare.register',
-        '2': 'Icare.options',
+        '2': 'Icare.PayForSomeone',
     }
 });
 
@@ -550,6 +550,10 @@ menu.state('Icare.mobile', {
 
 menu.state('Icare.options', {
     run: () => {
+        
+        var phone_number = menu.val;
+        menu.session.set('icare_phone_number', phone_number)
+
         menu.con('Choose Option:' +
         '\n1. Daily' +
         '\n2. Weekly'+
@@ -560,7 +564,16 @@ menu.state('Icare.options', {
     next: {
         // '4': 'Icare.Deposit',
         '5': 'Srp',
-        '*[0-4]+': 'Icare.view'
+        '*[1-4]+': 'Icare.view'
+    }
+})
+
+menu.state('Icare.PayForSomeone', {
+    run: () => {
+        menu.con('Please enter the phone number\nof who you want to pay for');
+    },
+    next: {
+        '*[0-9]+': 'Icare.options'
     }
 })
 
@@ -610,13 +623,13 @@ menu.state('Icare.deposit.mobile', {
 menu.state('Icare.view', {
     run: async() => {
     var index = Number(menu.val);
-        if (index > 3) {
-            menu.end('Incorrect Selection. Enter zero(0) to retry again')
+        if (index > 4) {
+            menu.end('Incorrect Selection')
         } else {
             var option = optionArray[index];
             // console.log(option);
             menu.session.set('paymentoption', option);
-            var mobile = await menu.session.get('mobile');
+            var mobile = await menu.session.get('icare_phone_number');
             // let account = await filterPersonalSchemeOnly(accounts);
             // menu.session.set('account', account);
             var data = {appId: access.code, appKey: access.key, mobile: mobile}
@@ -627,13 +640,13 @@ menu.state('Icare.view', {
                         // console.log(1,data);
                     menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                 } else {
-                    menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
+                    menu.con('Dear Customer, this number has not been registered. Enter (0) to Continue')
                 }
             });
         }
     },
     next: {
-        '0': 'Pay',
+        '0': 'Icare.PayForSomeone',
         '*\\d+': 'Pay.Option.Amount',
     }
 });
@@ -1297,22 +1310,27 @@ async function fetchCustomerAccount(val, callback) {
 
 
 async function filterPersonalSchemeOnly(val, callback) {
-    if (val && val.startsWith('0')) {
+    // console.log(val)
+    if (val && val.mobile && val.mobile.startsWith('0')) {
         // Remove Bearer from string
-        val = '+233' + val.substr(1);
+        val.mobile = '+233' + val.mobile.substr(1);
     }
-    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint);
+    // console.log(val.mobile);
+    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val.mobile;
+    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
+            // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
             await callback(resp);
         }
-        // console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        else
+        {
+            // console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            await callback(response);
+        }
     });
 }
