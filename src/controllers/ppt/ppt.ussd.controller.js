@@ -568,51 +568,51 @@ menu.state('Icare.options', {
     }
 })
 
-menu.state('Icare.PayForSomeone', {
-    run: () => {
-        menu.con('Please enter the phone number\nof who you want to pay for');
-    },
-    next: {
-        '*[0-9]+': 'Icare.options'
-    }
-})
+// menu.state('Icare.PayForSomeone', {
+//     run: () => {
+//         menu.con('Please enter the phone number\nof who you want to pay for');
+//     },
+//     next: {
+//         '*[0-9]+': 'Icare.options'
+//     }
+// })
 
 menu.state('Icare.deposit', {
     run: () => {
-        menu.con('Enter Mobile Number of Person')
+        menu.con('Enter Mobile Number of Person');
     },
     next: {
-        '*[0-9]{10,}': 'Icare.deposit'
+        '*[0-9]{10,}': 'Icare.deposit.mobile'
     }
 })
 
 menu.state('Icare.deposit.mobile', {
     run: async() => {
-            var mobile = menu.val;
-            if (mobile && mobile.startsWith('0')) {
-                // Remove Bearer from string
-                mobile = '+233' + mobile.substr(1);
-            }else if(mobile && mobile.startsWith('233')) {
-                // Remove Bearer from string
-                mobile = '+233' + mobile.substr(3);
+        var mobile = menu.val;
+        if (mobile && mobile.startsWith('0')) {
+            // Remove Bearer from string
+            mobile = '+233' + mobile.substr(1);
+        }else if(mobile && mobile.startsWith('233')) {
+            // Remove Bearer from string
+            mobile = '+233' + mobile.substr(3);
+        }
+        menu.session.set('mobile', data);
+        await filterPersonalSchemeOnly(mobile, (data)=> { 
+            if(data.active && data.accounts) {
+                menu.session.set('account', data)
+                menu.con('Choose Option:' +
+                '\n1. Daily' +
+                '\n2. Weekly'+
+                '\n3. Monthly' +
+                '\n4. One time' + 
+                '\n5. Stop Repeat Payment');
+                // menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
+            } else if(data.active && data.accounts == null) {
+                menu.con('Mobile Number does not have a Personal Pension Scheme.');
+            } else {
+                menu.con('Mobile Number not Registered. Enter (0) to Continue');
             }
-            menu.session.set('mobile', data)
-            await filterPersonalSchemeOnly(mobile, (data)=> { 
-                if(data.active && data.accounts) {
-                    menu.session.set('account', data)
-                    menu.con('Choose Option:' +
-                    '\n1. Daily' +
-                    '\n2. Weekly'+
-                    '\n3. Monthly' +
-                    '\n4. One time' + 
-                    '\n5. Stop Repeat Payment');
-                    // menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-                } else if(data.active && data.accounts == null) {
-                    menu.con('Mobile Number does not have a Personal Pension Scheme.')
-                } else {
-                    menu.con('Mobile Number not Registered. Enter (0) to Continue');
-                }
-            });
+        });
     },
     next: {
         '0': 'Start',

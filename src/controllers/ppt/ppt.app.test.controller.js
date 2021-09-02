@@ -177,12 +177,13 @@ exports.addBeneficiary = async(req, res) => {
 exports.getinfo = (req, res) => {
     console.log('getinfo');
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key+ '/' + req.params.mobile;
+    console.log()
     var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
-    .end(function (res) { 
+    .end(function (resp) { 
         if (resp.error) {
             res.status(500).send({
                 message: resp.error
@@ -190,7 +191,7 @@ exports.getinfo = (req, res) => {
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(res.raw_body);
+        res.send(resp.raw_body);
     });
 };
 
@@ -203,7 +204,7 @@ exports.agentinfo = (req, res) => {
         'Content-Type': 'application/json'
     })
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber}))
-    .end(function (res) { 
+    .end(function (resp) { 
         if (resp.error) {
             res.status(500).send({
                 message: resp.error
@@ -211,7 +212,7 @@ exports.agentinfo = (req, res) => {
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(res.raw_body);
+        res.send(resp.raw_body);
     });
 };
 
@@ -431,21 +432,22 @@ exports.getMemberinfo = async(req, res) => {
     //     // Remove Bearer from string
     //     val = val.replace('233', '0');
     // }
-    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'Memberinfo/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
             console.log(resp.error);
+            console.log(resp.raw_body);
             res.status(500).send({ 
                 success: false, register: false, message: 'User Record not Found' 
             });
         }
-        console.log(resp.body);
+        console.log(resp.raw_body);
         // var response = JSON.parse(resp.raw_body);
         // response.pin = null;
-        res.send(resp.body);
+        res.send(resp.raw_body);
     });
 };
 
@@ -631,7 +633,7 @@ exports.getStatement = (req, res) => {
     console.log('getstatement');
     var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
     console.log(api_endpoint);
-    var req = unirest('GET', api_endpoint)
+    var request = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
@@ -656,31 +658,35 @@ exports.Deposit = (req, res) => {
     // var method = "";
     if(val.method == "CARD") {
         console.log('getstatement');
-        var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+        var api_endpoint = apiurl + 'Deposit/Card/'+access.code+'/'+access.key;        
         console.log(api_endpoint);
-        var req = unirest('GET', api_endpoint)
+        var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
-        // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
-        .end((resp)=> { 
-            if (resp.error) {
-                res.status(500).send({
-                    message: resp.error
+        .send(JSON.stringify(val))
+        .end( async(resp)=> { 
+            if (resp.error) { 
+                console.log(resp.raw_body);
+                var respon = JSON.parse(resp.raw_body);
+                // if (response.error) throw new Error(response.error);
+                return res.status(500).send({
+                    message: respon.message || "Unable to proccess Payment at the moment"
                 });
-                // throw new Error(res.error); 
             }
+            // if (res.error) throw new Error(res.error);
             console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            res.send(response);
+            // await callback(response);
+            res.send({ output: 'Success', message: response.message });
         });
-        res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
+        // res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
     } else {
         
-        var value = { account:val.account,type:'Deposit',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
+        var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
 
         var api_endpoint = apiurl;
-        if(val.frequency != "OneTime") {
+        if(val.frequency != "OneTime" && val.network ==="MTN") {
             api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
         } else {
             api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
