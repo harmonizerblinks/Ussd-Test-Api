@@ -287,19 +287,19 @@ menu.state('Pay.view', {
             // var accounts = await menu.session.get('accounts');
             // let account = await filterPersonalSchemeOnly(accounts);
             // menu.session.set('account', account);
-            var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
-            await getSchemeInfo(data, async(data) => {
-                if (data.scheme) {
-                    let account = data.scheme
+            // var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+            await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
+                if (data.accounts) {
+                    let account = data.accounts
                     menu.session.set('account', account);
-                    await fetchCustomer(menu.args.phoneNumber, (data)=> { 
+                    // await fetchCustomer(menu.args.phoneNumber, (data)=> { 
                         // console.log(1,data);  
                         if(data.active) {
                             menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                         } else {
                             menu.con('Mobile Number not Registered. Enter (0) to Continue');
                         }
-                    });
+                    // });
                 } else {
                     menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
                 }
@@ -629,11 +629,9 @@ menu.state('Icare.view', {
             var option = optionArray[index];
             // console.log(option);
             menu.session.set('paymentoption', option);
-            var mobile = await menu.session.get('icare_phone_number');
-            // let account = await filterPersonalSchemeOnly(accounts);
-            // menu.session.set('account', account);
-            var data = {appId: access.code, appKey: access.key, mobile: mobile}
-            await filterPersonalSchemeOnly(data, async(data) => {
+            var mobile = await menu.session.get('mobile');
+            // var data = {appId: access.code, appKey: access.key, mobile: mobile}
+            await filterPersonalSchemeOnly(mobile, async(data) => {
                 if (data.accounts) {
                     let account = data.accounts
                     menu.session.set('account', account);
@@ -719,11 +717,11 @@ menu.state('Srp', {
 
 menu.state('CheckBalance',{
     run: async() => {
-        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
-        await getSchemeInfo(data, async(data) => {
-            if (data.scheme) {
-                let account = {code: data.scheme.schemenumber}
-                menu.session.set('account', account);
+        // var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+        await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
+            if (data.accounts) {
+                // let account = {code: data.accounts.code}
+                menu.session.set('account', data.accounts);
                 await fetchBalance(account.code, async(result)=> { 
                     // console.log(result) 
                     if(result.balance != null) { account.balance = result.balance; }
@@ -747,12 +745,12 @@ menu.state('CheckBalance',{
 
 menu.state('Withdrawal',{
     run: async() => {
-        var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
-        await getSchemeInfo(data, async(data) => {
+        // var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
+        await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
             // console.log(data);
-            if (data.scheme) {
-                let account = {user: data, code: data.scheme.schemenumber}
-                menu.session.set('account', account);
+            if (data.accounts) {
+                // let account = {user: data, code: data.scheme.schemenumber}
+                menu.session.set('account', data.accounts);
                 await fetchBalance(account.code, async(result)=> { 
                     // console.log(result) 
                     if(result.savings > 0) {
@@ -918,11 +916,11 @@ exports.ussdApp = async(req, res) => {
     // });
 };
 
-async function filterPersonalSchemeOnly(accounts) {
-    return accounts.find(obj => {
-        return obj.type.includes('PERSONAL');
-    });
-}
+// async function filterPersonalSchemeOnly(accounts) {
+//     return accounts.find(obj => {
+//         return obj.type.includes('PERSONAL');
+//     });
+// }
 
 function buyAirtime(phone, val) {
     return true
@@ -980,29 +978,29 @@ async function getInfo(val, callback) {
     return true
 }
 
-async function getSchemeInfo(val, callback) {
-    var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
-    console.log(api_endpoint)
-    var req = unirest('POST', api_endpoint)
-        .headers({
-            'Content-Type': 'application/json'
-        })
-        .send(JSON.stringify(val))
-        .end(async (resp) => {
-            // if (res.error) throw new Error(res.error); 
-            if (resp.error) {
-                console.log(resp.error);
-                console.log(resp.raw_body);
-                // return res;
-                await callback(resp);
-            }
-            else {// console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            await callback(response);
-            }
-        });
-    return true
-}
+// async function getSchemeInfo(val, callback) {
+//     var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
+//     console.log(api_endpoint)
+//     var req = unirest('POST', api_endpoint)
+//         .headers({
+//             'Content-Type': 'application/json'
+//         })
+//         .send(JSON.stringify(val))
+//         .end(async (resp) => {
+//             // if (res.error) throw new Error(res.error); 
+//             if (resp.error) {
+//                 console.log(resp.error);
+//                 console.log(resp.raw_body);
+//                 // return res;
+//                 await callback(resp);
+//             }
+//             else {// console.log(resp.raw_body);
+//             var response = JSON.parse(resp.raw_body);
+//             await callback(response);
+//             }
+//         });
+//     return true
+// }
 
 async function postIcareCustomer(val, callback) {
     var api_endpoint = apiurl + 'CreateIcare/' + access.code + '/' + access.key;
@@ -1029,10 +1027,12 @@ async function postIcareCustomer(val, callback) {
 
 async function fetchIcareCustomer(val, callback) {
     // try {
-    // if (val && val.startsWith('+233')) {
-    //     // Remove Bearer from string
-    //     val = val.replace('+233', '0');
-    // }
+    if (val && val && val.startsWith('0')) {
+        // Remove Bearer from string
+        val = '+233' + val.substr(1);
+    } else if(val && val && val.startsWith('233')){
+        val = '+233' + val.substr(3);
+    }
     var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -1068,13 +1068,12 @@ async function fetchIcareCustomer(val, callback) {
 
 async function fetchCustomer(val, callback) {
     // try {
-        // if (val && val.startsWith('+233')) {
-        //     // Remove Bearer from string
-        //     val = val.replace('+233', '0');
-        // }else if(val && val.startsWith('233')) {
-        //     // Remove Bearer from string
-        //     val = val.replace('233', '0');
-        // }    
+        if (val && val && val.startsWith('0')) {
+            // Remove Bearer from string
+            val = '+233' + val.substr(1);
+        } else if(val && val && val.startsWith('233')){
+            val = '+233' + val.substr(3);
+        } 
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -1262,10 +1261,12 @@ function capitalizeFirstLetter(string) {
 }
 
 async function fetchCustomerAccounts(val, callback) {
-    // if (val && val.startsWith('+233')) {
-    //     // Remove Bearer from string
-    //     val = val.replace('+233','0');
-    // }
+    if (val && val && val.startsWith('0')) {
+        // Remove Bearer from string
+        val = '+233' + val.substr(1);
+    } else if(val && val && val.startsWith('233')){
+        val = '+233' + val.substr(3);
+    }
     var api_endpoint = apiurl + 'getCustomerAccounts/' + access.code+'/'+access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -1286,10 +1287,12 @@ async function fetchCustomerAccounts(val, callback) {
 }
 
 async function fetchCustomerAccount(val, callback) {
-    // if (val.mobile && val.mobile.startsWith('+233')) {
-    //     // Remove Bearer from string
-    //     val.mobile = val.mobile.replace('+233','0');
-    // }
+    if (val && val && val.startsWith('0')) {
+        // Remove Bearer from string
+        val = '+233' + val.substr(1);
+    } else if(val && val && val.startsWith('233')){
+        val = '+233' + val.substr(3);
+    }
     var api_endpoint = apiurl + 'getCustomerAccount/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -1311,12 +1314,14 @@ async function fetchCustomerAccount(val, callback) {
 
 async function filterPersonalSchemeOnly(val, callback) {
     // console.log(val)
-    if (val && val.mobile && val.mobile.startsWith('0')) {
+    if (val && val && val.startsWith('0')) {
         // Remove Bearer from string
-        val.mobile = '+233' + val.mobile.substr(1);
+        val = '+233' + val.substr(1);
+    } else if(val && val && val.startsWith('233')){
+        val = '+233' + val.substr(3);
     }
     // console.log(val.mobile);
-    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val.mobile;
+    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
