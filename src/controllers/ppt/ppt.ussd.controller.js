@@ -203,7 +203,6 @@ menu.state('Register.frequency', {
         '\n2. Weekly'+
         '\n3. Monthly' +
         '\n4. One time')
-
     },
     next: {
         '*[0-4]+': 'Register.complete',
@@ -235,7 +234,7 @@ menu.state('Register.complete', {
 
 menu.state('Exit', {
     run: () => {
-        menu.end('Thank you for using People Pension Trust.');
+        menu.end('Thank you for using People\'s Pension Trust.');
     }
 })
 
@@ -715,11 +714,6 @@ menu.state('Srp', {
 menu.state('CheckBalance',{
     run: async() => {
         // var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
-
-        await fetchCustomer(menu.args.phoneNumber, async (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {                   
-                    
                 await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
                     if (data.accounts) {
                         let account = data.accounts;
@@ -735,12 +729,6 @@ menu.state('CheckBalance',{
                         menu.end('Dear Customer, you do not have a scheme number')
                     }
                 })
-
-            } else {
-                menu.go('InvalidInput');
-            }
-        });
-
     },
     next: {
         '0': 'Start',
@@ -754,15 +742,11 @@ menu.state('Withdrawal',{
     run: async() => {
         // var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
 
-        await fetchCustomer(menu.args.phoneNumber, async (data)=> { 
-            // console.log(1,data); 
-            if(data.active) {
-
-
                 await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
                     // console.log(data);
                     if (data.accounts) {
                         // let account = {user: data, code: data.scheme.schemenumber}
+                        let account = data.accounts;
                         menu.session.set('account', data.accounts);
                         await fetchBalance(account.code, async(result)=> { 
                             // console.log(result) 
@@ -782,10 +766,6 @@ menu.state('Withdrawal',{
                 // menu.con('How much would you like to withdraw from account number '+account.code+'?');
 
                 
-            } else {
-                menu.go('InvalidInput');
-            }
-        });
     },
     next: {
         '*\\d+': 'Withdrawal.view',
