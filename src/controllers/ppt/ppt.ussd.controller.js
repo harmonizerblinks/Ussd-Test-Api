@@ -9,14 +9,14 @@ const regex = /^[a-zA-Z]*$/;
 
 //Test Credentials
 // let apiurl = "http://localhost:5000/Ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
-let access = { code: "446785909", key: "164383692" };
+// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+// let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
+// let access = { code: "446785909", key: "164383692" };
 
 //Live Credentials
-// let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-// let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
-// let access = { code: "PPT", key: "178116723" };
+let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
+let access = { code: "PPT", key: "178116723" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -220,7 +220,7 @@ menu.state('Register.complete', {
         var amount = await menu.session.get('amount');
         var mobile = menu.args.phoneNumber;
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network, payermobile: mobile
+            firstname: firstname, lastname: lastname, mobile: mobile, email: null, gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network, payermobile: mobile
         };
         await postCustomer(data, (data) => {
             if (data.body.status_code == 1) {
@@ -508,7 +508,7 @@ menu.state('Icare.complete', {
         // var name = await menu.session.get('name');
         var mobile = await menu.session.get('mobile');
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: "alias@gmail.com", source: "USSD"
+            firstname: firstname, lastname: lastname, mobile: mobile, gender: 'N/A', email: null, source: "USSD"
         };
         await postCustomer(data, (data) => {
             menu.con('Choose Option:' +
