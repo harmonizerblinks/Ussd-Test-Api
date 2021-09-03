@@ -617,8 +617,9 @@ menu.state('Icare.deposit.mobile', {
         }
         menu.session.set('mobile', mobile);
         await filterPersonalSchemeOnly(mobile, (data)=> { 
+            console.log(data);
             if(data.active && data.accounts) {
-                menu.session.set('account', data)
+                menu.session.set('account', data.accounts)
                 menu.con('Choose Option:' +
                 '\n1. Daily' +
                 '\n2. Weekly'+
@@ -626,7 +627,7 @@ menu.state('Icare.deposit.mobile', {
                 '\n4. One time' + 
                 '\n5. Stop Repeat Payment');
                 // menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
-            } else if(data.active && data.accounts == null) {
+            } else if(data.active && data.accounts === null) {
                 menu.con('Mobile Number does not have a Personal Pension Scheme.');
             } else {
                 menu.con('Mobile Number not Registered. Enter (0) to Continue');
@@ -942,7 +943,7 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    // console.log(args);
+    console.log(args);
     menu.run(args, ussdResult => {
         if(args.Operator) {menu.session.set('network', args.Operator); }
         res.send(ussdResult);
