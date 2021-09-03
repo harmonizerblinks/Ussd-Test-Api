@@ -69,7 +69,6 @@ exports.RegisterIcare = async(req, res) => {
         });
 };
 
-
 exports.getIcare = (req, res) => {
     console.log('geticare');
     var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key+ '/' + req.user.mobile;
@@ -742,6 +741,28 @@ exports.Withdrawal = (req, res) => {
         var response = JSON.parse(resp.raw_body);
         // await callback(response);
         res.send({ output: 'Withdrawal Request Sent', message: response.message });
+    });
+};
+
+exports.stopAutoDebit = async(req, res) => {
+    var value = req.body;
+    
+    var api_endpoint = apiurl + 'Autodebit/'+access.code+'/'+access.key; 
+    var reqs = unirest('DELETE', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end((resp)=> { 
+        if (resp.error) {
+            res.status(404).send({
+                message: resp.error
+            }); 
+        }
+        // console.log(res.raw_body);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
     });
 };
 

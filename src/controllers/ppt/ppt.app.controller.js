@@ -28,15 +28,82 @@ exports.Register = async(req, res) => {
         'Content-Type': 'application/json'
     })
     .send(JSON.stringify(value))
-    .end(function (resp) { 
+    .end((resp)=> { 
         if (resp.error) {
             console.log(resp.error)
-            res.status(404).send({
+            console.log(resp.raw_body)
+            res.status(500).send({
                 message: resp.error
             }); 
         }
+        console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+};
+
+exports.RegisterIcare = async(req, res) => {
+    var api_endpoint = apiurl + 'CreateIcare/' + access.code + '/' + access.key;
+    var request = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                console.log(resp.error);
+                // return res;
+                res.status(500).send({
+                    message: resp.error
+                }); 
+                // await callback(resp);
+            }
+            console.log(resp.raw_body);
+            
+            res.send(res.raw_body);
+            // await callback(response);
+        });
+};
+
+
+exports.getIcare = (req, res) => {
+    console.log('geticare');
+    var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key+ '/' + req.user.mobile;
+    var req = unirest('GET', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    .end(function (res) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
         // console.log(res.raw_body);
         res.send(res.raw_body);
+    });
+};
+
+exports.getIcareAccounts = (req, res) => {
+    console.log('geticare');
+    var api_endpoint = apiurl + 'getIcare/Accounts/' + access.code + '/' + access.key+ '/' + req.user.mobile;
+    console.log(api_endpoint)
+    var req = unirest('GET', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    .end(function (resp) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(resp.raw_body);
     });
 };
 
@@ -106,12 +173,13 @@ exports.addBeneficiary = async(req, res) => {
 exports.getinfo = (req, res) => {
     console.log('getinfo');
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key+ '/' + req.params.mobile;
+    console.log()
     var req = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
-    .end(function (res) { 
+    .end(function (resp) { 
         if (resp.error) {
             res.status(500).send({
                 message: resp.error
@@ -119,18 +187,20 @@ exports.getinfo = (req, res) => {
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(res.raw_body);
+        res.send(resp.raw_body);
     });
 };
 
 exports.agentinfo = (req, res) => {
     console.log('agentinfo');
-    var req = unirest('POST', apiUrl + 'agentinfo')
+    var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key+ '/' + req.params.mobile;
+    console.log(api_endpoint);
+    var req = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
-    .end(function (res) { 
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber}))
+    .end(function (resp) { 
         if (resp.error) {
             res.status(500).send({
                 message: resp.error
@@ -138,7 +208,7 @@ exports.agentinfo = (req, res) => {
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(res.raw_body);
+        res.send(resp.raw_body);
     });
 };
 
@@ -201,7 +271,9 @@ exports.verifyOtp = async(req, res) => {
 }
 
 exports.setPassword = async(req, res) => {
-    const mobile = req.body.mobile;
+    var mobile = req.body.mobile;
+    console.log(mobile);
+    // if (mobile && mobile.startsWith('+')){ mobile = mobile.replace('+', ''); } 
     console.log(mobile);
     const newpin = bcrypt.hashSync(req.body.newpin, 10);
     if (mobile == null || req.body.newpin == null) {
@@ -209,22 +281,26 @@ exports.setPassword = async(req, res) => {
             message: "Mobile Number and Pin is Required"
         });; 
     }
-    var value = { type: 'Customer', mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
     console.log(api_endpoint)
-    var req = unirest('POST', api_endpoint)
+    var request = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
         .send(JSON.stringify(value))
         .end( async(resp)=> { 
-            if (resp.error) {
-                return res.status(500).send({
-                    message: "Error updating user Pin "
-                });; 
-            }
+            // if (resp.error) {
+            //     console.log(resp.raw_body);
+            //     return res.status(500).send({
+            //         message: "Error updating user Pin "
+            //     });; 
+            // }
             console.log(resp.raw_body);
-            if (resp.raw_body.code != 1) {
+            var response = JSON.parse(resp.raw_body);
+            console.log(response, response.code);
+            if (response.code != 1) {
                 return res.status(500).send({
                     message: "Error While Setting User Pin"
                 });; 
@@ -271,6 +347,40 @@ exports.getMember = async(req, res) => {
     });
 };
 
+exports.getMemberPersonal = async(req, res) => {
+    var mobile = req.params.mobile;
+    if (mobile && mobile.startsWith('0')) {
+        // Remove Bearer from string
+        mobile = '+233' + mobile.substr(1);
+    }else if(mobile && mobile.startsWith('233')) {
+        // Remove Bearer from string
+        mobile = '+233' + mobile.substr(3);
+    }
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + mobile;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(200).send({ 
+                success: false, register: false, error: resp 
+            });
+        }
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        if (response.active) {
+            res.send({
+                success: true, register: true, data: response
+            });
+        } else {
+            res.send({
+                success: false, register: false, data: response
+            });
+        }
+    });
+};
+
 exports.getScheme = async(req, res) => {
     var val = req.params.scheme;   
     var api_endpoint = apiurl + 'Schemeinfo/' + val;
@@ -293,7 +403,7 @@ exports.getScheme = async(req, res) => {
 exports.getSchemeinfo = async(req, res) => {
     var val = req.params.scheme;   
     var api_endpoint = apiurl + 'Schemeinfo/' + val;
-    // console.log(api_endpoint);
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
@@ -304,7 +414,7 @@ exports.getSchemeinfo = async(req, res) => {
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
-        response.pin = null;
+        // response.pin = null;
         res.send(response);
     });
 };
@@ -318,10 +428,34 @@ exports.getMemberinfo = async(req, res) => {
     //     // Remove Bearer from string
     //     val = val.replace('233', '0');
     // }
-    if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'Memberinfo/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            console.log(resp.raw_body);
+            res.status(500).send({ 
+                success: false, register: false, message: 'User Record not Found' 
+            });
+        }
+        console.log(resp.raw_body);
+        // var response = JSON.parse(resp.raw_body);
+        // response.pin = null;
+        res.send(resp.raw_body);
+    });
+};
+
+exports.getMemberinfos = async(req, res) => {
+
+    var value = { appId: chanel.code, appKey: chanel.code, mobile: req.user.mobile};
+    
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    var api_endpoint = apiurlpms + 'Memberinfo/';
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .send(JSON.stringify(value))
     .end(async (resp) => {
         if (resp.error) {
             console.log(resp.error);
@@ -376,7 +510,7 @@ exports.login = (req, res) => {
                     scheme: data.accounts[0].code
                 },
             }, config.secret, {
-                expiresIn: '2h'
+                expiresIn: '3h'
             });
             console.log(token);
             res.send({ success: true, access_token: token, date: Date.now });
@@ -495,7 +629,7 @@ exports.getStatement = (req, res) => {
     console.log('getstatement');
     var api_endpoint = apiurlpms + 'getStatementBySchemeNumber?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
     console.log(api_endpoint);
-    var req = unirest('GET', api_endpoint)
+    var request = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
@@ -519,37 +653,62 @@ exports.Deposit = (req, res) => {
     var val = req.body;
     // var method = "";
     if(val.method == "CARD") {
-        res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
-    }
-    
-    var value = { merchant:access.code,account:val.account,type:'Deposit',network:val.method,mobile:mobile,amount:val.amount,method:"MOMO",source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, merchantid:1};
-
-    var api_endpoint = apiurl;
-    if(val.frequency != "OneTime") {
-        api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
+        console.log('getstatement');
+        var api_endpoint = apiurl + 'Deposit/Card/'+access.code+'/'+access.key;        
+        console.log(api_endpoint);
+        var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(val))
+        .end( async(resp)=> { 
+            if (resp.error) { 
+                console.log(resp.raw_body);
+                var respon = JSON.parse(resp.raw_body);
+                // if (response.error) throw new Error(response.error);
+                return res.status(500).send({
+                    message: respon.message || "Unable to proccess Payment at the moment"
+                });
+            }
+            // if (res.error) throw new Error(res.error);
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            // await callback(response);
+            res.send({ output: 'Success', message: response.message });
+        });
+        // res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
     } else {
-        api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
-    }
-    console.log(api_endpoint);
-    var req = unirest('POST', api_endpoint)
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify(value))
-    .end( async(resp)=> { 
-        if (resp.error) { 
-            console.log(resp);
-            var respon = JSON.parse(resp.raw_body);
-            // if (response.error) throw new Error(response.error);
-            return res.status(500).send({
-                message: respon.message || "Unable to proccess Payment at the moment"
-            });
+        
+        var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
+
+        var api_endpoint = apiurl;
+        if(val.frequency != "OneTime" && val.network ==="MTN") {
+            api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
+        } else {
+            api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
         }
-        // if (res.error) throw new Error(res.error); 
-        var response = JSON.parse(resp.raw_body);
-        // await callback(response);
-        res.send({ output: 'Payment Request Sent', message: response.message });
-    });
+        console.log(api_endpoint);
+        var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(value))
+        .end( async(resp)=> { 
+            if (resp.error) { 
+                console.log(resp.raw_body);
+                var respon = JSON.parse(resp.raw_body);
+                // if (response.error) throw new Error(response.error);
+                return res.status(500).send({
+                    message: respon.message || "Unable to proccess Payment at the moment"
+                });
+            }
+            // if (res.error) throw new Error(res.error);
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            // await callback(response);
+            res.send({ output: 'Payment Request Sent', message: response.message });
+        });
+    }
 };
 
 exports.Withdrawal = (req, res) => {
