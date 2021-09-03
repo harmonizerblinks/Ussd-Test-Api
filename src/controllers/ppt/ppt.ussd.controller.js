@@ -219,7 +219,7 @@ menu.state('Register.complete', {
         var amount = await menu.session.get('amount');
         var mobile = menu.args.phoneNumber;
         var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: null, gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network, payermobile: mobile
+            firstname: firstname, lastname: lastname, mobile: mobile, email: 'n/a', gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network, payermobile: menu.args.phoneNumber,
         };
         await postCustomer(data, (data) => {
             if (data.body.status_code == 1) {
