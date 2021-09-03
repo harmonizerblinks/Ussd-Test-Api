@@ -271,7 +271,7 @@ menu.state('Pay.account', {
                 menu.session.set('account', data.accounts);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
-                menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                menu.end('Dear Customer, you do not have a Personal Pension Scheme');
                 // menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
             }
         })
@@ -303,11 +303,11 @@ menu.state('Pay.view', {
                         if(data.active) {
                             menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                         } else {
-                            menu.con('Mobile Number not Registered. Enter (0) to Continue');
+                            menu.end('Dear Customer, you do not have a Active Personal Pension Scheme.');
                         }
                     // });
                 } else {
-                    menu.end('Dear Customer, you have not been registered. Enter (0) to Continue')
+                    menu.end('Dear Customer, you do not have a Personal Pension Scheme.')
                 }
             });
         }
@@ -635,7 +635,7 @@ menu.state('Icare.view', {
                         // console.log(1,data);
                     menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                 } else {
-                    menu.con('Dear Customer, this number has not been registered. Enter (0) to Continue')
+                    menu.con('Dear Customer, you do not have a Personal Pension Scheme.')
                 }
             });
         }
@@ -726,7 +726,7 @@ menu.state('CheckBalance',{
                             menu.con('Your Balance is Savings: GHS '+ parseFloat(result.savings).toFixed(2)+ '\nRetirement: GHS '+parseFloat(result.retirement).toFixed(2) +'.\nEnter zero(0) to continue');
                         });
                     } else {
-                        menu.end('Dear Customer, you do not have a scheme number')
+                        menu.end('Dear Customer, you do not have a Pensonal person scheme. please try again');
                     }
                 })
     },
@@ -760,7 +760,7 @@ menu.state('Withdrawal',{
                             }
                         });
                     } else {
-                        menu.end('Dear Customer, you do not have a Pension Scheme')
+                        menu.end('Dear Customer, you do not have a Personal Pension Scheme. please try again.');
                     }
                 })
                 // menu.con('How much would you like to withdraw from account number '+account.code+'?');

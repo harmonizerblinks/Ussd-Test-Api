@@ -326,7 +326,7 @@ exports.getMember = async(req, res) => {
         if (resp.error) {
             console.log(resp.error);
             res.status(500).send({ 
-                success: false, register: false, message: 'Mobile Number does not Exist', error: resp 
+                success: false, register: false, message: 'Provide the following details to Signup', error: resp 
             });
         }
         console.log(resp.raw_body);
@@ -341,7 +341,7 @@ exports.getMember = async(req, res) => {
             });
         } else {
             res.send({
-                success: false, register: false, pin: false
+                success: false, register: false, pin: false, message: 'Provide the following details to Signup',
             });
         }
     });
