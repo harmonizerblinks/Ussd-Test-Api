@@ -243,12 +243,20 @@ menu.state('Exit', {
 ///////////////--------------PAY ROUTE STARTS--------------////////////////
 menu.state('Pay', {
     run: async() => {
-        menu.con('Choose Option:' +
-        '\n1. Daily' +
-        '\n2. Weekly'+
-        '\n3. Monthly' +
-        '\n4. One time' + 
-        '\n5. Stop Repeat Payment')        
+        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
+            // console.log(1,data); 
+            if(data.active) {   
+                menu.con('Choose Option:' +
+                '\n1. Daily' +
+                '\n2. Weekly'+
+                '\n3. Monthly' +
+                '\n4. One time' + 
+                '\n5. Stop Repeat Payment')    
+            } else {
+                menu.go('InvalidInput');
+            }
+        });
+            
     },
     next: {
         '4': 'Pay.account',
@@ -261,7 +269,6 @@ menu.state('Pay.account', {
     run: async() => {
         await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
             if (data.active && data.accounts) {
-                console.log(data.accounts)
                 menu.session.set('account', data.accounts);
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else {
@@ -405,7 +412,7 @@ menu.state('Icare', {
     },
     next: {
         '1': 'Icare.register',
-        '2': 'Icare.PayForSomeone',
+        '2': 'Icare.deposit',
     }
 });
 
@@ -568,15 +575,6 @@ menu.state('Icare.options', {
     }
 })
 
-// menu.state('Icare.PayForSomeone', {
-//     run: () => {
-//         menu.con('Please enter the phone number\nof who you want to pay for');
-//     },
-//     next: {
-//         '*[0-9]+': 'Icare.options'
-//     }
-// })
-
 menu.state('Icare.deposit', {
     run: () => {
         menu.con('Enter Mobile Number of Person');
@@ -596,7 +594,7 @@ menu.state('Icare.deposit.mobile', {
             // Remove Bearer from string
             mobile = '+233' + mobile.substr(3);
         }
-        menu.session.set('mobile', data);
+        menu.session.set('mobile', mobile);
         await filterPersonalSchemeOnly(mobile, (data)=> { 
             if(data.active && data.accounts) {
                 menu.session.set('account', data)
@@ -616,7 +614,7 @@ menu.state('Icare.deposit.mobile', {
     },
     next: {
         '0': 'Start',
-        '*\\d+': 'Deposit.view'
+        '*\\d+': 'Icare.mobile'
     }
 });
 
@@ -693,7 +691,6 @@ menu.state('Srp', {
         let mobile = menu.args.phoneNumber;
         await filterPersonalSchemeOnly(mobile, async(data)=> { 
             if(data.active && data.accounts) {
-                console.log(data);
                 let val={account:data.accounts.code,mobile:menu.args.phoneNumber, source:'USSD' };
                 await stopAutoDeposit(val, (result)=>{
                     if(result.code) {
@@ -718,21 +715,31 @@ menu.state('Srp', {
 menu.state('CheckBalance',{
     run: async() => {
         // var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
-        await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
-            if (data.accounts) {
-                // let account = {code: data.accounts.code}
-                menu.session.set('account', data.accounts);
-                await fetchBalance(account.code, async(result)=> { 
-                    // console.log(result) 
-                    if(result.balance != null) { account.balance = result.balance; }
-                    menu.session.set('account', account);
-                    menu.session.set('balance', result.balance);
-                    menu.con('Your Balance is Savings: GHS '+ parseFloat(result.savings).toFixed(2)+ '\nRetirement: GHS '+parseFloat(result.retirement).toFixed(2) +'.\nEnter zero(0) to continue');
-                });
+
+        await fetchCustomer(menu.args.phoneNumber, async (data)=> { 
+            // console.log(1,data); 
+            if(data.active) {                   
+                    
+                await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
+                    if (data.accounts) {
+                        // let account = {code: data.accounts.code}
+                        menu.session.set('account', data.accounts);
+                        await fetchBalance(account.code, async(result)=> { 
+                            // console.log(result) 
+                            if(result.balance != null) { account.balance = result.balance; }
+                            menu.session.set('account', account);
+                            menu.session.set('balance', result.balance);
+                            menu.con('Your Balance is Savings: GHS '+ parseFloat(result.savings).toFixed(2)+ '\nRetirement: GHS '+parseFloat(result.retirement).toFixed(2) +'.\nEnter zero(0) to continue');
+                        });
+                    } else {
+                        menu.end('Dear Customer, you do not have a scheme number')
+                    }
+                })
+
             } else {
-                menu.end('Dear Customer, you do not have a scheme number')
+                menu.go('InvalidInput');
             }
-        })
+        });
 
     },
     next: {
@@ -746,27 +753,39 @@ menu.state('CheckBalance',{
 menu.state('Withdrawal',{
     run: async() => {
         // var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
-        await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
-            // console.log(data);
-            if (data.accounts) {
-                // let account = {user: data, code: data.scheme.schemenumber}
-                menu.session.set('account', data.accounts);
-                await fetchBalance(account.code, async(result)=> { 
-                    // console.log(result) 
-                    if(result.savings > 0) {
-                        account.balance = result.savings;
-                        menu.session.set('account', account);
-                        menu.session.set('balance', result.savings);
-                        menu.con('How much would you like to withdraw from account number '+account.code+'?');
+
+        await fetchCustomer(menu.args.phoneNumber, async (data)=> { 
+            // console.log(1,data); 
+            if(data.active) {
+
+
+                await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
+                    // console.log(data);
+                    if (data.accounts) {
+                        // let account = {user: data, code: data.scheme.schemenumber}
+                        menu.session.set('account', data.accounts);
+                        await fetchBalance(account.code, async(result)=> { 
+                            // console.log(result) 
+                            if(result.savings > 0) {
+                                account.balance = result.savings;
+                                menu.session.set('account', account);
+                                menu.session.set('balance', result.savings);
+                                menu.con('How much would you like to withdraw from account number '+account.code+'?');
+                            } else {
+                                menu.end('Error Retrieving Account Balance with '+account.code+', please try again');
+                            }
+                        });
                     } else {
-                        menu.end('Error Retrieving Account Balance with '+account.code+', please try again');
+                        menu.end('Dear Customer, you do not have a Pension Scheme')
                     }
-                });
+                })
+                // menu.con('How much would you like to withdraw from account number '+account.code+'?');
+
+                
             } else {
-                menu.end('Dear Customer, you do not have a Pension Scheme')
+                menu.go('InvalidInput');
             }
-        })
-        // menu.con('How much would you like to withdraw from account number '+account.code+'?');
+        });
     },
     next: {
         '*\\d+': 'Withdrawal.view',
@@ -842,12 +861,22 @@ menu.state('Withdrawal.cancel', {
 
 /////////////////------------------CONTACT US STARTS------------------/////////////////////
 menu.state('Contact', {
-    run: () => {
-        menu.con('1. Stop Repeat Payment' +
-        '\n2. Name' +
-        '\n3. Email' +
-        '\n4. Mobile' +
-        '\n5. Website');
+    run: async () => {
+
+        await fetchCustomer(menu.args.phoneNumber, async (data)=> { 
+            // console.log(1,data); 
+            if(data.active) {
+
+                menu.con('1. Stop Repeat Payment' +
+                '\n2. Name' +
+                '\n3. Email' +
+                '\n4. Mobile' +
+                '\n5. Website');
+        
+            } else {
+                menu.go('InvalidInput');
+            }
+        });
     },
     next: {
         '1': 'Srp',
@@ -888,7 +917,7 @@ menu.state('Contact.website', {
 
 menu.state('InvalidInput', {
     run: () => {
-        menu.end('Sorry you selected the wrong option:');
+        menu.end('Sorry you selected the wrong option');
     },
 });
 
@@ -938,8 +967,6 @@ async function postCustomer(val, callback) {
         .end(async(resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
-                console.log(resp.raw_body);
                 // return res;
                 await callback(resp);
             }
@@ -955,7 +982,6 @@ async function postCustomer(val, callback) {
 
 async function getInfo(val, callback) {
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint)
     var req = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -964,8 +990,6 @@ async function getInfo(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
-                console.log(resp.raw_body);
                 // return res;
                 await callback(resp);
             }
@@ -1188,8 +1212,6 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
-            console.log(resp.raw_body);
             // await postDeposit(val);
             await callback(resp);
         }
@@ -1214,7 +1236,6 @@ async function postWithdrawal(val, callback) {
         // if (res.error) throw new Error(res.error); 
         if(resp.error)
         {
-            console.log(resp.raw_body);
             // console.log("errrr")
             await callback(resp);
         }
