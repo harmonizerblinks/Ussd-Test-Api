@@ -9,14 +9,14 @@ const regex = /^[a-zA-Z]*$/;
 
 //Test Credentials
 // let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-// let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
-// let access = { code: "446785909", key: "164383692" };
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
+let access = { code: "446785909", key: "164383692" };
 
 //Live Credentials
-let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
-let access = { code: "PPT", key: "178116723" };
+// let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+// let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
+// let access = { code: "PPT", key: "178116723" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -722,8 +722,8 @@ menu.state('CheckBalance',{
                     
                 await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
                     if (data.accounts) {
-                        // let account = {code: data.accounts.code}
-                        menu.session.set('account', data.accounts);
+                        let account = data.accounts;
+                        menu.session.set('account', account);
                         await fetchBalance(account.code, async(result)=> { 
                             // console.log(result) 
                             if(result.balance != null) { account.balance = result.balance; }
