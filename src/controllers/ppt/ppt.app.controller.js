@@ -741,6 +741,28 @@ exports.Withdrawal = (req, res) => {
     });
 };
 
+exports.stopAutoDebit = async(req, res) => {
+    var value = req.body;
+    
+    var api_endpoint = apiurl + 'Autodebit/'+access.code+'/'+access.key; 
+    var reqs = unirest('DELETE', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end((resp)=> { 
+        if (resp.error) {
+            res.status(404).send({
+                message: resp.error
+            }); 
+        }
+        // console.log(res.raw_body);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response);
+    });
+};
+
 exports.getOccupations = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllOccupations?AppId=' + chanel.code + '&AppKey=' + chanel.key;
     console.log(api_endpoint);

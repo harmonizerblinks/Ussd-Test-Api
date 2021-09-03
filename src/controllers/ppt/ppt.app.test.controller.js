@@ -762,7 +762,7 @@ exports.stopAutoDebit = async(req, res) => {
         // console.log(res.raw_body);
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        res.send(response.result);
+        res.send(response);
     });
 };
 
