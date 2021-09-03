@@ -197,12 +197,19 @@ menu.state('Register.amount', {
 
 menu.state('Register.frequency', {
     run: () => {
-        menu.session.set('amount', menu.val)
+        let amount = Number(menu.val);
+        // save user input in session
+        if(amount < 1) { menu.end("Minimum Amount is GHS 1") }
+        else if(amount > 5000) { menu.end("Maximum Amount is GHS 5000") }
+        else
+        {
+        menu.session.set('amount', amount)
         menu.con('Choose Option:' +
         '\n1. Daily' +
         '\n2. Weekly'+
         '\n3. Monthly' +
         '\n4. One time')
+        }
     },
     next: {
         '*[0-4]+': 'Register.complete',
@@ -320,12 +327,17 @@ menu.state('Pay.view', {
 
 menu.state('Pay.Option.Amount', {
     run: async() => {
-        let amount = menu.val;
-        menu.session.set('amount', amount); 
-        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
-        '\n1. Proceed' +
-        '\n0. Exit'
-        )
+        let amount = Number(menu.val);
+        if(amount < 1) { menu.end("Minimum Amount is GHS 1") }
+        else if(amount > 5000) { menu.end("Maximum Amount is GHS 5000") }
+        else
+        {
+            menu.session.set('amount', amount); 
+            menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+            '\n1. Proceed' +
+            '\n0. Exit'
+            )
+        }
 },
     next: {
         '1': 'Pay.send',
@@ -335,12 +347,18 @@ menu.state('Pay.Option.Amount', {
 
 menu.state('Pay.Option.OneTimeAmount', {
     run: async() => {
-        let amount = menu.val;
-        menu.session.set('amount', amount); 
+        let amount = Number(menu.val);
+        // save user input in session
+        if(amount < 1) { menu.end("Minimum Amount is GHS 1") }
+        else if(amount > 5000) { menu.end("Maximum Amount is GHS 5000") }
+        else
+        {
+        menu.session.set('amount', amount);  
         menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
         '\n1. Proceed' +
         '\n0. Exit'
         )
+        }
 },
     next: {
         '1': 'Pay.send',
@@ -387,8 +405,11 @@ menu.state('Pay.send', {
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
+            menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+        }, 
+        async (error) => {
+            menu.end('Sorry request could not be processed')
         }); 
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
 });
 
@@ -537,8 +558,9 @@ menu.state('Icare.mobile', {
     run: async() => {
         var mobile = await menu.session.get('mobile');        
         await filterPersonalSchemeOnly(mobile, (data)=> { 
-            if(data.active && data.accounts) {
-                menu.session.set('account', data)
+            if(data.active && data.accounts) { 
+                let account = data.accounts
+                menu.session.set('account', account)
                 menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
             } else if(data.active && data.accounts == null) {
                 menu.con('Mobile Number does not have a Personal Pension Scheme.')
@@ -649,12 +671,19 @@ menu.state('Icare.view', {
 
 menu.state('Deposit.view', {
     run: async() => {
-        let amount = menu.val;
-        menu.session.set('amount', amount);
-        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
-        '\n1. Proceed' +
-        '\n0. Exit'
-        )
+        let amount = Number(menu.val);
+        // save user input in session
+        if(amount < 1) { menu.end("Minimum Deposit Amount is GHS 1") }
+        else if(amount > 5000) { menu.end("Maximum Deposit Amount is GHS 5000") }
+        else
+        {
+            menu.session.set('amount', amount);
+            
+            menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+            '\n1. Proceed' +
+            '\n0. Exit'
+            )
+        }
     },
     next: {
         '0': 'Deposit.cancel',
@@ -669,12 +698,15 @@ menu.state('Deposit.send', {
         var account = await menu.session.get('account');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.accounts.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.accounts.code};
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
         // console.log(data) 
         await postDeposit(data, async(result)=> { 
             // console.log(result.body)
+            menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+        }, 
+        async (error) => {
+            menu.end('Sorry request could not be processed')
         }); 
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
 });
 
@@ -778,7 +810,8 @@ menu.state('Withdrawal.view',{
         // use menu.val to access user input value
         var amount = Number(menu.val);
         // save user input in session
-        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
+        if(amount < 1) { menu.end("Minimum Withdrawal Amount is GHS 1") }
+        else if(amount > 5000) { menu.end("Maximum Withdrawal Amount is GHS 5000") }
         else
         {
             menu.session.set('amount', amount);
@@ -1145,7 +1178,6 @@ async function postAutoDeposit(val, callback) {
         // console.log(JSON.stringify(val));
         if (resp.error) { 
             // console.log(resp.error);
-            // await postDeposit(val);
             await callback(resp);
         }
         else
@@ -1182,7 +1214,7 @@ async function stopAutoDeposit(val, callback) {
     return true
 }
 
-async function postDeposit(val, callback) {
+async function postDeposit(val, callback, errorCallback) {
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
@@ -1192,8 +1224,7 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            // await postDeposit(val);
-            await callback(resp);
+            await errorCallback(resp);
         }
         // if (res.error) throw new Error(res.error); 
         else
