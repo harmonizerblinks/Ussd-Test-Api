@@ -410,6 +410,7 @@ menu.state('Pay.send', {
         async (error) => {
             menu.end('Sorry request could not be processed')
         }); 
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly');
     }
 });
 
