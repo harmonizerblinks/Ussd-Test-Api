@@ -703,11 +703,11 @@ menu.state('Deposit.send', {
         // console.log(data) 
         await postDeposit(data, async(result)=> { 
             // console.log(result.body)
-            menu.end('Request submitted successfully. You will receive a payment prompt shortly')
-        }, 
-        async (error) => {
-            menu.end('Sorry request could not be processed')
-        }); 
+            menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+        }, async (error) => {
+            console.log('Sorry request could not be processed ' + error)
+        });
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly');
     }
 });
 
@@ -821,7 +821,7 @@ menu.state('Withdrawal.view',{
             var balance = await menu.session.get('balance');
             // console.log(cust);
             if(balance >= amount) {
-                menu.con(cust.fullname +', you are making a Withdrawal Request of GHS ' + amount +' from your '+account.user.scheme.schemetype+' account' +
+                menu.con(cust.fullname +', you are making a Withdrawal Request of GHS ' + amount +' from your '+account.type+' account' +
                 '\n1. Confirm' +
                 '\n2. Cancel' +
                 '\n#. Main Menu');
@@ -849,18 +849,19 @@ menu.state('Withdrawal.confirm', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Scheme Number '+account.code,merchantid:account.merchantid };
         
-        await postWithdrawal(data, async(result)=> { 
-            // console.log(result) 
-            // menu.end(JSON.stringify(result));
-            if(result.Message)
-            {
-                menu.end(result.Message);
-            }
-            else
-            {
-                menu.end('Sorry, Withdrawal could not be processed');
-            }
-        });
+        menu.end('Sorry, Withdrawal could not be processed');
+        // await postWithdrawal(data, async(result)=> { 
+        //     // console.log(result) 
+        //     // menu.end(JSON.stringify(result));
+        //     if(result.message)
+        //     {
+        //         menu.end(result.message);
+        //     }
+        //     else
+        //     {
+        //         menu.end('Sorry, Withdrawal could not be processed');
+        //     }
+        // });
         // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
             
     }
