@@ -10,58 +10,210 @@ const config = require('../config/mongodb.config.js');
 const nodemailer = require("nodemailer");
 
 //Integration Setup
-const appKey = '3456789'; const appId = '12345678';
-const apiUrl = "https://pensionsapi.bitcloud.solutions:8446/api/services/app/Channels/";
+let accesses = [{ code: "PPT", key: "178116723" },{ code: "ACU001", key: "1029398" },{ code: "ACU001", key: "1029398" }];
+const apiUrl = "https://app.alias-solutions.net:5003/";
+const apiurl = "https://app.alias-solutions.net:5003/";
 
-// POST a User
-exports.createUser = async(req, res) => {
-    console.log(req.body);
-    const user = new User(req.body);
-    user.password = bcrypt.hashSync(req.body.password, 10);
-    user.email = req.body.email.toLowerCase();
 
-    user.save()
-        .then(async(data) => {
-            console.info('saved successfully');
-            const token = jwt.sign({
-                type: 'user',
-                data: {
-                    id: data._id,
-                    fullname: data.fullname,
-                    isAdmin: data.isAdmin,
-                    mmobile: data.mobile,
-                    email: user.email
-                },
-            }, config.secret, {
-                expiresIn: 684800
+exports.getMerchant = (req, res) => {
+    var api_endpoint = apiurl + 'App';
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            console.log(resp.raw_body);
+            res.status(500).send({ 
+                success: false, message: resp.error 
             });
-            console.log(token);
-            res.send({ success: true, access_token: token, date: Date.now });
-            // res.send(data);
-        }).catch(err => {
+        }
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response);
+    });
+};
+
+exports.validateOfficer = (req, res) => {
+    const access = getkey(req.params.merchant);
+    const val = req.params.mobile;
+    var api_endpoint = apiurl + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Provide the following details to Signup', error: resp 
+            });
+        }
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        if (response.active && response.pin != null) {
+            res.send({
+                success: true, register: true, pin: true
+            });
+        } else if (response.active && response.pin == null) {
+            res.send({
+                success: true, register: true, pin: false
+            });
+        } else {
+            res.send({
+                success: false, register: false, pin: false, message: 'Provide the following details to Signup',
+            });
+        }
+    });
+};
+
+// agent Payment
+exports.agentPayment = (req, res) => {
+    console.log('mini Statement');
+    var req = unirest('POST', apiUrl + 'agentPayment')
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"schemeNumber":req.body.schemenumber,"pin":req.body.pin }))
+    .end(function (res) { 
+        if (resp.error) {
             res.status(500).send({
-                message: err.message
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(res.raw_body);
+    });
+};
+
+exports.sendOtp = async(req, res) => {
+    var val = req.body;
+    var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ success: false, message: 'Unable to sent Otp' });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        res.send({
+            success: true, message: response.message
+        });
+    });
+}
+
+exports.verifyOtp = async(req, res) => {
+    var val = req.body;
+    
+    // var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
+    var api_endpoint = apiurl + 'otp/verify/' + val.mobile + '/'+ val.otp+ '/'+ val.merchant +'&id=AGENT';
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ success: false, message: 'Code Not Valid' });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        res.send({
+            success: true, message: response.message
+        });
+    });
+}
+
+exports.setPassword = async(req, res) => {
+    var mobile = req.body.mobile;
+    console.log(mobile);
+    // if (mobile && mobile.startsWith('+')){ mobile = mobile.replace('+', ''); } 
+    console.log(mobile);
+    const newpin = bcrypt.hashSync(req.body.newpin, 10);
+    if (mobile == null || req.body.newpin == null) {
+        return res.status(500).send({
+            message: "Mobile Number and Pin is Required"
+        });; 
+    }
+
+    var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    console.log(JSON.stringify(value));
+    var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
+    console.log(api_endpoint)
+    var request = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(value))
+        .end( async(resp)=> { 
+            if (resp.error) {
+                console.log(resp.raw_body);
+                return res.status(500).send({
+                    message: "Error updating Officer Pin "
+                });; 
+            }
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            console.log(response, response.code);
+            if (response.code != 1) {
+                return res.status(500).send({
+                    message: "Error While Setting User Pin"
+                });; 
+            }
+            res.send({
+                message: "Password Set successfully"
             });
         });
 };
 
+// Login user
+exports.login = (req, res) => {
+    var val = req.body.mobile;
+    const access = await getkey(val.merchant);
+    var api_endpoint = apiurl + 'getOfficer/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Invalid Mobile Number' 
+            });
+        }
+        console.log(resp.raw_body);
+        var data = JSON.parse(resp.raw_body);
+        if (data.active && data.pin == null) {
+            res.send({
+                success: true, register: true, pin: false
+            });
+        }
+        var passwordIsValid = bcrypt.compareSync(req.body.pin, data.pin);
+        if (passwordIsValid) {
+            const token = jwt.sign({
+                type: 'user',
+                data: {
+                    id: "AGENT",
+                    officerid: data.officerid,
+                    code: data.code,
+                    fullname: data.fullname,
+                    mobile: data.mobile,
+                    merchant: data.merchant,
+                },
+            }, config.secret, {
+                expiresIn: '24h'
+            });
+            console.log(token);
+            res.send({ success: true, access_token: token, date: Date.now });
+        } else {
+            res.status(500).send({ success: false, message: 'Password is not correct' });
+        }
+    });
+};
 
 // Logout user
 exports.logout = (req, res) => {
     if (req.user) {
-        User.findById(req.user.id)
-            .then(user => {
-
-                user.isLogin = true;
-                user.access_token = null;
-                User.findByIdAndUpdate(user._id, user, { new: true });
-                res.send({ output: 'Logout', mesaage: 'you have been logout successfully' });
-            }).catch(err => {
-                return res.status(200).send({
-                    message: "you have been logout successfully"
-                });
-            });
-        // res.send(req.user);
+        res.send({
+            message: "Logout succesful"
+        });
     } else {
         res.status(401).send({
             message: "Authentication not Valid"
@@ -72,26 +224,8 @@ exports.logout = (req, res) => {
 // Get User Profile
 exports.profile = (req, res) => {
     if (req.user) {
-        User.findById(req.user.id)
-            .then(user => {
-                if (!user) {
-                    return res.status(404).send({
-                        message: "User not found with id " + req.params.userId
-                    });
-                }
-                // user[0].password = null;
-                res.send(user[0]);
-            }).catch(err => {
-                if (err.kind === 'ObjectId') {
-                    return res.status(404).send({
-                        message: "User not found with id " + req.params.userId
-                    });
-                }
-                return res.status(500).send({
-                    message: "Error retrieving User with id " + req.params.userId
-                });
-            });
-        // res.send(req.user);
+        
+        res.send(req.user);
     } else {
         res.status(401).send({
             message: "Authentication not Valid"
@@ -103,326 +237,273 @@ exports.profile = (req, res) => {
 };
 
 // Change Password
-exports.changePassword = (req, res) => {
-    const id = req.user.id;
-    const oldpassword = req.body.password;
-    const password = req.body.newpassword;
-
-    User.findById(id)
-        .then(user => {
-            if (!user) {
-                return res.status(404).send({
-                    message: "User not found with username " + username
+exports.changePassword = async(req, res) => {
+    // const mobile = req.user.mobile;
+    // const pin = req.body.pin;
+    var val = req.user.mobile;
+    const access = await getkey(req.user.merchant);
+    var api_endpoint = apiurl + 'getOfficer/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Invalid Mobile Number' 
+            });
+        }
+        console.log(resp.raw_body);
+        var data = JSON.parse(resp.raw_body);
+        if (data.active && data.pin == null) {
+            res.send({
+                success: true, register: true, pin: false
+            });
+        }
+        var passwordIsValid = bcrypt.compareSync(req.body.pin, data.pin);
+        if (passwordIsValid) {
+            const newpin = bcrypt.hashSync(req.body.newpin, 10);
+            var value = { type: 'Officer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
+            var api_endpoint = apiurl + 'Ussd/Change/'+access.code+'/'+access.key;
+            var req = unirest('POST', api_endpoint)
+            .headers({
+                'Content-Type': 'application/json'
+            })
+            .send(JSON.stringify(value))
+            .end( async(resp)=> { 
+                if (resp.error) {
+                    return res.status(500).send({
+                    message: "Error updating user Password "
+                    });; 
+                }
+                // console.log(resp.raw_body);
+                res.send({
+                    message: "Password Changed successfully"
                 });
-            }
+            });
+        } else {
+            res.status(500).send({ success: false, message: 'Current Password is not correct' });
+        }
+    });
+};
 
-            var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
-            if (passwordIsValid) {
-                user.password = bcrypt.hashSync(req.body.newpassword, 10);
+exports.getCustomers = async(req, res) => {
+    // var val = req.user.mobile;
+    const access = await getkey(req.user.merchant);
+    var api_endpoint = apiurl + 'App/getCustomers/' + access.code + '/' + access.key + '?' + req.query;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Provide the following details to Signup', error: resp 
+            });
+        }
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        if (response.active && response.pin != null) {
+            res.send({
+                success: true, register: true, pin: true
+            });
+        } else if (response.active && response.pin == null) {
+            res.send({
+                success: true, register: true, pin: false
+            });
+        } else {
+            res.send({
+                success: false, register: false, pin: false, message: 'Provide the following details to Signup',
+            });
+        }
+    });
+};
 
-                User.findByIdAndUpdate(id, user, { new: true })
-                    .then(use => {
-                        if (!use) {
-                            return res.status(404).send({
-                                message: "User not found with id " + req.params.userId
-                            });
-                        }
-                        res.send({
-                            message: "Password Changed successfully"
-                        });
-                    }).catch(err => {
-                        if (err.kind === 'ObjectId') {
-                            return res.status(404).send({
-                                message: "Invalid User "
-                            });
-                        }
-                        console.log(err);
-                        return res.status(500).send({
-                            message: "Error updating user Password "
-                        });
-                    });
-            } else {
-                res.status(500).send({ success: false, message: 'Password is not correct' })
-            }
-        }).catch(err => {
-            if (err.kind === 'ObjectId') {
-                return res.status(404).send({
-                    message: "User not found with username " + username
-                });
-            }
+exports.getCustomer = async(req, res) => {
+    var val = req.params.code;
+    const access = await getkey(req.user.merchant);
+    var api_endpoint = apiurl + 'Ussd/getCustomer/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Provide the following details to Signup', error: resp 
+            });
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response);
+    });
+};
+
+exports.getAccounts = async(req, res) => {
+    var mobile = req.params.mobile;
+    if (mobile && mobile.startsWith('0')) {
+        // Remove Bearer from string
+        mobile = '+233' + mobile.substr(1);
+    }else if(mobile && mobile.startsWith('233')) {
+        // Remove Bearer from string
+        mobile = '+233' + mobile.substr(3);
+    }
+    // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
+    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + mobile;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(200).send({ 
+                success: false, register: false, error: resp 
+            });
+        }
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        if (response.active) {
+            res.send({
+                success: true, register: true, data: response
+            });
+        } else {
+            res.send({
+                success: false, register: false, data: response
+            });
+        }
+    });
+};
+
+exports.getGroups = async(req, res) => {
+    var val = req.params.scheme;   
+    var api_endpoint = apiurl + 'Schemeinfo/' + val;
+    // console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Current Password is not correct' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        response.pin = null;
+        res.send(response.payments);
+    });
+};
+
+exports.getGroup = async(req, res) => {
+    var val = req.params.scheme;   
+    var api_endpoint = apiurl + 'Schemeinfo/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, register: false, message: 'Current Password is not correct'
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        // response.pin = null;
+        res.send(response);
+    });
+};
+
+// Post Statement
+exports.Statement = (req, res) => {
+    var val = req.body;
+    console.log(val);
+    
+    val.appid = access.code; val.appkey = access.key;
+    
+    console.log(val);
+
+    var api_endpoint = apiurl + 'Statement';
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.error);
+            // if (response.error) throw new Error(response.error);
             return res.status(500).send({
-                message: "Error retrieving User with username " + username
+                message: "unable to generate statement a the moment pls try again later"
             });
-        });
-};
-
-// FETCH Member Info
-exports.memberInfo = (req, res) => {
-    console.log('member info');
-    var reqs = unirest('POST', apiUrl + 'memberInfo')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify({"appId": appId,"appKey":appKey,"mobile":"233244889745"}))
-    .end(function (resp) { 
-        if (resp.error) {
-            res.status(404).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
         }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
-    });
-};
-
-// create Member PIN
-exports.createPin = (req, res) => {
-    console.log('createPin');
-    var req = unirest('POST', apiUrl + 'createPin')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.user.mobile,"pin":req.body.pin}))
-    .end(function (res) { 
-        if (resp.error) {
-            res.status(500).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
-        }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
         // if (res.error) throw new Error(res.error); 
-        // console.log(res.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        // await callback(response);
+        res.send(response.payments);
     });
 };
 
-// change Member PIN
-exports.changePin = (req, res) => {
-    console.log('changepin');
-    var req = unirest('POST', apiUrl + 'changePin')
+exports.getStatement = (req, res) => {
+    var val = req.body;
+    console.log(val);
+    console.log('getstatement');
+    var api_endpoint = apiurl + 'Ussd?AppId=' + chanel.code + '&AppKey=' + chanel.key+ '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.user.pin,"pin":req.body.pin,"newPin":req.body.pin}))
-    .end(function (res) { 
+    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
+    .end((resp)=> { 
         if (resp.error) {
             res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
     });
 };
-
-// check balance
-exports.checkbalance = (req, res) => {
-    console.log('check Balance');
-    var req = unirest('POST', apiUrl + 'checkbalance')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"schemeNumber":req.body.schemenumber,"pin":req.body.pin }))
-    .end(function (res) { 
-        if (resp.error) {
-            res.status(500).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
-        }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
-    });
-};
-
-
-// mini Statement
-exports.miniStatement = (req, res) => {
-    console.log('mini Statement');
-    var req = unirest('POST', apiUrl + 'miniStatement')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"schemeNumber":req.body.schemenumber,"pin":req.body.pin }))
-    .end(function (res) { 
-        if (resp.error) {
-            res.status(500).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
-        }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
-    });
-};
-
-
-// Statement
-exports.statement = (req, res) => {
-    console.log('Statement');
-    var req = unirest('POST', apiUrl + 'Statement')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"schemeNumber":req.body.schemenumber,"startDate":req.body.start,"endDate":req.body.end,"pin":req.body.pin }))
-    .end(function (res) { 
-        if (resp.error) {
-            res.status(500).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
-        }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
-    });
-};
-
-
-// Scheme Beneficiaries
-exports.schemeBeneficiaries = (req, res) => {
-    console.log('SchemeBeneficiaries');
-    var req = unirest('POST', apiUrl + 'SchemeBeneficiaries')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"schemeNumber":req.body.schemenumber,"pin":req.body.pin }))
-    .end(function (res) { 
-        if (resp.error) {
-            res.status(500).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
-        }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
-    });
-};
-
-// agent info
-exports.agentinfo = (req, res) => {
-    console.log('agentinfo');
-    var req = unirest('POST', apiUrl + 'agentinfo')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
-    .end(function (res) { 
-        if (resp.error) {
-            res.status(500).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
-        }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
-    });
-};
-
-// agent Payment
-exports.agentPayment = (req, res) => {
-    console.log('mini Statement');
-    var req = unirest('POST', apiUrl + 'agentPayment')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify({"appId":appId,"appKey":appKey,"schemeNumber":req.body.schemenumber,"pin":req.body.pin }))
-    .end(function (res) { 
-        if (resp.error) {
-            res.status(500).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
-        }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
-    });
-};
-
 
 // Post Payment
-exports.Makepayment = (req, res) => {
-    // var req = unirest('POST', 'http://api.alias-solutions.net:8443/chatbotapi/paynow/merchant/payment')
-    var request = unirest('POST', req.body.payment.apiurl)
-        .headers({
-            'Content-Type': ['application/json', 'application/json']
-        })
-        .send(JSON.stringify(req.body.payment))
-        .end(function(response) {
-            if (response.error) throw new Error(response.error);
-            console.log(response.raw_body);
-            var body = req.body;
-            // console.log(body)
-            body.response = JSON.parse(response.raw_body);
-            body.updated = new Date();
-            // Find insurance and update it
-            Insurance.findByIdAndUpdate(body._id, body, { new: true })
-                .then(insurance => {
-                    if (!insurance) {
-                        return res.status(404).send({
-                            message: "Insurance not found with id " + req.params.insuranceId
-                        });
-                    }
-                    console.log(body.response);
-                    setTimeout(() => { getCallBack(insurance, body.response.transaction_no); }, 100000);
-                    // var callback = setTimeout(getCallBack(insurance, body.response.transaction_no), 100000);
-                    res.send({ output: 'Payment Request Sent', message: "Kindly Confirm Payment Prompt on your phone", insure: insurance });
-                }).catch(err => {
-                    if (err.kind === 'ObjectId') {
-                        return res.status(404).send({
-                            message: "Insurance not found with id " + req.params.insuranceId
-                        });
-                    }
-                    return res.status(500).send({
-                        message: "Error updating insurance with id " + req.params.insuranceId
-                    });
-                });
-        });
+exports.Deposit = (req, res) => {
+    
+    const access = await getkey(req.user.merchant);
+    var val = req.body;
+    // var method = "";
+    var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:"Officer", withdrawal:false, reference:'Deposit to Account Number '+val.account };
+
+    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    console.log(api_endpoint);
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end( async(resp)=> { 
+        if (resp.error) { 
+            console.log(resp.raw_body);
+            var respon = JSON.parse(resp.raw_body);
+            // if (response.error) throw new Error(response.error);
+            return res.status(500).send({
+                message: respon.message || "Unable to proccess Payment at the moment"
+            });
+        }
+        // if (res.error) throw new Error(res.error);
+        console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        // await callback(response);
+        res.send({ output: 'Payment Request Sent', message: response.message });
+    });
 };
-
-function getCallBack(body, code) {
-    var req = unirest('GET', 'https://api.paynowafrica.com/paynow/confirmation/' + code)
-        .end(function(res) {
-            if (res.error) throw new Error(res.error);
-            console.log(res.raw_body);
-            body.callback = JSON.parse(res.raw_body);
-            body.updated = new Date();
-            if (body.callback.status_code === 0 || body.callback.status_code === 2) {
-                setTimeout(() => { getCallBack(body, body.response.transaction_no); }, 100001);
-                // var callback = setTimeout(getCallBack(body, body.response.transaction_no), 200000);
-            } else {
-                body.status = body.callback.status_message;
-                Insurance.findByIdAndUpdate(body._id, body, { new: true })
-                    .then(insurance => {
-                        if (!insurance) {
-                            return {
-                                message: "Insurance not found with id " + body._id
-                            };
-                        }
-
-                        return insurance;
-                    }).catch(err => {
-                        if (err.kind === 'ObjectId') {
-                            return {
-                                message: "Insurance not found with id " + body._id
-                            };
-                        }
-                        return {
-                            message: "Error updating insurance with id " + req.params.insuranceId
-                        };
-                    });
-            }
-
-        });
-}
-
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
     }
+}
+
+async function getkey(code) {
+    return accesses.filter((ele)=>{
+        return ele.code != code;;
+    });
 }
 
 async function generateOTP(length) {
@@ -439,36 +520,3 @@ async function generateOTP(length) {
     return otp.toUpperCase();
 }
 
-// async..await is not allowed in global scope, must use a wrapper
-async function main(value) {
-  // Generate test SMTP service account from ethereal.email
-  // Only needed if you don't have a real mail account for testing
-  let testAccount = await nodemailer.createTestAccount();
-
-  // create reusable transporter object using the default SMTP transport
-  let transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: testAccount.user, // generated ethereal user
-      pass: testAccount.pass, // generated ethereal password
-    },
-  });
-
-  // send mail with defined transport object
-  let info = await transporter.sendMail({
-    from: '"'+ value.website +'" <'+ value.from +'>', // sender address
-    to: value.to, // "bar@example.com, baz@example.com", // list of receivers
-    subject: value.subject, // "Hello ✔", // Subject line
-    text: "Sending Mail with Harmony Mailer", // plain text body
-    html: `<h1>Hello,</h1><h2>below are the details: </h2>Name:  $lname<br>Email: $email<br>Phone: $ctype<br>Gift Selected: $gtype<br>Address: $address<br>ID: $id<br>`, // html body
-  });
-
-  console.log("Message sent: %s", info.messageId);
-  // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
-
-  // Preview only available when sending through an Ethereal account
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-  // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
-}

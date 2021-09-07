@@ -1090,9 +1090,9 @@ async function fetchIcareCustomer(val, callback) {
             if (response.active) {
                 menu.session.set('name', response.fullname);
                 menu.session.set('mobile', val);
-                menu.session.set('accounts', response.accounts);
-                menu.session.set('cust', response);
-                menu.session.set('pin', response.pin);
+                // menu.session.set('accounts', response.accounts);
+                // menu.session.set('cust', response);
+                // menu.session.set('pin', response.pin);
                 // menu.session.set('limit', response.result.limit);
             }
 
