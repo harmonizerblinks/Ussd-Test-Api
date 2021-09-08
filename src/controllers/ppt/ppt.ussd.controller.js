@@ -8,15 +8,15 @@ let optionArray = [null, 'DAILY', 'WEEKLY', 'MONTHLY', null];
 const regex = /^[a-zA-Z]*$/;
 
 //Test Credentials
-// let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-// let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
-// let access = { code: "446785909", key: "164383692" };
+let apiurl = "http://localhost:5000/Ussd/";
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
+let access = { code: "446785909", key: "164383692" };
 
 //Live Credentials
-let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
-let access = { code: "PPT", key: "178116723" };
+// let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+// let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
+// let access = { code: "PPT", key: "178116723" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {

@@ -64,25 +64,6 @@ exports.validateOfficer = (req, res) => {
     });
 };
 
-// agent Payment
-exports.agentPayment = (req, res) => {
-    console.log('mini Statement');
-    var req = unirest('POST', apiUrl + 'agentPayment')
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    // .send(JSON.stringify({"appId":appId,"appKey":appKey,"schemeNumber":req.body.schemenumber,"pin":req.body.pin }))
-    .end(function (res) { 
-        if (resp.error) {
-            res.status(500).send({
-                message: resp.error
-            });
-            // throw new Error(res.error); 
-        }
-        // console.log(res.raw_body);
-        res.send(res.raw_body);
-    });
-};
 
 exports.sendOtp = async(req, res) => {
     var val = req.body;
@@ -408,35 +389,6 @@ exports.getGroup = async(req, res) => {
     });
 };
 
-// Post Statement
-exports.Statement = (req, res) => {
-    var val = req.body;
-    console.log(val);
-    
-    val.appid = access.code; val.appkey = access.key;
-    
-    console.log(val);
-
-    var api_endpoint = apiurl + 'Statement';
-    var req = unirest('POST', api_endpoint)
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify(val))
-    .end( async(resp)=> { 
-        if (resp.error) { 
-            console.log(resp.error);
-            // if (response.error) throw new Error(response.error);
-            return res.status(500).send({
-                message: "unable to generate statement a the moment pls try again later"
-            });
-        }
-        // if (res.error) throw new Error(res.error); 
-        var response = JSON.parse(resp.raw_body);
-        // await callback(response);
-        res.send(response.payments);
-    });
-};
 
 exports.getStatement = (req, res) => {
     var val = req.body;
@@ -470,7 +422,7 @@ exports.Deposit = (req, res) => {
     // var method = "";
     var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:"Officer", withdrawal:false, reference:'Deposit to Account Number '+val.account };
 
-    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
+    var api_endpoint = apiurl + 'App/Agent/Deposit/'+access.code+'/'+access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
     .headers({
