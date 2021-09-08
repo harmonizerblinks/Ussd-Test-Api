@@ -12,7 +12,7 @@ var numbers = /^[0-9]+$/;
 
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5003/ussd/";
+let apiurl = "https://app.alias-solutions.net:5010/ussd/";
 
 // let access = { code: "ARB", key: "10198553" };
 let access = { code: "ACU001", key: "1029398" };
@@ -118,15 +118,7 @@ menu.state('Register.Auto', {
         }
         // console.log(mobile)
         await getInfo(mobile, async (data) => {
-            if (data.lastname && data.lastname == null) {
-                var name = data.firstname;
-                var nameArray = name.split(" ")
-                var firstname = capitalizeFirstLetter(nameArray[0]);
-                var lastname = capitalizeFirstLetter(nameArray[1]);
-                menu.session.set('firstname', firstname)
-                menu.session.set('lastname', lastname)
-
-            } else {
+            if (data.firstname && data.lastname) {
                 var firstname = data.firstname;
                 var lastname = data.lastname;
                 menu.session.set('firstname', firstname)

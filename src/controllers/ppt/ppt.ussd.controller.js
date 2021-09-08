@@ -116,15 +116,7 @@ menu.state('Register', {
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
             // console.log(data.body)
-            if(data.firstname && data.lastname == null){
-                var name = data.firstname;
-                var nameArray = name.split(" ");
-                var firstname = capitalizeFirstLetter(nameArray[0]);
-                var lastname = capitalizeFirstLetter(nameArray[1]);
-                menu.session.set('firstname', firstname)
-                menu.session.set('lastname', lastname)
-
-            }else{
+            if(data.firstname && data.lastname){
                 var firstname = data.firstname;
                 var lastname = data.lastname;
                 menu.session.set('firstname', firstname)
