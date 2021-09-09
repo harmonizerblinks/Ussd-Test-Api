@@ -14,8 +14,8 @@ var numbers = /^[0-9]+$/;
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
 let apiurl = "https://app.alias-solutions.net:5010/ussd/";
 
-// let access = { code: "ARB", key: "10198553" };
-let access = { code: "ACU001", key: "1029398" };
+let access = { code: "ENTLIFE", key: "1029398" };
+// let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -58,6 +58,7 @@ menu.startState({
         await fetchCustomer(menu.args.phoneNumber, (data) => {
             // console.log(1,data); 
             if (data.active) {
+                menu.session.set('cust', data);
                 menu.con('Dear ' + data.fullname + ', Welcome to Enterprise Life Boafo Pa.' +
                     '\nSelect an Option.' +
                     '\n1. Payment' +
@@ -85,6 +86,7 @@ menu.state('Start', {
         await fetchCustomer(menu.args.phoneNumber, (data) => {
             // console.log(1,data); 
             if (data.active) {
+                menu.session.set('cust', data);
                 menu.con('Dear ' + data.fullname + ', Welcome to Enterprise Life Boafo Pa.' +
                     '\nSelect an Option.' +
                     '\n1. Payment' +
@@ -129,8 +131,8 @@ menu.state('Register.Auto', {
                 '\nLast Name: ' + lastname +
 
                 '\n\n0. Make Changes' +
-                '\n1. Continue')
-        })
+                '\n1. Continue');
+        });
     },
     next: {
         '0': 'Register.change',
@@ -145,87 +147,115 @@ menu.state('Register.Auto.Gender', {
             '\n2. Female')
     },
     next: {
-        '*\\d+': 'Policy',
+        '*\\d+': 'Register.Policy',
     }
 });
 
-menu.state('Policy', {
+menu.state('Register.Policy', {
     run: async () => {
         if (menu.val > 2) {
             menu.con('Invalid option. Press (0) zero to try again.')
         } else {
             let gender = genderArray[Number(menu.val)];
             menu.session.set('gender', gender);
-            menu.con('Select Policy Type:' +
-                '\n1. Standard' +
-                '\n2. Bronze' +
-                '\n3. Silver' +
-                '\n4. Gold' +
-                '\n5. Diamond')
+
+            await AvailablePolicyTypes("life", (accounts)=> { 
+                if(accounts.length > 0) {
+                    var accts = ''; var count = 1;
+                    // menu.session.set('accounts',accounts);
+                    // var accounts = await menu.session.get('accounts');
+                    accounts.forEach(val => {
+                        // console.log(val);
+                        accts += '\n'+count+'. '+val.name;
+                        count +=1;
+                    });
+                    menu.con('Select Policy Type' + accts);
+                } else {
+                    menu.end('Unable to Fetch Policy Types, please try again');
+                }
+            }).catch((err)=>{ menu.end(err); });
+            // menu.con('Select Policy Type:' +
+            //     '\n1. Standard' +
+            //     '\n2. Bronze' +
+            //     '\n3. Silver' +
+            //     '\n4. Gold' +
+            //     '\n5. Diamond');
         }
     },
     next: {
-        '*\\d+': 'Policy.Type',
+        '*\\d+': 'Register.Policy.Type',
     },
-    defaultNext: 'Register.Auto.Gender'
-})
+    defaultNext: 'Start'
+});
 
-menu.state('Policy.Type', {
+menu.state('Register.Policy.Type', {
     run: async () => {
         if (menu.val > 5) {
-            menu.con('Invalid option. Press (0) zero to try again.')
+            menu.end('Invalid option. Please try again.')
         } else {
-            menu.session.set('policyoption', policyArray[Number(menu.val)])
-            menu.con('Select Payment Plan:' +
-                '\n1. Daily' +
-                '\n2. Weekly' +
-                '\n3. Monthly')
+            // menu.session.set('policyoption', policyArray[Number(menu.val)])
+            var val = { type:'life', index: menu.val };
+            await AvailablePolicyType(val, (type)=> { 
+                // console.log(account);
+                if(type && type.code) {
+                    menu.session.set('policy',type);
+                    
+                    menu.con('How much would you like to pay to ' + type.name + ' account number '+ account.code +'?');
+                } else {
+                    menu.end('Unable to Fetch Selected Policy, please try again');
+                }
+            });
+            // menu.con('Select Payment Plan:' +
+            //     '\n1. Daily' +
+            //     '\n2. Weekly' +
+            //     '\n3. Monthly')
         }
     },
     next: {
-        '*\\d+': 'Policy.Option',
-        '0': 'Policy'
+        '0': 'Start',
+        '*\\d+': 'Register.Policy.Option',
     },
-    defaultNext: 'Policy'
-})
+    defaultNext: 'Start'
+});
 
-menu.state('Policy.Option', {
+menu.state('Register.Policy.Option', {
     run: async () => {
         if (menu.val > 3) {
             menu.con('Invalid option. Press (0) zero to try again.')
         } else {
-            let paymentplan = paymentplanArray[Number(menu.val)]
-            menu.session.set('paymentplan', paymentplan)
-            let policyoption = await menu.session.get('policyoption');
+            // let paymentplan = paymentplanArray[Number(menu.val)]
+            // menu.session.set('paymentplan', paymentplan)
+            let policy = await menu.session.get('policy');
             var firstname = await menu.session.get('firstname');
             var lastname = await menu.session.get('lastname');
             var fullname = firstname + ' ' + lastname;
-            menu.con('Dear ' + fullname + ', please confirm your registration for the ' + policyoption.product + ' with a ' + paymentplan + ' Plan of GHS ' + policyoption.amount +
+            menu.con('Dear ' + fullname + ', please confirm your registration for the ' + policy.name + ' with a ' + policy.frequency + ' Plan of GHS ' + policy.amount +
                 '\n1. Confirm' +
                 '\n2. Cancel')
         }
     },
     next: {
-        '1': 'Register.Auto.Complete',
+        '1': 'Register.Policy.Complete',
         '2': 'Exit'
     }
-})
+});
 
-menu.state('Register.Auto.Complete', {
+menu.state('Register.Policy.Complete', {
     run: async () => {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        } else if (mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }
+        var policy = await menu.session.get('policy');
+        // if (mobile && mobile.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('+233', '0');
+        // } else if (mobile && mobile.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('233', '0');
+        // }
         var data = {
-            fullname: firstname + ' ' + lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD"
+            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD",
         };
         await postCustomer(data, (data) => {
             if (data.active) {
@@ -520,55 +550,7 @@ menu.state('Pay', {
     next: {
         '*[0-9],{10,}+': 'Payment'
     }
-})
-
-
-// menu.state('Agent', {
-//     run: async() => {
-//         await fetchCustomer(menu.val, (data)=> { 
-//             // console.log(1,data); 
-//             if(data.active) {
-//                 var index = 1;
-//                 // var accounts = await menu.session.get('accounts');
-//                 var account = data.accounts[index-1]
-//                 menu.session.set('account', account);
-//                 var amount = 3;
-//                 menu.session.set('amount', amount);
-
-//                 menu.con('You are making a payment of GHS ' + amount +' into '+data.fullname+' account'+
-//                 '\n1. Confirm' +
-//                 '\n2. Cancel' +
-//                 '\n#. Main Menu')
-//             } else {
-//                 menu.con('Mobile Number not Registered');
-//             }
-//         });
-//     },
-//     next: {
-//         '#': 'Start',
-//         '1': 'Deposit.confirm',
-//         '2': 'Deposit.cancel',
-//     },
-//     defaultNext: 'Deposit.amount'
-// });
-
-// menu.state('Deposit.confirm', {
-//     run: async() => {
-//         // access user input value save in session
-//         // var of = await menu.session.get('officer');
-//         var amount = await menu.session.get('amount');
-//         // var account = await menu.session.get('account');
-//         // var network = await menu.session.get('network');
-//         // var mobile = menu.args.phoneNumber;
-//         // var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
-//         // await postDeposit(data, async(result)=> { 
-//         //     // console.log(result) 
-//         //     // menu.end(JSON.stringify(result)); 
-//         // });
-//         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
-//     }
-// });
-
+});
 
 
 // Pension USSD
@@ -583,15 +565,6 @@ exports.ussdApp = async (req, res) => {
         if (args.Operator) { menu.session.set('network', args.Operator); }
         res.send(ussdResult);
     });
-    // let args = {
-    //     phoneNumber: req.body.phoneNumber,
-    //     sessionId: req.body.sessionId,
-    //     serviceCode: req.body.serviceCode,
-    //     text: req.body.text
-    // };
-    // await menu.run(args, resMsg => {
-    //     res.send(resMsg);
-    // });
 };
 
 
@@ -623,10 +596,10 @@ async function postCustomer(val, callback) {
 
 async function fetchCustomer(val, callback) {
     // try {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233', '0');
+    // }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -639,15 +612,6 @@ async function fetchCustomer(val, callback) {
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            if (response.active) {
-                menu.session.set('name', response.name);
-                menu.session.set('mobile', val);
-                menu.session.set('account', response.accounts[0]);
-                menu.session.set('cust', response);
-                menu.session.set('type', response.type);
-                menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
 
             await callback(response);
         });
@@ -657,6 +621,89 @@ async function fetchCustomer(val, callback) {
     //     return err;
     // }
 }
+
+
+async function fetchCustomerAccounts(val, callback) {
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233','0');
+    // }
+    var api_endpoint = apiurl + 'getCustomerAccounts/' + access.code+'/'+access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            // console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        
+        await callback(response);
+    });
+}
+
+async function fetchCustomerAccount(val, callback) {
+    // if (val.mobile && val.mobile.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val.mobile = val.mobile.replace('+233','0');
+    // }
+    var api_endpoint = apiurl + 'getCustomerAccount/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            // console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        
+        await callback(response);
+    });
+}
+
+async function AvailablePolicyTypes(val, callback) {
+    var api_endpoint = apiurl + 'AvailablePolicyTypes/' +val+'?appid='+ access.code+'&key='+access.key;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            // console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        
+        await callback(response);
+    });
+}
+
+async function AvailablePolicyType(val, callback) {
+    // var api_endpoint = apiurl + 'AvailablePolicyType/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
+    var api_endpoint = apiurl + 'AvailablePolicyType/' + val.type+ '/' + val.index+'?appid='+ access.code+'&key='+access.key;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async(resp)=> { 
+        if (resp.error) { 
+            // console.log(resp.error);
+            // var response = JSON.parse(res);
+            // return res;
+            await callback(resp);
+        }
+        // console.log(resp.raw_body);
+        var response = JSON.parse(resp.raw_body);
+        
+        await callback(response);
+    });
+}
+
 
 async function fetchBalance(val, callback) {
     var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
