@@ -208,8 +208,8 @@ menu.state('Register.Policy.Selected', {
                 if(type && type.active) {
                     menu.session.set('policy',type);
                     
-                    menu.con(type.name +'\n'+type.description +
-                        '\n1. Confirm' +
+                    menu.con(type.description +
+                        '\n1. Proceed' +
                         '\n2. Cancel');
                 } else {
                     menu.end('Unable to Fetch Selected Policy, please try again');
