@@ -121,30 +121,34 @@ menu.state('Register', {
             menu.session.set('mobile', mobile);
         } else {
             if (mobile && mobile.startsWith('0')) {
-                // Remove Bearer from string
+                // add +233 from string
                 mobile = '+233' + mobile.substr(1);
             }else if(mobile && mobile.startsWith('233')) {
-                // Remove Bearer from string
+                // add +233 from string
                 mobile = '+233' + mobile.substr(3);
-                // mobile = mobile.replace('233', '+233');
             }
             menu.session.set('mobile', mobile);
         }
         
         // console.log(mobile)
         await getInfo(mobile, async(data) => {
-            if (data.firstname && data.lastname) {
+            if (data && data.firstname && data.lastname) {
                 var firstname = data.firstname;
                 var lastname = data.lastname;
                 menu.session.set('firstname', firstname);
                 menu.session.set('lastname', lastname);
-            }
-            menu.con('Please confirm Person\'s details:' +
+                menu.con('Please confirm Person\'s details:' +
                 '\nFirst Name: ' + data.firstname +
                 '\nLast Name: ' + data.lastname +
-
                 '\n\n0. Make Changes' +
                 '\n1. Continue');
+            } else {
+                menu.con('Please confirm Person\'s details:' +
+                '\nFirst Name: ' + data.firstname +
+                '\nLast Name: ' + data.lastname +
+                '\n\n0. Make Changes' +
+                '\n1. Continue');
+            }
             
         });
     },
@@ -259,13 +263,13 @@ menu.state('Register.Policy.Complete', {
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
         var policy = await menu.session.get('policy');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        } else if (mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }
+        // if (mobile && mobile.startsWith('+233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('+233', '0');
+        // } else if (mobile && mobile.startsWith('233')) {
+        //     // Remove Bearer from string
+        //     mobile = mobile.replace('233', '0');
+        // }
         
         var data = { code: access.code, key: access.key,
             fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator,location: 'n/a',agentcode:'n/a', matrialstatus:'n/a', idnumber:'n/a', idtype:'n/a',  dateofbirth: null, 
