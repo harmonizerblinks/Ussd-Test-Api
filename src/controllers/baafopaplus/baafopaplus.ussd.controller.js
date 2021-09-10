@@ -120,29 +120,32 @@ menu.state('Register', {
             mobile = menu.args.phoneNumber;
             menu.session.set('mobile', mobile);
         } else {
+            if (mobile && mobile.startsWith('0')) {
+                // Remove Bearer from string
+                mobile = '+233' + mobile.substr(1);
+            }else if(mobile && mobile.startsWith('233')) {
+                // Remove Bearer from string
+                mobile = '+233' + mobile.substr(3);
+                // mobile = mobile.replace('233', '+233');
+            }
             menu.session.set('mobile', mobile);
         }
+        
         // console.log(mobile)
-        await getInfo(mobile, async (data) => {
+        await getInfo(mobile, async(data) => {
             if (data.firstname && data.lastname) {
                 var firstname = data.firstname;
                 var lastname = data.lastname;
-                menu.session.set('firstname', firstname)
-                menu.session.set('lastname', lastname)
-                menu.con('Please confirm Person\'s details:' +
-                '\nFirst Name: ' + firstname +
-                '\nLast Name: ' + lastname +
+                menu.session.set('firstname', firstname);
+                menu.session.set('lastname', lastname);
+            }
+            menu.con('Please confirm Person\'s details:' +
+                '\nFirst Name: ' + data.firstname +
+                '\nLast Name: ' + data.lastname +
 
                 '\n\n0. Make Changes' +
                 '\n1. Continue');
-            } else {
-                menu.con('Please confirm Person\'s details:' +
-                    '\nFirst Name: ' + data.firstname +
-                    '\nLast Name: ' + data.lastname +
-
-                    '\n\n0. Make Changes' +
-                    '\n1. Continue');
-            }
+            
         });
     },
     next: {
@@ -310,7 +313,7 @@ menu.state('Register.lastname', {
         var firstname = await menu.session.get('firstname');
         //var lastname = await menu.session.get('lastname');
         var mobile = await menu.session.get('mobile');
-        menu.con('Please confirm the registration details below to continue:' +
+        menu.con('Please confirm the Person\'s details' +
             '\nFirst Name - ' + firstname +
             '\nLast Name - ' + lastname +
             '\nMobile Number - ' + mobile +
