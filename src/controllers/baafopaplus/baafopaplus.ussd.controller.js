@@ -64,7 +64,8 @@ menu.startState({
                     '\n1. Payment' +
                     '\n2. Check Status' +
                     '\n3. Claims' +
-                    '\n4. Agent');
+                    '\n4. Policies' +
+                    '\n5. Agent');
             } else {
                 menu.con('Welcome to Enterprise Life Boafo Pa. Press (0) zero to register \n0. Register');
             }
@@ -72,11 +73,12 @@ menu.startState({
     },
     // next object links to next state based on user input
     next: {
-        '0': 'Register.Auto',
-        '1': 'Payment',
+        '0': 'Register',
+        '1': 'Deposit',
         '2': 'CheckStatus',
         '3': 'Claims',
-        '4': 'Agent',
+        '4': 'Policies',
+        '5': 'Agent'
     }
 });
 
@@ -92,7 +94,8 @@ menu.state('Start', {
                     '\n1. Payment' +
                     '\n2. Check Status' +
                     '\n3. Claims' +
-                    '\n4. Agent');
+                    '\n4. Policies' +
+                    '\n5. Agent');
             } else {
                 menu.con('Welcome to Enterprise Life Boafo Pa. Press (0) zero to register \n0. Register');
             }
@@ -100,16 +103,17 @@ menu.state('Start', {
     },
     // next object links to next state based on user input
     next: {
-        '0': 'Register.Auto',
-        '1': 'Payment',
+        '0': 'Register',
+        '1': 'Deposit',
         '2': 'CheckStatus',
         '3': 'Claims',
-        '4': 'Agent'
+        '4': 'Policies',
+        '5': 'Agent'
     },
     defaultNext: 'Start'
 });
 
-menu.state('Register.Auto', {
+menu.state('Register', {
     run: async () => {
         let mobile = menu.val;
         if (mobile == 0) {
@@ -136,11 +140,11 @@ menu.state('Register.Auto', {
     },
     next: {
         '0': 'Register.change',
-        '1': 'Register.Auto.Gender',
+        '1': 'Register.Gender',
     }
 });
 
-menu.state('Register.Auto.Gender', {
+menu.state('Register.Gender', {
     run: () => {
         menu.con('Please choose an option for your gender:' +
             '\n1. Male' +
@@ -174,21 +178,15 @@ menu.state('Register.Policy', {
                     menu.end('Unable to Fetch Policy Types, please try again');
                 }
             }).catch((err)=>{ menu.end(err); });
-            // menu.con('Select Policy Type:' +
-            //     '\n1. Standard' +
-            //     '\n2. Bronze' +
-            //     '\n3. Silver' +
-            //     '\n4. Gold' +
-            //     '\n5. Diamond');
         }
     },
     next: {
-        '*\\d+': 'Register.Policy.Type',
+        '*\\d+': 'Register.Policy.Selected',
     },
     defaultNext: 'Start'
 });
 
-menu.state('Register.Policy.Type', {
+menu.state('Register.Policy.Selected', {
     run: async () => {
         if (menu.val > 5) {
             menu.end('Invalid option. Please try again.')
@@ -197,10 +195,12 @@ menu.state('Register.Policy.Type', {
             var val = { type:'life', index: menu.val };
             await AvailablePolicyType(val, (type)=> { 
                 // console.log(account);
-                if(type && type.code) {
+                if(type && type.active) {
                     menu.session.set('policy',type);
                     
-                    menu.con('How much would you like to pay to ' + type.name + ' account number '+ account.code +'?');
+                    menu.con(type.name +'\n'+type.description +
+                        '\n1. Confirm' +
+                        '\n2. Cancel');
                 } else {
                     menu.end('Unable to Fetch Selected Policy, please try again');
                 }
@@ -213,12 +213,14 @@ menu.state('Register.Policy.Type', {
     },
     next: {
         '0': 'Start',
+        '1': 'Register.Policy.Confirm',
+        '2': 'Exit',
         '*\\d+': 'Register.Policy.Option',
     },
     defaultNext: 'Start'
 });
 
-menu.state('Register.Policy.Option', {
+menu.state('Register.Policy.Confirm', {
     run: async () => {
         if (menu.val > 3) {
             menu.con('Invalid option. Press (0) zero to try again.')
@@ -254,8 +256,9 @@ menu.state('Register.Policy.Complete', {
         //     // Remove Bearer from string
         //     mobile = mobile.replace('233', '0');
         // }
-        var data = {
-            firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD",
+        
+        var data = { code: access.code, key: access.key,
+            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator,location: 'n/a',agentcode:'n/a', dateofbirth: null, 
         };
         await postCustomer(data, (data) => {
             if (data.active) {
@@ -274,7 +277,7 @@ menu.state('Register.Policy.Complete', {
 
 menu.state('Register.change', {
     run: () => {
-        menu.con('Please enter Person\'s first name')
+        menu.con('Please enter first name')
     },
     next: {
         '*[a-zA-Z]+': 'Register.firstname'
@@ -285,151 +288,44 @@ menu.state('Register.firstname', {
     run: () => {
         let firstname = menu.val;
         menu.session.set('firstname', firstname);
-        menu.con('Please enter Person\'s last name')
+        menu.con('Please enter last name')
     },
     next: {
         '*[a-zA-Z]+': 'Register.lastname'
     }
 })
 
+
 menu.state('Register.lastname', {
     run: async () => {
         let lastname = menu.val;
         menu.session.set('lastname', lastname);
-        menu.con('Please choose an option for your gender:' +
-            '\n1. Male' +
-            '\n2. Female')
-    },
-    next: {
-        '*\\d+': 'Register.gender',
-    }
-})
-
-menu.state('Register.gender', {
-    run: async () => {
-        if (menu.val > 2) {
-            menu.con('Invalid option. Press (0) zero to try again.')
-        } else {
-            let gender = genderArray[Number(menu.val)];
-            menu.session.set('gender', gender);
-            var firstname = await menu.session.get('firstname');
-            var lastname = await menu.session.get('lastname');
-            var mobile = await menu.session.get('mobile');
-            if (mobile && mobile.startsWith('+233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('+233', '0');
-            } else if (mobile && mobile.startsWith('233')) {
-                // Remove Bearer from string
-                mobile = mobile.replace('233', '0');
-            }
-            menu.con('Please confirm the registration details below to continue:' +
-                '\nFirst Name - ' + firstname +
-                '\nLast Name - ' + lastname +
-                '\nMobile Number - ' + mobile +
-                '\n\n0. Make Changes' +
-                '\n1. Continue')
-        }
-    },
-    next: {
-        '0': 'Register.register',
-        '1': 'Register.continue',
-    },
-    defaultNext: 'Registration.lastname'
-})
-
-menu.state('Register.continue', {
-    run: async () => {
-        menu.con('Select Policy Type:' +
-            '\n1. Standard' +
-            '\n2. Bronze' +
-            '\n3. Silver' +
-            '\n4. Gold' +
-            '\n5. Diamond')
-    },
-    next: {
-        '*\\d+': 'Register.Policy.Type'
-    }
-})
-
-menu.state('Register.Policy.Type', {
-    run: async () => {
-        if (menu.val > 2) {
-            menu.con('Invalid option. Press (0) zero to try again.')
-        } else {
-            menu.session.set('policyoption', policyArray[Number(menu.val)])
-            menu.con('Select Payment Plan:' +
-                '\n1. Daily' +
-                '\n2. Weekly' +
-                '\n3. Monthly')
-        }
-    },
-    next: {
-        '*\\d+': 'Register.Policy.Option',
-        '0': 'Register.continue'
-    }
-})
-
-menu.state('Register.Policy.Option', {
-    run: async () => {
-        if (menu.val > 3) {
-            menu.con('Invalid option. Press (0) zero to try again.')
-        } else {
-            let paymentplan = paymentplanArray[Number(menu.val)]
-            menu.session.set('paymentplan', paymentplan)
-            let policyoption = await menu.session.get('policyoption');
-            var firstname = await menu.session.get('firstname');
-            var lastname = await menu.session.get('lastname');
-            var fullname = firstname + ' ' + lastname;
-            menu.con('Dear ' + fullname + ', please confirm your registration for the ' + policyoption.product + ' with a ' + paymentplan + ' Plan of GHS ' + policyoption.amount +
-                '\n1. Confirm' +
-                '\n2. Cancel')
-        }
-    },
-    next: {
-        '1': 'Register.Register.complete',
-        '2': 'Exit'
-    }
-})
-
-menu.state('Register.Register.complete', {
-    run: async () => {
         var firstname = await menu.session.get('firstname');
-        var lastname = await menu.session.get('lastname');
-        var gender = await menu.session.get('gender');
+        //var lastname = await menu.session.get('lastname');
         var mobile = await menu.session.get('mobile');
-        if (mobile && mobile.startsWith('+233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('+233', '0');
-        } else if (mobile && mobile.startsWith('233')) {
-            // Remove Bearer from string
-            mobile = mobile.replace('233', '0');
-        }
-        var data = {
-            fullname: firstname + ' ' + lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD"
-        };
-        await postCustomer(data, (data) => {
-            if (data.active) {
-                menu.con('Your policy has been registered successfully. Press (0) zero to continue to Main Menu..')
-            } else {
-                menu.end(data.message || 'Registration not Successful')
-            }
-        })
-
+        menu.con('Please confirm the registration details below to continue:' +
+            '\nFirst Name - ' + firstname +
+            '\nLast Name - ' + lastname +
+            '\nMobile Number - ' + mobile +
+            '\n\n0. Make Changes' +
+            '\n1. Continue')
     },
     next: {
-        '0': 'Start'
-    }
+        '0': 'Register.change',
+        '1': 'Register.Gender',
+    },
+    defaultNext: 'Register.lastname'
 })
 
 menu.state('Exit', {
     run: () => {
-        menu.end('')
+        menu.end('Thank you for using our Service')
     }
 })
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-menu.state('Payment', {
+menu.state('Deposit', {
     run: async () => {
         let mobile = menu.val;
         if (mobile == 1) {
@@ -448,7 +344,7 @@ menu.state('Payment', {
     next: {
         '*\\d+': 'Deposit.view',
     },
-    defaultNext: 'Payment'
+    defaultNext: 'Deposit'
 })
 
 menu.state('Deposit.view', {
@@ -470,7 +366,7 @@ menu.state('Deposit.view', {
         '1': 'Deposit.confirm',
         '2': 'Deposit.cancel',
     },
-    defaultNext: 'Payment'
+    defaultNext: 'Deposit'
 });
 
 menu.state('Deposit.confirm', {
@@ -517,7 +413,61 @@ menu.state('Claims', {
     run: () => {
         menu.end('You will be contacted shortly.')
     }
-})
+});
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+menu.state('Policies', {
+    run: async () => {
+        await AvailablePolicyTypes("life", (accounts)=> { 
+            if(accounts.length > 0) {
+                var accts = ''; var count = 1;
+                // menu.session.set('accounts',accounts);
+                // var accounts = await menu.session.get('accounts');
+                accounts.forEach(val => {
+                    // console.log(val);
+                    accts += '\n'+count+'. '+val.name;
+                    count +=1;
+                });
+                menu.con('Select Policy' + accts);
+            } else {
+                menu.end('Unable to Fetch Policy Types, please try again');
+            }
+        }).catch((err)=>{ menu.end(err); });
+    },
+    next: {
+        '*\\d+': 'Policies.Selected',
+    },
+    defaultNext: 'Start'
+});
+
+menu.state('Policies.Selected', {
+    run: async () => {
+        if (menu.val > 5) {
+            menu.end('Invalid option. Please try again.')
+        } else {
+            // menu.session.set('policyoption', policyArray[Number(menu.val)])
+            var val = { type:'life', index: menu.val };
+            await AvailablePolicyType(val, (type)=> { 
+                // console.log(account);
+                if(type && type.active) {
+                    menu.session.set('policy',type);
+                    
+                    menu.con(type.name +'\n'+type.description +
+                        '\n0. Start' +
+                        '\n1. Exit');
+                } else {
+                    menu.end('Unable to Fetch Selected Policy, please try again');
+                }
+            });
+        }
+    },
+    next: {
+        '0': 'Start',
+        '1': 'Exit',
+    },
+    defaultNext: 'Start'
+});
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -528,12 +478,12 @@ menu.state('Agent', {
             '\n2. Pay for Someone')
     },
     next: {
-        '1': 'Register',
+        '1': 'Registers',
         '2': 'Pay'
     }
 })
 
-menu.state('Register', {
+menu.state('Registers', {
     run: () => {
         menu.con('Enter Phone Number of person:')
     },
@@ -548,7 +498,7 @@ menu.state('Pay', {
         menu.con('Enter Phone Number of person:')
     },
     next: {
-        '*[0-9],{10,}+': 'Payment'
+        '*[0-9],{10,}+': 'Deposit'
     }
 });
 
@@ -562,7 +512,7 @@ exports.ussdApp = async (req, res) => {
     }
     // console.log(args);
     menu.run(args, ussdResult => {
-        if (args.Operator) { menu.session.set('network', args.Operator); }
+        // if (args.Operator) { menu.session.set('network', args.Operator); }
         res.send(ussdResult);
     });
 };
@@ -573,7 +523,7 @@ function buyAirtime(phone, val) {
 }
 
 async function postCustomer(val, callback) {
-    var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
+    var api_endpoint = apiurl + 'CreatePolicyHolder/';
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -608,12 +558,12 @@ async function fetchCustomer(val, callback) {
                 console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                await callback(resp.error);
             }
             // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
+            // var response = JSON.parse(resp.raw_body);
 
-            await callback(response);
+            await callback(resp.raw_body);
         });
     // }
     // catch(err) {
@@ -803,15 +753,16 @@ async function getCharge(val, callback) {
 
 
 async function getInfo(val, callback) {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    } else if (val && val.startsWith('233')) {
-        // Remove Bearer from string
-        val = val.replace('233', '0');
-    }
+    // if (val && val.startsWith('+233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('+233', '0');
+    // } else if (val && val.startsWith('233')) {
+    //     // Remove Bearer from string
+    //     val = val.replace('233', '0');
+    // }
 
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
     var req = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
