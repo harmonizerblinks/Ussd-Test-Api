@@ -9,7 +9,7 @@ const regex = /^[a-zA-Z]*$/;
 
 //Test Credentials
 let apiurl = "http://localhost:5000/Ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+//let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
 let access = { code: "446785909", key: "164383692" };
 
