@@ -412,8 +412,28 @@ menu.state('Deposit.cancel', {
 //////////////////////////////////////////////////////////////////////////////////////
 
 menu.state('CheckStatus', {
-    run: () => {
-        menu.con('Your Gold Policy Plan is currently active' + '\n\nPress zero (0) to return to the Main Menu');
+    run: async() => {
+        // var mobile = await menu.session.get('mobile');
+        var val = { mobile: menu.args.phoneNumber, index: 1 };
+        await fetchCustomerAccount(val, async(data) => {
+            if (data && data.active) {
+                menu.session.set('account', data);
+                await CheckStatus(data.code, (dat) => {
+                    if (dat && dat.data) {
+                        menu.con('Your '+data.name+' is currently active' + '\n '+ dat.data.totalpaid.savings_claim_eligibility.narration +' \n\nPress zero (0) to return to the Main Menu');
+                        // menu.con('Dear, '+data.fullname+', you are making a deposit of GHS ' + amount + ' into your account' +
+                        // '\n1. Confirm' +
+                        // '\n2. Cancel' +
+                        // '\n#. Main Menu');
+                    } else {
+                        menu.end('Unable to get Policy Status Currently, please try again later.')
+                    }
+                });
+            } else {
+                menu.end('No Currently Active Policy.')
+            }
+        });
+        // menu.con('Your Gold Policy Plan is currently active' + '\n\nPress zero (0) to return to the Main Menu');
     },
     next: {
         '0': 'Start'
@@ -467,7 +487,7 @@ menu.state('Policies.Selected', {
                     menu.session.set('policy',type);
                     
                     menu.con(type.name +'\n'+type.description +
-                        '\n0. Start' +
+                        '\n0. Menu' +
                         '\n1. Exit');
                 } else {
                     menu.end('Unable to Fetch Selected Policy, please try again');
@@ -670,8 +690,8 @@ async function AvailablePolicyType(val, callback) {
 }
 
 
-async function fetchBalance(val, callback) {
-    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + val;
+async function CheckStatus(val, callback) {
+    var api_endpoint = apiurl + 'GetPolicyStatus/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -681,10 +701,7 @@ async function fetchBalance(val, callback) {
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            if (response.balance) {
-                menu.session.set('balance', response.balance);
-            }
-
+            
             await callback(response);
         });
 }
