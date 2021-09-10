@@ -59,7 +59,7 @@ menu.startState({
             // console.log(1,data); 
             if (data && data.active) {
                 menu.session.set('cust', data);
-                menu.con('Dear ' + data.fullname + ', Welcome to Enterprise Life Boafo Pa.' +
+                menu.con('Dear ' + data.fullname + ',\nWelcome to Enterprise Life Boafo Pa.' +
                     '\nSelect an Option.' +
                     '\n1. Payment' +
                     '\n2. Check Status' +
@@ -89,7 +89,7 @@ menu.state('Start', {
             console.log(1,data); 
             if (data && data.active) {
                 menu.session.set('cust', data);
-                menu.con('Dear ' + data.fullname + ', Welcome to Enterprise Life Boafo Pa.' +
+                menu.con('Dear ' + data.fullname + ',\nWelcome to Enterprise Life Boafo Pa.' +
                     '\nSelect an Option.' +
                     '\n1. Payment' +
                     '\n2. Check Status' +
@@ -339,9 +339,9 @@ menu.state('Deposit', {
                 menu.session.set('account', data);
                 menu.con('You are currently on the '+data.name+', '+data.frequency+' Amount is GHC '+data.amount+'.\n How much would you like to pay?')
             } else {
-                menu.end('Mobile Number not Registered.')
+                menu.end('No Active Policy.')
             }
-        })
+        });
     },
     next: {
         '*\\d+': 'Deposit.view',
@@ -356,11 +356,20 @@ menu.state('Deposit.view', {
         if (amount > 10000) {
             menu.end('Invalid Amount Provided. Please Try again.');
         } else {
-            var cust = await menu.session.get('cust');
-            menu.con('Dear, '+cust.fullname+', you are making a deposit of GHS ' + amount + ' into your account' +
-                '\n1. Confirm' +
-                '\n2. Cancel' +
-                '\n#. Main Menu');
+            var mobile = await menu.session.get('mobile');
+            var val = { mobile: mobile, index: 1 };
+            await fetchCustomerAccount(val, (data) => {
+                if (data.active) {
+                    menu.session.set('account', data);
+                    menu.con('Dear, '+data.fullname+', you are making a deposit of GHS ' + amount + ' into your account' +
+                    '\n1. Confirm' +
+                    '\n2. Cancel' +
+                    '\n#. Main Menu');
+                    // menu.con('You are currently on the '+data.name+', '+data.frequency+' Amount is GHC '+data.amount+'.\n How much would you like to pay?')
+                } else {
+                    menu.end('No Currently Active Policy.')
+                }
+            });
         }
     },
     next: {
@@ -375,11 +384,12 @@ menu.state('Deposit.view', {
 menu.state('Deposit.confirm', {
     run: async () => {
         // access user input value save in session
-        // var cust = await menu.session.get('cust');
+        var cust = await menu.session.get('cust');
+        if(!cust) { menu.end('Invalid Input, Please try again.') }
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
-        var mobile = await menu.session.get('mobile');
+        var network = menu.args.operator;
+        var mobile = menu.args.phoneNumber;
         if (mobile == undefined) {
             mobile = menu.args.phoneNumber;
         }
@@ -706,11 +716,12 @@ async function postDeposit(val, callback) {
             console.log(JSON.stringify(val));
             if (resp.error) {
                 console.log(resp.error);
-                await postDeposit(val);
+                console.log(resp.raw_body);
+                // await postDeposit(val);
                 await callback(resp);
             }
             // if (res.error) throw new Error(res.error); 
-            // console.log(resp.raw_body);
+            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             console.log(response);
             await callback(response);
