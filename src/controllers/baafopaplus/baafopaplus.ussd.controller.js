@@ -10,9 +10,9 @@ let paymentplanArray = ["", "Daily", "Weekly", "Monthly"];
 var numbers = /^[0-9]+$/;
 
 
-// let apiurl = "http://localhost:5000/Ussd/";
+let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5010/ussd/";
+// let apiurl = "https://app.alias-solutions.net:5010/ussd/";
 
 let access = { code: "ENTLIFE", key: "1029398" };
 // let access = { code: "ACU001", key: "1029398" };
@@ -57,7 +57,7 @@ menu.startState({
         //menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data) => {
             // console.log(1,data); 
-            if (data.active) {
+            if (data && data.active) {
                 menu.session.set('cust', data);
                 menu.con('Dear ' + data.fullname + ', Welcome to Enterprise Life Boafo Pa.' +
                     '\nSelect an Option.' +
@@ -85,9 +85,9 @@ menu.startState({
 menu.state('Start', {
     run: async () => {
         // Fetch Customer information
-        await fetchCustomer(menu.args.phoneNumber, (data) => {
-            // console.log(1,data); 
-            if (data.active) {
+        await fetchCustomer(menu.args.phoneNumber, async(data) => {
+            console.log(1,data); 
+            if (data && data.active) {
                 menu.session.set('cust', data);
                 menu.con('Dear ' + data.fullname + ', Welcome to Enterprise Life Boafo Pa.' +
                     '\nSelect an Option.' +
@@ -258,11 +258,11 @@ menu.state('Register.Policy.Complete', {
         // }
         
         var data = { code: access.code, key: access.key,
-            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator,location: 'n/a',agentcode:'n/a', dateofbirth: null, 
+            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator,location: 'n/a',agentcode:'n/a', matrialstatus:'n/a', idnumber:'n/a', idtype:'n/a',  dateofbirth: null, 
         };
         await postCustomer(data, (data) => {
             if (data.active) {
-                menu.con('Your policy has been registered successfully. Press (0) zero to continue to Main Menu..')
+                menu.end('Your policy has been registered successfully.')
             } else {
                 menu.end(data.message || 'Registration not Successful')
             }
@@ -333,9 +333,11 @@ menu.state('Deposit', {
             menu.session.set('mobile', mobile);
         }
         menu.session.set('mobile', mobile);
-        await fetchCustomer(mobile, (data) => {
+        var val = { mobile: mobile, index: 1 };
+        await fetchCustomerAccount(val, (data) => {
             if (data.active) {
-                menu.con('You are currently on the Gold Policy Plan. How much would you like to pay?')
+                menu.session.set('account', data);
+                menu.con('You are currently on the '+data.name+', '+data.frequency+' Amount is GHC '+data.amount+'.\n How much would you like to pay?')
             } else {
                 menu.end('Mobile Number not Registered.')
             }
@@ -352,9 +354,10 @@ menu.state('Deposit.view', {
         var amount = Number(menu.val);
         menu.session.set('amount', amount);
         if (amount > 10000) {
-            menu.con('Invalid Amount Provided. Enter (0) to continue.');
+            menu.end('Invalid Amount Provided. Please Try again.');
         } else {
-            menu.con('Dear, [Full Name], you are making a deposit of GHS ' + amount + ' into your account' +
+            var cust = await menu.session.get('cust');
+            menu.con('Dear, '+cust.fullname+', you are making a deposit of GHS ' + amount + ' into your account' +
                 '\n1. Confirm' +
                 '\n2. Cancel' +
                 '\n#. Main Menu');
@@ -372,7 +375,7 @@ menu.state('Deposit.view', {
 menu.state('Deposit.confirm', {
     run: async () => {
         // access user input value save in session
-        var cust = await menu.session.get('cust');
+        // var cust = await menu.session.get('cust');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         var network = await menu.session.get('network');
@@ -511,7 +514,7 @@ exports.ussdApp = async (req, res) => {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
     // console.log(args);
-    menu.run(args, ussdResult => {
+    await menu.run(args, async(ussdResult) => {
         // if (args.Operator) { menu.session.set('network', args.Operator); }
         res.send(ussdResult);
     });
@@ -561,9 +564,11 @@ async function fetchCustomer(val, callback) {
                 await callback(resp.error);
             }
             // console.log(resp.raw_body);
-            // var response = JSON.parse(resp.raw_body);
+            if(resp.raw_body) {
+                var response = JSON.parse(resp.raw_body);
 
-            await callback(resp.raw_body);
+                await callback(response);
+            } else { await callback(resp.raw_body);}
         });
     // }
     // catch(err) {
