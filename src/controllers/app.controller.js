@@ -321,13 +321,13 @@ exports.changePassword = async (req, res) => {
 
 exports.getCustomers = async (req, res) => {
     // var val = req.user.mobile;
+    const { page, limit, search } =  req.query
     const access = await getkey(req.user.merchant);
-    var api_endpoint = apiurl + 'App/getCustomers/' + access.code + '/' + access.key + '?' + req.query;
+    var api_endpoint = apiurl + `App/getCustomers/${access.code}/${access.key}?search=${search}&page=${page}&limit=${limit}`;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 res.status(500).send({
                     success: false,
                     register: false,
@@ -335,28 +335,12 @@ exports.getCustomers = async (req, res) => {
                     error: resp
                 });
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            if (response.active && response.pin != null) {
-                res.send({
-                    success: true,
-                    register: true,
-                    pin: true
-                });
-            } else if (response.active && response.pin == null) {
-                res.send({
-                    success: true,
-                    register: true,
-                    pin: false
-                });
-            } else {
-                res.send({
-                    success: false,
-                    register: false,
-                    pin: false,
-                    message: 'Provide the following details to Signup',
-                });
-            }
+            console.log(response);
+            res.send({
+                success: true,
+                ...response
+            })
         });
 };
 
