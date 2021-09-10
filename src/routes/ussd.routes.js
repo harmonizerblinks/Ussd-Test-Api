@@ -45,6 +45,8 @@ module.exports = function(app) {
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
+    var daakyeSusu = require('../controllers/airteltigo/daakye.ussd.controller.js');
+
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
     app.post('/group', hmplus.ussdApp);
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
@@ -95,5 +97,8 @@ module.exports = function(app) {
     
     // WESTOM INSURANCE
     app.post('/api/baafopaplus', baafopaplus.ussdApp);
+
+    //AIRTELTIGO
+    app.post('/api/airteltigo/daakye', daakyeSusu.ussdApp);
 
 }

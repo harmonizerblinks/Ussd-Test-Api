@@ -8,15 +8,14 @@ let optionArray = [null, 'DAILY', 'WEEKLY', 'MONTHLY', null];
 const regex = /^[a-zA-Z]*$/;
 
 //Test Credentials
-let apiurl = "http://localhost:5000/Ussd/";
-//let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
-let access = { code: "446785909", key: "164383692" };
+// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+// let apiSchemeInfo = "https://app.alias-solutions.net:5008/";
+// let access = { code: "446785909", key: "164383692" };
 
 //Live Credentials
-// let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-// let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
-// let access = { code: "PPT", key: "178116723" };
+let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
+let access = { code: "PPT", key: "178116723" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -45,7 +44,6 @@ menu.sessionConfig({
 
 menu.on('error', (err) => {
     // handle errors
-    // console.log('Error', err);
     menu.end(err);
 });
 
@@ -55,7 +53,6 @@ menu.startState({
         // Fetch Customer information
         
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
             if(data.active) {     
                 menu.con('Welcome to People\'s Pensions Trust' + 
                 '\n1. Pay' +
@@ -83,7 +80,6 @@ menu.state('Start', {
     run: async() => {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
             if(data.active) {     
                 menu.con('Welcome to People\'s Pensions Trust' + 
                 '\n1. Pay' +
@@ -112,13 +108,13 @@ menu.state('Start', {
 menu.state('Register', {
     run: async() => {
         let mobile = menu.args.phoneNumber;
-        // console.log(mobile)
         menu.session.set('mobile', mobile);        
         await getInfo(mobile, async(data) =>{
-            // console.log(data.body)
+            var firstname = "";
+            var lastname = "";
             if(data.firstname && data.lastname){
-                var firstname = data.firstname;
-                var lastname = data.lastname;
+                firstname = data.firstname;
+                lastname = data.lastname;
                 menu.session.set('firstname', firstname)
                 menu.session.set('lastname', lastname)
             }
@@ -221,13 +217,14 @@ menu.state('Register.complete', {
             firstname: firstname, lastname: lastname, mobile: mobile, email: 'n/a', gender: 'N/A', source: "USSD", frequency: frequency, amount: amount, network: network, payermobile: menu.args.phoneNumber,
         };
         await postCustomer(data, (data) => {
-            if (data.body.status_code == 1) {
-                menu.end('Request submitted successfully. You will receive a payment prompt shortly')
-            } else {
-                menu.end(data.body.status_message || 'Error in creating customer. Please contact the administrator')
-            }
+            // menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+            
+        },
+        async (error) => {
+            // menu.end( error.status_message ? error.status_message : 'Error in creating customer. Please contact the administrator')
         })
 
+        menu.end('You will receive a payment prompt shortly if request submitted successfully')
     }
 })
 
@@ -242,7 +239,6 @@ menu.state('Exit', {
 menu.state('Pay', {
     run: async() => {
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data); 
             if(data.active) {   
                 menu.con('Choose Option:' +
                 '\n1. Daily' +
@@ -287,7 +283,6 @@ menu.state('Pay.view', {
             menu.con('Incorrect Selection. Enter zero(0) to retry again')
         } else {
             var option = optionArray[index];
-            // console.log(option);
             menu.session.set('paymentoption', option);
             // var accounts = await menu.session.get('accounts');
             // let account = await filterPersonalSchemeOnly(accounts);
@@ -298,7 +293,6 @@ menu.state('Pay.view', {
                     let account = data.accounts
                     menu.session.set('account', account);
                     // await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-                        // console.log(1,data);  
                         if(data.active) {
                             menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                         } else {
@@ -366,7 +360,6 @@ menu.state('Pay.Option.Complete', {
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
-        // console.log(data);
         await postAutoDeposit(data, async(data) => {
 
         });
@@ -392,11 +385,11 @@ menu.state('Pay.send', {
     run: async () => {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
         await postDeposit(data, async(result)=> { 
-            // menu.end(JSON.stringify(result)); 
+            console.log(JSON.stringify(result)); 
             menu.end('Request submitted successfully. You will receive a payment prompt shortly')
         }, 
         async (error) => {
@@ -441,7 +434,6 @@ menu.state('Icare.register', {
 menu.state('Icare.next', {
     run: async() => {
         let mobile = menu.val;
-        // console.log(mobile)
         if (mobile && mobile.startsWith('0')) {
             // Remove Bearer from string
             mobile = '+233' + mobile.substr(1);
@@ -537,6 +529,9 @@ menu.state('Icare.complete', {
             '\n3. Monthly' +
             '\n4. One time' + 
             '\n5. Stop Repeat Payment')
+        },
+        async (error) => {
+            menu.end( 'Sorry something went wrong. Please contact the administrator')
         });
     },
     next: {
@@ -610,7 +605,6 @@ menu.state('Icare.deposit.mobile', {
         }
         menu.session.set('mobile', mobile);
         await filterPersonalSchemeOnly(mobile, (data)=> { 
-            console.log(data);
             if(data.active && data.accounts) {
                 menu.session.set('account', data.accounts)
                 menu.con('Choose Option:' +
@@ -640,7 +634,6 @@ menu.state('Icare.view', {
             menu.end('Incorrect Selection')
         } else {
             var option = optionArray[index];
-            // console.log(option);
             menu.session.set('paymentoption', option);
             var mobile = await menu.session.get('mobile');
             // var data = {appId: access.code, appKey: access.key, mobile: mobile}
@@ -648,7 +641,6 @@ menu.state('Icare.view', {
                 if (data.accounts) {
                     let account = data.accounts
                     menu.session.set('account', account);
-                        // console.log(1,data);
                     menu.con('You are making a payment for ' + data.fullname +'. How much would you like to pay?')
                 } else {
                     menu.con('Dear Customer, you do not have a Personal Pension Scheme.')
@@ -693,12 +685,10 @@ menu.state('Deposit.send', {
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
-        // console.log(data) 
         await postDeposit(data, async(result)=> { 
-            // console.log(result.body)
             menu.end('Request submitted successfully. You will receive a payment prompt shortly');
         }, async (error) => {
-            console.log('Sorry request could not be processed ' + error)
+            // console.log('Sorry request could not be processed ' + error)
         });
         menu.end('Request submitted successfully. You will receive a payment prompt shortly');
     }
@@ -745,7 +735,6 @@ menu.state('CheckBalance',{
                         let account = data.accounts;
                         menu.session.set('account', account);
                         await fetchBalance(account.code, async(result)=> { 
-                            // console.log(result) 
                             if(result.balance != null) { account.balance = result.balance; }
                             menu.session.set('account', account);
                             menu.session.set('balance', result.balance);
@@ -769,13 +758,11 @@ menu.state('Withdrawal',{
         // var data = {appId: access.code, appKey: access.key, mobile: menu.args.phoneNumber}
 
                 await filterPersonalSchemeOnly(menu.args.phoneNumber, async(data) => {
-                    // console.log(data);
                     if (data.accounts) {
                         // let account = {user: data, code: data.scheme.schemenumber}
                         let account = data.accounts;
                         menu.session.set('account', data.accounts);
                         await fetchBalance(account.code, async(result)=> { 
-                            // console.log(result) 
                             if(result.savings > 0) {
                                 account.balance = result.savings;
                                 menu.session.set('account', account);
@@ -812,7 +799,6 @@ menu.state('Withdrawal.view',{
             var cust = await menu.session.get('cust');
             var account = await menu.session.get('account');
             var balance = await menu.session.get('balance');
-            // console.log(cust);
             if(balance >= amount) {
                 menu.con(cust.fullname +', you are making a Withdrawal Request of GHS ' + amount +' from your '+account.type+' account' +
                 '\n1. Confirm' +
@@ -838,13 +824,12 @@ menu.state('Withdrawal.confirm', {
         //var cust = await menu.session.get('cust');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Scheme Number '+account.code,merchantid:account.merchantid };
         
         menu.end('Sorry, Withdrawal could not be processed');
         // await postWithdrawal(data, async(result)=> { 
-        //     // console.log(result) 
         //     // menu.end(JSON.stringify(result));
         //     if(result.message)
         //     {
@@ -872,7 +857,6 @@ menu.state('Contact', {
     run: async () => {
 
         await fetchCustomer(menu.args.phoneNumber, async (data)=> { 
-            // console.log(1,data); 
             if(data.active) {
 
                 menu.con('1. Stop Repeat Payment' +
@@ -937,7 +921,6 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    console.log(args);
     menu.run(args, ussdResult => {
         if(args.Operator) {menu.session.set('network', args.Operator); }
         res.send(ussdResult);
@@ -963,10 +946,8 @@ function buyAirtime(phone, val) {
     return true
 }
 
-async function postCustomer(val, callback) {
+async function postCustomer(val, callback, errorCallback) {
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
-    // console.log(1 ,api_endpoint);
-    // console.log(2 ,val);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -976,9 +957,8 @@ async function postCustomer(val, callback) {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
                 // return res;
-                await callback(resp);
+                await errorCallback(resp.request.body);
             }
-            // console.log(resp.raw_body);
             else
             {
             var response = JSON.parse(resp.raw_body);
@@ -1002,7 +982,7 @@ async function getInfo(val, callback) {
                 await callback(resp);
             }
             else
-            {// console.log(resp.raw_body);
+            {
             var response = JSON.parse(resp.raw_body);
             await callback(response);
             }
@@ -1012,7 +992,6 @@ async function getInfo(val, callback) {
 
 // async function getSchemeInfo(val, callback) {
 //     var api_endpoint = apiSchemeInfo + 'Integration/MemberInfo';
-//     console.log(api_endpoint)
 //     var req = unirest('POST', api_endpoint)
 //         .headers({
 //             'Content-Type': 'application/json'
@@ -1021,12 +1000,10 @@ async function getInfo(val, callback) {
 //         .end(async (resp) => {
 //             // if (res.error) throw new Error(res.error); 
 //             if (resp.error) {
-//                 console.log(resp.error);
-//                 console.log(resp.raw_body);
 //                 // return res;
 //                 await callback(resp);
 //             }
-//             else {// console.log(resp.raw_body);
+//             else {
 //             var response = JSON.parse(resp.raw_body);
 //             await callback(response);
 //             }
@@ -1044,12 +1021,11 @@ async function postIcareCustomer(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                // console.log(resp.error);
                 // return res;
                 await callback(resp);
             }
             else
-            {// console.log(resp.raw_body);
+            {
             var response = JSON.parse(resp.raw_body);
             await callback(response);
             }
@@ -1066,16 +1042,13 @@ async function fetchIcareCustomer(val, callback) {
         val = '+233' + val.substr(3);
     }
     var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.raw_body);
             else
             {
             var response = JSON.parse(resp.raw_body);
@@ -1093,7 +1066,6 @@ async function fetchIcareCustomer(val, callback) {
         });
     // }
     // catch(err) {
-    //     console.log(err);
     //     return err;
     // }
 }
@@ -1107,16 +1079,13 @@ async function fetchCustomer(val, callback) {
             val = '+233' + val.substr(3);
         } 
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
             else
             {
                 var response = JSON.parse(resp.raw_body);
@@ -1134,21 +1103,17 @@ async function fetchCustomer(val, callback) {
         });
     // }
     // catch(err) {
-    //     console.log(err);
     //     return err;
     // }
 }
 
 async function fetchBalance(val, callback) {
     var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            // console.log(resp.error);
             await callback(resp);
         }
-        // console.log(resp.raw_body);
         else 
         {
             var response = JSON.parse(resp.raw_body);
@@ -1170,9 +1135,7 @@ async function postAutoDeposit(val, callback) {
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
-        // console.log(JSON.stringify(val));
         if (resp.error) { 
-            // console.log(resp.error);
             await callback(resp);
         }
         else
@@ -1194,7 +1157,6 @@ async function stopAutoDeposit(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         // if (resp.error) throw new Error(resp.error); 
-        // console.log(resp.raw_body);      
         if(resp.error)
         {
             var respons = JSON.parse(resp.raw_body);
@@ -1217,7 +1179,6 @@ async function postDeposit(val, callback, errorCallback) {
     })
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
-        // console.log(JSON.stringify(val));
         if (resp.error) { 
             await errorCallback(resp);
         }
@@ -1242,7 +1203,6 @@ async function postWithdrawal(val, callback) {
         // if (res.error) throw new Error(res.error); 
         if(resp.error)
         {
-            // console.log("errrr")
             await callback(resp);
         }
         else
@@ -1264,7 +1224,6 @@ async function postChangePin(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         // if (resp.error) throw new Error(resp.error); 
-        // console.log(resp.raw_body);      
         if(resp.error)
         {
             await callback(resp);
@@ -1295,17 +1254,15 @@ async function fetchCustomerAccounts(val, callback) {
         val = '+233' + val.substr(3);
     }
     var api_endpoint = apiurl + 'getCustomerAccounts/' + access.code+'/'+access.key + '/' + val;
-    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
             await callback(resp);
         }
         else
-        {// console.log(resp.raw_body);
+        {
         var response = JSON.parse(resp.raw_body);
         
         await callback(response);
@@ -1321,16 +1278,14 @@ async function fetchCustomerAccount(val, callback) {
         val = '+233' + val.substr(3);
     }
     var api_endpoint = apiurl + 'getCustomerAccount/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
-    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
             await callback(resp);
         }
-        else{// console.log(resp.raw_body);
+        else{
         var response = JSON.parse(resp.raw_body);
         
         await callback(response);
@@ -1340,27 +1295,20 @@ async function fetchCustomerAccount(val, callback) {
 
 
 async function filterPersonalSchemeOnly(val, callback) {
-    // console.log(val)
     if (val && val && val.startsWith('0')) {
         // Remove Bearer from string
         val = '+233' + val.substr(1);
     } else if(val && val && val.startsWith('233')){
         val = '+233' + val.substr(3);
     }
-    // console.log(val.mobile);
     var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            // console.log(resp.error);
-            // var response = JSON.parse(res);
-            // return res;
             await callback(resp);
         }
         else
         {
-            // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             await callback(response);
         }

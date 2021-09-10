@@ -99,7 +99,7 @@ menu.state('Tier2.end', {
     run: async() => {
         var amount = await menu.session.get('amount');
         var name = await menu.session.get('name');
-        var network = await menu.session.get('network');
+        var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         // if (mobile && mobile.startsWith('+233')) {
         //     // Remove Bearer from string
@@ -111,7 +111,7 @@ menu.state('Tier2.end', {
         var data = { merchant:access.code,account:name,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'Tier2', withdrawal:false, reference:'Tier 2 payment for ' + name};
         console.log(data) 
         await postDeposit(data, async(result)=> { 
-            // menu.end(JSON.stringify(result)); 
+            console.log(JSON.stringify(result)); 
         }); 
         menu.end('Request submitted successfully. You will receive a payment prompt shortly')
 
