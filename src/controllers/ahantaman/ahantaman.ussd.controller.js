@@ -219,7 +219,7 @@ menu.state('Deposit',{
             } else {
                 menu.end('Unable to Fetch Accounts, please try again');
             }
-        }).catch((err)=>{ menu.end(err); });;
+        }).catch((err)=>{ menu.end(err); });
     },
     next: {
         '#': 'Start',
