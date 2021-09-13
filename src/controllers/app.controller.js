@@ -396,8 +396,10 @@ exports.getAccounts = async (req, res) => {
 };
 
 exports.getGroups = async (req, res) => {
-    var val = req.params.scheme;
-    var api_endpoint = apiurl + 'Schemeinfo/' + val;
+    const access = await getkey(req.user.merchant);
+    const { page,limit } =  req.query;
+    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
+    var api_endpoint = apiurl + `App/Get/Groups/${access.key}/${access.code}?page=${page}&limit=${limit}`;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -405,14 +407,15 @@ exports.getGroups = async (req, res) => {
                 console.log(resp.error);
                 res.status(500).send({
                     success: false,
-                    register: false,
-                    message: 'Current Password is not correct'
+                    message: 'Error occured while fetching officer groups'
                 });
             }
             // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
-            response.pin = null;
-            res.send(response.payments);
+            res.send({
+                success: true,
+                data: response
+            });
         });
 };
 
@@ -550,11 +553,31 @@ exports.getOfficer = async (req, res) => {
 
 }
 exports.getOfficerGroups = async (req, res) =>{
-    const val = req.query;
-    const access = getkey(val.merchant);
+    const { page,limit, code} = req.query;
+    const access = getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
-    const { page,limit,officer } =  val
-    var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?officer=${officer}&page=${page}&limit=${limit}`;
+    const { officerid } = req.user;
+    var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?officer=${officerid}&page=${page}&limit=${limit}`;
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                res.status(500).send({
+                    success: false,
+                    message: 'Invalid officer code or mobile number'
+                });
+            }
+            const response = JSON.parse(resp.raw_body); 
+            res.send({
+                success: true,
+                data: response
+            })
+        })
+}
+exports.getOfficerGroup = async (req, res) =>{
+    const { code} = req.query;
+    const access = getkey(req.user.merchant);
+    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
+    var api_endpoint = `${apiurl}app/getGroup/${access.code}/${access.key}/${code}`;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {

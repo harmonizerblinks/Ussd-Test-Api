@@ -24,8 +24,9 @@ module.exports = function(app) {
     app.post('/officer/getOfficer', verify.verifyToken, apps.getOfficer);
     app.get('/officer/getAccounts', verify.verifyToken, apps.getAccounts);
     app.get('/officer/get-groups', verify.verifyToken, apps.getOfficerGroups);
+    app.get('/officer/getGroup', verify.verifyToken, apps.getOfficerGroup);
     app.get('/officer/transaction/:id', verify.verifyToken, apps.getOfficerGroups);
     app.post('/officer/create-transaction/:merchant', verify.verifyToken, apps.createTransaction);
-    app.get('/officer/getCustomerAccounts', verify.verifyToken, apps.getCustomers)
+    app.get('/officer/getCustomerAccounts', verify.verifyToken, apps.getCustomers);
    
 }
