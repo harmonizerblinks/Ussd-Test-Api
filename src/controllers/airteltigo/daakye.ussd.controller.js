@@ -622,6 +622,50 @@ menu.state('Group.Management.AddMember.Mobile.Role.Confirm', {
     }
 })
 
+menu.state('Group.Management.CheckBalance', {
+    run: () => {
+        menu.con(
+            `Enter ATM Pin`
+        )
+    },
+    next: {
+        '*\\d+': 'Group.Management.CheckBalance.Pin'
+    }
+    
+})
+
+
+menu.state('Group.Management.CheckBalance.Pin', {
+    run: () => {
+        menu.end(
+            `Your current balance is ###`
+        )
+    }
+})
+
+menu.state('Group.Management.MiniStatement', {
+    run: () => {
+        menu.con(
+            `Enter ATM Pin`
+        )
+    },
+    next: {
+        '*\\d+': 'Group.Management.MiniStatement.Pin'
+    }
+    
+})
+
+menu.state('Group.Management.MiniStatement.Pin', {
+    run: () => {
+        menu.end(
+            `Your last 3 transactions are\n` +
+            `1. XXX\n` +
+            `2. XXX\n` +
+            `3. XXX\n` 
+        )
+    }
+})
+
 menu.state('Group.Savings', {
     run: () => {
         menu.con(
