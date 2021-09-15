@@ -56,7 +56,7 @@ module.exports = function(app) {
 
     app.post('/benin', benin.ussdApp);
 
-    // Ecg Ussd 
+    // Ecg Ussd *
     app.post('/api/ecg', ecg.ussdApp);
 
     // Ahantaman collections 

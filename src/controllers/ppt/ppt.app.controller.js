@@ -65,7 +65,6 @@ exports.RegisterIcare = async(req, res) => {
         });
 };
 
-
 exports.getIcare = (req, res) => {
     console.log('geticare');
     var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key+ '/' + req.user.mobile;
