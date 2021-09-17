@@ -5,12 +5,12 @@ let sessions = {};
 let optionArray = ["", "DAILY", "WEEKLY", "MONTHLY"];
 
 // Test Credentials
-// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
-// let access = { code: "446785909", key: "164383692" };
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let access = { code: "446785909", key: "164383692" };
 
 // Live Credentials
-let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-let access = { code: "PPT", key: "178116723" };
+// let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+// let access = { code: "PPT", key: "178116723" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -54,21 +54,11 @@ menu.startState({
     }
 })
 
-menu.state('Start', {
-    run: () => {
-        menu.con('Enter Referral Code')
-    },
-    next: {
-        '*\\d+': 'code'
-    }
-})
 
 menu.state('code', {
     run: async() => {
         let referralcode = menu.val;
-        // console.log(1, 'Referral code: ' + referralcode)
         await fetchOfficer(referralcode, async(data) => {
-            // console.log(data)
             if(data.active) {     
                 menu.con('Dear Customer, please confirm Referrer\'s Details: ' + '\n' + data.name + '\n\n1. Confirm \n0. Back')
             }else{
@@ -78,7 +68,7 @@ menu.state('code', {
     },
     next: {
         '1': 'Confirm.officer',
-        '0': 'Start'
+        '0': '__start__'
     }
 })
 
@@ -92,36 +82,32 @@ menu.state('Confirm.officer', {
                 let mobile = menu.args.phoneNumber;
                 menu.session.set('mobile', mobile);        
                 await getInfo(mobile, async(data) =>{
-                    console.log(data.body)
-                    if(data.lastname && data.lastname == null){
-                        var name = data.firstname;
-                        var nameArray = name.split(" ")
-                        var firstname = capitalizeFirstLetter(nameArray[0]);
-                        var lastname = capitalizeFirstLetter(nameArray[1]);
-                        menu.session.set('firstname', firstname)
-                        menu.session.set('lastname', lastname)
-        
-                    }else{
+                    // console.log(data)
+                    // if(data){
                         var firstname = data.firstname;
                         var lastname = data.lastname;
                         menu.session.set('firstname', firstname)
                         menu.session.set('lastname', lastname)
-                    }
-                    menu.con('Please confirm Person\'s details:' +
-                    '\nFirst Name: ' + firstname +
-                    '\nLast Name: ' + lastname +
-                    
-                    '\n\n0. Make Changes' +
-                    '\n1. Confirm')
-                })
-                   
+                        menu.con('Please confirm Person\'s details:' +
+                        '\nFirst Name: ' + firstname +
+                        '\nLast Name: ' + lastname +
+                        
+                        '\n\n#. Make Changes' +
+                        '\n0. Confirm');
+                    // } else {
+                        
+                    // }
+                }, 
+                async (error) => {
+                    menu.end('Sorry could not retrieve customer details')
+                })  
             }
         });
     },
     next: {
+        '#': 'Register.change',
+        '0': 'Register.complete',
         '*\\d+': 'pay',
-        '0': 'Register.change',
-        '1': 'Register.complete',
     }
 })
 
@@ -150,7 +136,7 @@ menu.state('Register.lastname', {
         let lastname = menu.val;
         menu.session.set('lastname', lastname);    
         var firstname = await menu.session.get('firstname');
-        var mobile = await menu.session.get('mobile');
+        var mobile = menu.args.phoneNumber;
         // if (mobile && mobile.startsWith('+233')) {
         //     // Remove Bearer from string
         //     mobile = mobile.replace('+233', '0');
@@ -175,7 +161,7 @@ menu.state('Register.complete', {
         var firstname = await menu.session.get('firstname');
         var lastname = await menu.session.get('lastname');
         var officer = await menu.session.get('officer');
-        var mobile = await menu.session.get('mobile');
+        var mobile = menu.args.phoneNumber;
         // if (mobile && mobile.startsWith('+233')) {
         //     // Remove Bearer from string
         //     mobile = mobile.replace('+233', '0');
@@ -186,13 +172,13 @@ menu.state('Register.complete', {
         var data = {
             firstname: firstname, lastname: lastname, mobile: mobile, email: "N/A", gender: 'N/A', source: "USSD", referer_code: officer.code
         };
-        await postCustomer(data, (data) => {
-            if(data.schemenumber) {
-                menu.session.set('cust', data)
-                menu.con('Dear '+ data.name + ', you have successfully registered for the People\'s Pension Trust' + 
+        await postCustomer(data, (dat) => {
+            if(dat.schemenumber) {
+                // menu.session.set('cust', data)
+                menu.con('Dear '+ data.firstname + ', you have successfully registered for the People\'s Pension Trust' + 
                 '\nHow much would you like to pay?');
             } else {
-                menu.end(data.message || 'Dear Customer, the number you entered is already registered.');
+                menu.end(dat.message || 'Dear Customer, the number you entered is already registered.');
             }
         })
 
@@ -202,9 +188,9 @@ menu.state('Register.complete', {
     }
 })
 
-menu.state('exit', {
+menu.state('Exit', {
     run: () => {
-        menu.end('')
+        menu.end('Thank you for using People\'s Pension Trust');
     }
 })
 
@@ -224,24 +210,24 @@ menu.state('pay', {
     next: {
         '4': 'Pay.account',
         '5': 'Srp',
-        '*[0-3]+': 'Pay.view'
+        '*[1-3]+': 'Pay.view'
     }
 })
 
 menu.state('Pay.account', {
     run: async() => {
-        await filterPersonalSchemeOnly(menu.args.phoneNumber, (data) => {
+        await filterPersonalSchemeOnly(menu.args.phoneNumber, async (data) => {
             if (data.active){
-                menu.session.set('account', data);
+                menu.session.set('account', data.accounts);
+                let amount = await menu.session.get('amount'); 
+                menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
+                '\n1. Proceed' +
+                '\n0. Exit'
+                )
             }else{
-                menu.end('Dear Customer, you do not have a scheme number')
+                menu.end('Dear Customer, you do not have a Personal Pension Scheme signup on www.peoplespension.global')
             }
         });
-        let amount = await menu.session.get('amount'); 
-        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
-        '\n1. Proceed' +
-        '\n0. Exit'
-        )
     },
     next: {
         '0': 'Exit',
@@ -259,8 +245,56 @@ menu.state('Pay.send', {
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code, officerid: officer.officerid};
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
-        }); 
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+            menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+        },
+        async(error)=> {
+            // console.log(error)
+            menu.end('Sorry could not process transaction, please retry later')
+        }
+        ); 
+    }
+});
+
+menu.state('Pay.view', {
+    run: async() => {
+        let index = Number(menu.val);
+        let option = optionArray[index];
+        menu.session.set('paymentoption', option);
+
+        await filterPersonalSchemeOnly(menu.args.phoneNumber, async (data) => {
+            if (data.active){
+                menu.session.set('account', data.accounts);
+                let amount = await menu.session.get('amount'); 
+                menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} on ${option.toLowerCase()} basis` +
+                '\n1. Proceed' +
+                '\n0. Exit'
+                )
+            }else{
+                menu.end('Dear Customer, you do not have a Personal Pension Scheme signup on www.peoplespension.global')
+            }
+        });
+    },
+    next: {
+        '1': 'Pay.view.AutoDebit',
+        '0': 'Exit'
+    }
+});
+
+
+menu.state('Pay.view.AutoDebit', {
+    run: async() => {        
+        var amount = await menu.session.get('amount');
+        var account = await menu.session.get('account');
+        var paymentoption = await menu.session.get('paymentoption');
+        var network = menu.args.operator;
+        var mobile = menu.args.phoneNumber;
+        var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
+
+        await postAutoDeposit(data, async(data) => {
+            menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+        },async(error) => {
+            menu.end('Sorry could not process transaction, please retry later')
+        });
     }
 });
 
@@ -305,15 +339,16 @@ async function fetchCustomer(val, callback) {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
+                // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp.body);
             }
             // console.log(resp.body);
-            var response = JSON.parse(resp.raw_body);
-
-            await callback(response);
+            // var response = JSON.parse(resp.raw_body);
+            
+            return await callback(resp.body);
+            
         });
     // }
     // catch(err) {
@@ -332,13 +367,12 @@ async function postCustomer(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
                 // return res;
-                await callback(resp);
+                return await callback(resp.body);
             }
             // console.log(resp.body);
-            var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            // var response = JSON.parse(resp.raw_body);
+            return await callback(resp.body);
         });
     return true
 }
@@ -354,12 +388,10 @@ async function fetchOfficer(val, callback) {
         var request = unirest('GET', api_endpoint)
         .end(async(resp)=> { 
             if (resp.error) { 
-                console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
                 await callback(resp);
             }
-            // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             if(response.active)
             {
@@ -372,23 +404,20 @@ async function fetchOfficer(val, callback) {
 }
 
 async function filterPersonalSchemeOnly(val, callback) {
-    var api_endpoint = apiurl + 'getCustomer/Pensonal/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp.body);
             }
-            // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(resp.body);
         });
 }
 
-async function postDeposit(val, callback) {
+async function postDeposit(val, callback,errorCallback ) {
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
@@ -398,20 +427,17 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
-            // await postDeposit(val);
-            await callback(resp);
+            return await errorCallback(resp.body);
         }
         // if (res.error) throw new Error(res.error); 
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
     return true
 }
 
-async function getInfo(val, callback) {
+async function getInfo(val, callback,errorCallback) {
     var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint)
     var req = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -420,16 +446,35 @@ async function getInfo(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
-                console.log(resp.raw_body);
                 // return res;
-                await callback(resp);
+                // await callback(resp);
+                return await errorCallback(resp.body);
             }
             else
-            {// console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            {
+                // var response = JSON.parse(resp.raw_body);
+                await callback(resp.body);
             }
         });
     return true
+}
+
+async function postAutoDeposit(val, callback,errorCallback) {
+    var api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
+    var req = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(val))
+    .end( async(resp)=> { 
+        if (resp.error) { 
+            return await errorCallback(resp.body);
+        }
+        else
+        {
+            // if (res.error) throw new Error(res.error); 
+            // var response = JSON.parse(resp.raw_body);
+            return await callback(resp.body);
+        }
+    });
 }
