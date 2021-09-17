@@ -499,7 +499,7 @@ menu.state('Policies.Selected', {
                 // console.log(account);
                 if(type && type.active) {
                     menu.session.set('policy',type);
-                    let details = type.description.split(",").join('\n')
+                    let details = type.description.split(",").join(',\n')
                     menu.con(type.name +'\n'+ details +
                         '\n0. Menu' +
                         '\n1. Exit');
