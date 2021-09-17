@@ -237,12 +237,18 @@ menu.state('Deposit.amount',{
         // menu.session.set('account', account);
         // menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?');
         var val = {mobile: menu.args.phoneNumber, index: index};
-        await fetchCustomerAccount(val, (account)=> { 
+        await fetchCustomerAccount(val, async(account)=> { 
             // console.log(account);
             if(account && account.code) {
                 menu.session.set('account',account);
-                
-                menu.con('How much would you like to pay to ' + account.type + ' account number '+ account.code +'?');
+                await fetchBalance(account.code, async(result)=> { 
+                    // console.log(result) 
+                    if(result.balance > 0 && result.balance != null) {
+                        menu.con('How much would you like to pay to ' + account.type + ' account number '+ account.code +'?');
+                    } else {
+                        menu.end('Error Retrieving Selected Account Balance, please try again');
+                    }
+                });
             } else {
                 menu.end('Unable to Fetch Selected Account, please try again');
             }
