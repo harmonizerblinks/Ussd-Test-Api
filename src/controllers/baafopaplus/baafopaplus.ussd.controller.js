@@ -500,7 +500,7 @@ menu.state('Policies.Selected', {
                 if(type && type.active) {
                     menu.session.set('policy',type);
                     
-                    menu.con(type.name +'\n'+JSON.parse(type.description) +
+                    menu.con(type.name +'\n'+ type.description +
                         '\n0. Menu' +
                         '\n1. Exit');
                 } else {
