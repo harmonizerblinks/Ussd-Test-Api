@@ -326,7 +326,7 @@ menu.state('Pay.Option.Amount', {
         }
 },
     next: {
-        '1': 'Pay.send',
+        '1': 'Pay.Option.Complete',
         '0': 'Exit'
     }
 })
@@ -649,7 +649,6 @@ menu.state('Icare.view', {
         }
     },
     next: {
-        '0': 'Icare.PayForSomeone',
         '*\\d+': 'Pay.Option.Amount',
     }
 });
