@@ -10,12 +10,15 @@ let paymentplanArray = ["", "Daily", "Weekly", "Monthly"];
 var numbers = /^[0-9]+$/;
 
 
+// Test Credentials
 // let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5010/ussd/";
+// let apiurl = "https://app.alias-solutions.net:5010/ussd/";
+// let access = { code: "ENTLIFE", key: "1029398" };
 
+// Live Credential
+let apiurl = "https://app.alias-solutions.net:5011/ussd/";
 let access = { code: "ENTLIFE", key: "1029398" };
-// let access = { code: "ACU001", key: "1029398" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
