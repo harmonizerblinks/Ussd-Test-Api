@@ -324,7 +324,7 @@ exports.getMember = async(req, res) => {
     .end(async (resp) => {
         if (resp.error) {
             console.log(resp.error);
-            res.status(500).send({ 
+            res.status(200).send({ 
                 success: false, register: false, message: 'Provide the following details to Signup', error: resp 
             });
             // success: false, register: false, message: 'Provide the following details to Signup', error: resp 
@@ -333,11 +333,11 @@ exports.getMember = async(req, res) => {
         var response = JSON.parse(resp.raw_body);
         if (response.active && response.pin != null) {
             res.send({
-                success: true, register: true, pin: true
+                success: true, register: true, pin: true, message: 'Provide the following details to Signup',
             });
         } else if (response.active && response.pin == null) {
             res.send({
-                success: true, register: true, pin: false
+                success: true, register: true, pin: false, //message: 'Provide the following details to Signup',
             });
         } else {
             res.send({
