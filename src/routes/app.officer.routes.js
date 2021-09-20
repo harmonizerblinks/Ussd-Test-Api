@@ -20,7 +20,7 @@ module.exports = function(app) {
     // Change Officer Password
     app.post('/officer/change-pin', verify.verifyToken, apps.changePassword);
     //get merchants
-    app.get('/officer/getMerchants',  verify.verifyToken, apps.getMerchants);
+    app.get('/officer/getMerchants', apps.getMerchants);
     app.post('/officer/getOfficer', verify.verifyToken, apps.getOfficer);
     app.get('/officer/getAccounts', verify.verifyToken, apps.getAccounts);
     app.get('/officer/get-groups', verify.verifyToken, apps.getOfficerGroups);

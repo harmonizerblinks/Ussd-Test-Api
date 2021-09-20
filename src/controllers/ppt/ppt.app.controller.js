@@ -325,7 +325,7 @@ exports.getMember = async(req, res) => {
         if (resp.error) {
             console.log(resp.error);
             res.status(500).send({ 
-                success: false, register: false, error: resp 
+                success: false, register: false, message: 'Provide the following details to Signup', error: resp 
             });
             // success: false, register: false, message: 'Provide the following details to Signup', error: resp 
         }
