@@ -671,7 +671,6 @@ async function fetchMemberAccount(val, callback) {
             //     // var response = JSON.parse(res); 
             //     return res;
             // }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if(response.result)
             {
@@ -690,7 +689,7 @@ async function fetchMemberAccount(val, callback) {
                 // menu.session.set('limit', response.result.limit);
             }
             
-            await callback(response);
+            return await callback(response);
         });
     // }
     // catch(err) {
@@ -714,7 +713,6 @@ async function fetchAccount(val, callback) {
             //     // var response = JSON.parse(res); 
             //     return res;
             // }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if(response.result)
             {
@@ -733,7 +731,7 @@ async function fetchAccount(val, callback) {
                 // menu.session.set('limit', response.result.limit);
             }
             
-            await callback(response);
+            return await callback(response);
         });
     // }
     // catch(err) {
@@ -751,9 +749,8 @@ async function postPayment(val, callback) {
     .send(JSON.stringify({agent:null,account:val.account,accountId:val.accountid,type:val.type,method:'MOMO',network:val.network,mobile:val.mobile,source:'USSD',groupid:val.groupid,amount:val.amount,reference:val.reference || 'Group Save',tenantId:tenant,withdrawal:val.withdrawal}))
     .end( async(res)=> { 
         // if (res.error) throw new Error(res.error); 
-        console.log(res.raw_body);
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
     return true
 }

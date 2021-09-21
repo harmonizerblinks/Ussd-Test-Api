@@ -956,12 +956,12 @@ async function postCustomer(val, callback, errorCallback) {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
                 // return res;
-                await errorCallback(resp.request.body);
+                return await errorCallback(resp.request.body);
             }
             else
             {
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
             }
         });
     return true
@@ -978,12 +978,12 @@ async function getInfo(val, callback) {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             else
             {
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
             }
         });
     return true
@@ -1021,12 +1021,12 @@ async function postIcareCustomer(val, callback) {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             else
             {
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
             }
         });
     return true
@@ -1046,7 +1046,7 @@ async function fetchIcareCustomer(val, callback) {
             if (resp.error) {
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             else
             {
@@ -1060,7 +1060,7 @@ async function fetchIcareCustomer(val, callback) {
                 // menu.session.set('limit', response.result.limit);
             }
 
-            await callback(response);
+            return await callback(response);
             }
         });
     // }
@@ -1083,7 +1083,7 @@ async function fetchCustomer(val, callback) {
             if (resp.error) {
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             else
             {
@@ -1097,7 +1097,7 @@ async function fetchCustomer(val, callback) {
                     // menu.session.set('limit', response.result.limit);
                 }
 
-                await callback(response);
+                return await callback(response);
             }
         });
     // }
@@ -1111,7 +1111,7 @@ async function fetchBalance(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            await callback(resp);
+            return await callback(resp);
         }
         else 
         {
@@ -1121,7 +1121,7 @@ async function fetchBalance(val, callback) {
                 menu.session.set('balance', response.balance);
             }
             
-            await callback(response);
+            return await callback(response);
         }
     });
 }
@@ -1135,13 +1135,13 @@ async function postAutoDeposit(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         if (resp.error) { 
-            await callback(resp);
+            return await callback(resp);
         }
         else
         {
             // if (res.error) throw new Error(res.error); 
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         }
     });
     return true
@@ -1159,12 +1159,12 @@ async function stopAutoDeposit(val, callback) {
         if(resp.error)
         {
             var respons = JSON.parse(resp.raw_body);
-            await callback(respons);
+            return await callback(respons);
         }
         else
         {
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
         }
     });
     return true
@@ -1179,13 +1179,13 @@ async function postDeposit(val, callback, errorCallback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         if (resp.error) { 
-            await errorCallback(resp);
+            return await errorCallback(resp);
         }
         // if (res.error) throw new Error(res.error); 
         else
         {
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         }
     });
     return true
@@ -1202,12 +1202,12 @@ async function postWithdrawal(val, callback) {
         // if (res.error) throw new Error(res.error); 
         if(resp.error)
         {
-            await callback(resp);
+            return await callback(resp);
         }
         else
         {
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
 
         }
     });
@@ -1225,12 +1225,12 @@ async function postChangePin(val, callback) {
         // if (resp.error) throw new Error(resp.error); 
         if(resp.error)
         {
-            await callback(resp);
+            return await callback(resp);
         }
         else
         {
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
         }
     });
     return true
@@ -1258,13 +1258,13 @@ async function fetchCustomerAccounts(val, callback) {
         if (resp.error) { 
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         else
         {
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
         }
     });
 }
@@ -1282,12 +1282,12 @@ async function fetchCustomerAccount(val, callback) {
         if (resp.error) { 
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         else{
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
         }
     });
 }
@@ -1304,12 +1304,12 @@ async function filterPersonalSchemeOnly(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            await callback(resp);
+            return await callback(resp);
         }
         else
         {
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         }
     });
 }

@@ -17,10 +17,10 @@ exports.fetchCustomer = async (val, access, callback, errorCallback) => {
                 // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await errorCallback(resp.body);
+                return await errorCallback(resp.body);
             }
             else {
-                await callback(resp.body);
+                return await callback(resp.body);
             }
 
         });
@@ -36,10 +36,10 @@ exports.postChangePin = async (customer, access, callback, errorCallback) => {
                 // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await errorCallback(resp.body);
+                return await errorCallback(resp.body);
             }
             else {
-                await callback(resp.body);
+                return await callback(resp.body);
             }
 
         });
@@ -55,10 +55,10 @@ exports.postChangePin = async (customer, callback, errorCallback) => {
                 // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await errorCallback(resp.body);
+                return await errorCallback(resp.body);
             }
             else {
-                await callback(resp.body);
+                return await callback(resp.body);
             }
 
         });

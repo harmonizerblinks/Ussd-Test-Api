@@ -552,7 +552,7 @@ async function fetchAccount (val, callback){
                 menu.session.set('mobile', response.body.result.mobile);
                 
             }
-            await callback(response);
+            return await callback(response);
         })
 
         
