@@ -61,7 +61,7 @@ exports.validateOfficer = (req, res) => {
             }
             var response = JSON.parse(resp.raw_body);
             console.log(response)
-            if (response.active && response.pin != null) {
+            if (response.active && response.pin != null && response.pin !="1234" && response.pin.length==4) {
                 res.send({
                     success: true,
                     register: true,

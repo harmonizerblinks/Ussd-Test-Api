@@ -476,7 +476,8 @@ menu.state('Withdrawal.confirm', {
             // menu.end(JSON.stringify(result)); 
             menu.end(result.message);
         }).catch((err)=>{
-            menu.end(err)
+            console.log(err);
+            menu.end("Withdrawal Request was not successful, Please try again later.");
         });
         // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
@@ -902,7 +903,7 @@ async function postWithdrawal(val, callback) {
     .end( async(resp)=> { 
         if (resp.error) { 
             // console.log(resp.error);
-            return await callback(resp.error);
+            return await callback(resp.body);
         }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
