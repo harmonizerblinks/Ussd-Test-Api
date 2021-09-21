@@ -309,7 +309,7 @@ async function fetchaccount (val, callback) {
         .then(async (response) => {
                 menu.session.set('accountinfo', response.body);
                 // console.log(response.body)
-            await callback(response);
+                return await callback(response);
         })
 }
 
@@ -334,9 +334,7 @@ async function createpin (val, callback) {
         })
         .send(JSON.stringify(data))
         .then(async (response) => {
-                // menu.session.set('accountinfo', response);
-                console.log(response.body)
-            await callback(response);
+            return await callback(response);
         })
 }
 
@@ -348,8 +346,6 @@ async function payment (data, callback) {
         })
         .send(JSON.stringify(data))
         .then(async (response) => {
-                // menu.session.set('accountinfo', response);
-                console.log(response.body)
-            await callback(response);
+                return await callback(response);
         })
 }

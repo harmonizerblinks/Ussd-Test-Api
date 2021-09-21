@@ -390,7 +390,7 @@ async function fetchOfficer(val, callback) {
             if (resp.error) { 
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             var response = JSON.parse(resp.raw_body);
             if(response.active)
@@ -399,7 +399,7 @@ async function fetchOfficer(val, callback) {
                 // menu.session.set('limit', response.result.limit);
             }
             
-            await callback(response);
+            return await callback(response);
         });
 }
 
@@ -453,7 +453,7 @@ async function getInfo(val, callback,errorCallback) {
             else
             {
                 // var response = JSON.parse(resp.raw_body);
-                await callback(resp.body);
+                return await callback(resp.body);
             }
         });
     return true

@@ -174,10 +174,10 @@ async function fetchOfficer(val, callback) {
                 console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         });
 }
 
@@ -192,12 +192,12 @@ async function fetchAccount(val, callback) {
             console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -211,14 +211,13 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
             // await postDeposit(val);
-            await callback(resp);
+            return await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
     return true
 }
