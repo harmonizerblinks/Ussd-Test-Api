@@ -202,7 +202,6 @@ async function fetchAccount(val, callback) {
             //     // var response = JSON.parse(res); 
             //     return res;
             // }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if(response.invoiceid > 0)
             {
@@ -210,7 +209,7 @@ async function fetchAccount(val, callback) {
                 // menu.session.set('amount', response.amount);
             }
             
-            await callback(response);
+            return await callback(response);
         });
     // }
     // catch(err) {
@@ -228,9 +227,8 @@ async function postPayment(val, callback) {
     .send(JSON.stringify(val))
     .end( async(res)=> { 
         // if (res.error) throw new Error(res.error); 
-        console.log(res.raw_body);
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
     return true
 }

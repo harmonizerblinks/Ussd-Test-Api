@@ -55,7 +55,6 @@ menu.on('error', (err) => {
 menu.startState({
     run: async() => {
         // Fetch Customer information
-        console.log(menu.args,'Argument');
         
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
@@ -305,7 +304,6 @@ menu.state('Deposit.confirm', {
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
         console.log('posting Payment');
         await postDeposit(data, async(result)=> { 
-            console.log(result) 
             // menu.end(result.message); 
         });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
@@ -769,7 +767,7 @@ async function fetchCustomer(val, callback) {
             // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp.error);
+            return await callback(resp.error);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -778,7 +776,7 @@ async function fetchCustomer(val, callback) {
         //     menu.session.set('limit', response.result.limit);
         // }
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -796,12 +794,12 @@ async function fetchCustomerAccounts(val, callback) {
                 // console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             
-            await callback(response);
+            return await callback(response);
         });
 }
 
@@ -818,12 +816,12 @@ async function fetchCustomerAccount(val, callback) {
             // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -834,7 +832,7 @@ async function fetchBalance(val, callback) {
     .end(async(resp)=> { 
         if (resp.error) { 
             // console.log(resp.error);
-            await callback(resp.error);
+            return await callback(resp.error);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -843,7 +841,7 @@ async function fetchBalance(val, callback) {
         //     menu.session.set('balance', response.balance);
         // }
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -854,12 +852,12 @@ async function fetchStatement(val, callback) {
     .end(async(resp)=> { 
         if (resp.error) { 
             console.log(resp.error);
-            await callback(resp);
+            return await callback(resp);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -879,13 +877,13 @@ async function postDeposit(val, callback) {
         if (resp.error) { 
             // console.log(resp.error);
             // await postDeposit(val);
-            await callback(resp);
+            return await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         console.log(response);
-        await callback(response);
+        return await callback(response);
     });
     return true
 }
@@ -904,12 +902,12 @@ async function postWithdrawal(val, callback) {
     .end( async(resp)=> { 
         if (resp.error) { 
             // console.log(resp.error);
-            await callback(resp.error);
+            return await callback(resp.error);
         }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
     return true
 }
@@ -929,12 +927,10 @@ async function postChangePin(val, callback) {
         if (resp.error) { 
             console.log(resp.error);
             // await postDeposit(val);
-            await callback(resp);
+            return await callback(resp);
         }
-        // if (resp.error) throw new Error(resp.error); 
-        console.log(resp.raw_body);      
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
     return true
 }

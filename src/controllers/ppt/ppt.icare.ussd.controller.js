@@ -700,13 +700,12 @@ async function postCustomer(val, callback) {
         .end(async(resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         });
     return true
 }
@@ -721,13 +720,12 @@ async function getInfo(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         });
     return true
 }
@@ -742,9 +740,8 @@ async function postIcareCustomer(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
@@ -757,7 +754,7 @@ async function postIcareCustomer(val, callback) {
                 return null;
             }
 
-            await callback(response);
+            return await callback(response);
         });
     return true
 }
@@ -776,10 +773,9 @@ async function fetchCustomer(val, callback) {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
@@ -794,7 +790,7 @@ async function fetchCustomer(val, callback) {
                 return null;
             }
 
-            await callback(response);
+            return await callback(response);
         });
     // }
     // catch(err) {
@@ -817,16 +813,15 @@ async function fetchIcareCustomer(val, callback) {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }else{
                 var response = JSON.parse(resp.raw_body);
             }
             // console.log(resp.raw_body);
 
-            await callback(response);
+            return await callback(response);
         });
     // }
     // catch(err) {
@@ -845,15 +840,12 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
             // await postDeposit(val);
-            await callback(resp);
+            return await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
-        console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        console.log(response);
-        await callback(response);
+        return await callback(response);
     });
     return true
 }
@@ -868,17 +860,15 @@ async function filterPersonalSchemeOnly(val, callback) {
         val = '+233' + val.substr(1);
     }
     var api_endpoint = apiurl + 'getCustomer/Personal/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
 }

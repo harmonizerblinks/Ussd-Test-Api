@@ -583,13 +583,11 @@ async function postCustomer(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         });
     return true
 }
@@ -601,21 +599,20 @@ async function fetchCustomer(val, callback) {
     //     val = val.replace('+233', '0');
     // }
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
                 console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
-                await callback(resp.error);
+                return await callback(resp.error);
             }
             // console.log(resp.raw_body);
             if(resp.raw_body) {
                 var response = JSON.parse(resp.raw_body);
 
-                await callback(response);
-            } else { await callback(resp.raw_body);}
+                return await callback(response);
+            } else { return await callback(resp.raw_body);}
         });
     // }
     // catch(err) {
@@ -638,12 +635,12 @@ async function fetchCustomerAccounts(val, callback) {
             // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -660,12 +657,12 @@ async function fetchCustomerAccount(val, callback) {
             // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -678,12 +675,12 @@ async function AvailablePolicyTypes(val, callback) {
             // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -697,12 +694,12 @@ async function AvailablePolicyType(val, callback) {
             // console.log(resp.error);
             // var response = JSON.parse(res);
             // return res;
-            await callback(resp);
+            return await callback(resp);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -714,12 +711,12 @@ async function CheckStatus(val, callback) {
         .end(async (resp) => {
             if (resp.error) {
                 console.log(resp.error);
-                await callback(resp);
+                return await callback(resp);
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             
-            await callback(response);
+            return await callback(response);
         });
 }
 
@@ -730,12 +727,12 @@ async function fetchStatement(val, callback) {
         .end(async (resp) => {
             if (resp.error) {
                 console.log(resp.error);
-                await callback(resp);
+                return await callback(resp);
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
 
-            await callback(response);
+            return await callback(response);
         });
 }
 
@@ -749,16 +746,11 @@ async function postDeposit(val, callback) {
         .end(async (resp) => {
             console.log(JSON.stringify(val));
             if (resp.error) {
-                console.log(resp.error);
-                console.log(resp.raw_body);
                 // await postDeposit(val);
-                await callback(resp);
+                return await callback(resp);
             }
-            // if (res.error) throw new Error(res.error); 
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            console.log(response);
-            await callback(response);
+            return await callback(response);
         });
     return true
 }
@@ -774,7 +766,7 @@ async function postWithdrawal(val, callback) {
             // if (res.error) throw new Error(res.error); 
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         });
     return true
 }
@@ -788,9 +780,8 @@ async function postChangePin(val, callback) {
         .send(JSON.stringify(val))
         .end(async (resp) => {
             // if (resp.error) throw new Error(resp.error); 
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         });
     return true
 }
@@ -823,11 +814,11 @@ async function getInfo(val, callback) {
             if (resp.error) {
                 console.log(resp.error);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            await callback(response);
+            return await callback(response);
         });
     return true
 }

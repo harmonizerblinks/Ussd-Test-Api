@@ -1006,7 +1006,7 @@ async function fetchMerchant(val, callback) {
             // menu.session.set('limit', response.result.limit);
         }
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -1023,7 +1023,7 @@ async function payMerchant(val, callback) {
     .end(async(resp) => {
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -1050,7 +1050,7 @@ async function fetchItem(val, callback) {
             menu.session.set('itemquantity', response.quantity);
         }
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -1066,7 +1066,7 @@ async function payItem(val, callback) {
     .end(async(resp) => {
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        await callback(response);
+        return await callback(response);
     });
 }
 
@@ -1093,7 +1093,7 @@ async function fetchInvoice(val, callback) {
                 // menu.session.set('quantity', response.quantity);
             }
             
-            await callback(response);
+            return await callback(response);
         });
 }
 
@@ -1108,7 +1108,6 @@ async function fetchUtility(val, callback) {
             //     // var response = JSON.parse(res); 
             //     return res;
             // }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if(response.code)
             {
@@ -1120,7 +1119,7 @@ async function fetchUtility(val, callback) {
                 // menu.session.set('quantity', response.quantity);
             }
             
-            await callback(response);
+            return await callback(response);
         });
 }
 
@@ -1137,25 +1136,24 @@ async function buyAirtime(val, callback) {
             console.log(resp.error); 
             // var response = JSON.parse(res); 
             // return res;
-            await callback(resp.error);
+            return await callback(resp.error);
         }
         console.log(resp.raw_body);
         // var response = JSON.parse(resp.raw_body);
-        await callback(resp.raw_body);
+        return await callback(resp.raw_body);
     });
 }
 
 async function fetchStudent(val, callback) {
 
     var api_endpoint = studentapiUrl + '?StudentNumber=' + val;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
             console.log(resp.error); 
             // var response = JSON.parse(res); 
             // return res;
-            await callback(resp.error);
+            return await callback(resp.error);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -1166,18 +1164,16 @@ async function fetchStudent(val, callback) {
             // menu.session.set('itemamount', response.amount);
             // menu.session.set('itemquantity', response.quantity);
         
-        await callback(response);
+        return await callback(response);
     });
 }
 
 // Post Payment
 
 async function postStudentPayment(val, callback){
-    console.info(val);
     const value = { schoolcode:val.code, studentNumber: val.studentNumber, amountpaid: val.amount, datepaid: new Date(), phoneNumber: val.mobile, network:val.network };
     val.code = 'S' + val.code;
     var api_endpoint = apiurl + 'Merchant';
-    console.log(api_endpoint);
     var request = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
@@ -1185,7 +1181,6 @@ async function postStudentPayment(val, callback){
     .send(JSON.stringify(val))
     // .send(JSON.stringify({ "code": val.code, "type": val.type, "amount": val.amount, "mobile": val.mobile, "network": val.network, "service": val.service, "reference": val.reference }))
     .end(async(resp) => {
-        console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         if(response.status_code == 0) {
             value.statuscode = response.status_code;
@@ -1195,7 +1190,7 @@ async function postStudentPayment(val, callback){
             // var body = response;
             setTimeout(() => { getCallBack(value); }, 60000);
         }
-        await callback(response);
+        return await callback(response);
     });
 };
 
@@ -1262,7 +1257,7 @@ async function getInfo(val, callback) {
             if (resp.error) {
                 console.log(resp.error);
                 // return res;
-                await callback(resp);
+                return await callback(resp);
             }
             // console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
@@ -1271,7 +1266,7 @@ async function getInfo(val, callback) {
             }else{
                 menu.session.set('name', response.firstname + ' ' + response.lastname)
             }
-            await callback(response);
+            return await callback(response);
         });
     return true
 }
