@@ -5,14 +5,17 @@ module.exports = function(app) {
     var ahantaman = require('../controllers/ahantaman/ahantaman.ussd.controller.js');
     var ahantamantest = require('../controllers/ahantaman/ahantaman.test.ussd.controller.js');
     var ahantamanofficer = require('../controllers/ahantaman/ahantaman.officer.ussd.controller.js');
+    
     // Leverage
     var leverage = require('../controllers/leverage/leverage.ussd.controller.js');
     var leveragetest = require('../controllers/leverage/leverage.test.ussd.controller.js');
     var leverageofficer = require('../controllers/leverage/leverage.officer.ussd.controller.js');
+    
     // Sikasoft
     var sikkasoft = require('../controllers/sikkasoft/sikkasoft.ussd.controller.js');
     var sikkasofttest = require('../controllers/sikkasoft/sikkasoft.test.ussd.controller.js');
     var sikkasoftofficer = require('../controllers/sikkasoft/sikkasoft.officer.ussd.controller.js');
+    
     // Hmplus
     var hmplus = require('../controllers/hmplus/hmplus.ussd.controller.js');
     var hmplustest = require('../controllers/hmplus/hmplus.test.ussd.controller.js');
@@ -41,7 +44,9 @@ module.exports = function(app) {
 
     // Baafo Pa Plus
     var baafopaplus = require('../controllers/baafopaplus/baafopaplus.ussd.controller');
+    var baafopatest = require('../controllers/baafopaplus/baafopaplus.test.ussd.controller');
 
+    // GPRTU
     var gprtu = require('../controllers/gprtu/gprtu.ussd.controller.js');
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
@@ -50,7 +55,7 @@ module.exports = function(app) {
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
     app.post('/group', hmplus.ussdApp);
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
-    app.post('/leader', baafopaplus.ussdApp);
+    app.post('/leader', baafopatest.ussdApp);
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
     app.post('/', daakyeSusu.ussdApp);
 
