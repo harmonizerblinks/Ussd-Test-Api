@@ -131,16 +131,16 @@ exports.verifyOtp = async (req, res) => {
 }
 
 exports.setPassword = async (req, res) => {
-    var mobile = req.body.mobile;
-    const newpin = bcrypt.hashSync(req.body.newpin, 10);
-    if (mobile == null || req.body.newpin == null) {
+    if (req.body.mobile == null || req.body.newpin == null) {
         return res.status(500).send({
             message: "Mobile Number and Pin is Required"
         });;
     }
+    var mobile = req.body.mobile;
+    const newpin = bcrypt.hashSync(req.body.newpin, 10);
 
     var value = {
-        type: "Customer",
+        type: "Officer",
         mobile: mobile,
         pin: newpin,
         newpin: newpin,
