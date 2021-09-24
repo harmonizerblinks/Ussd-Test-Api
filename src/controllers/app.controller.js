@@ -1,8 +1,5 @@
 // const mongoose = require('mongoose'),
 //     ObjectId = mongoose.Types.ObjectId;
-//const User = require('../models/user.model.js');
-// const Package = require('../models/package.model.js');
-// const Insurance = require('../models/insurance.model.js');
 const unirest = require('unirest');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -20,7 +17,8 @@ let accesses = [{
     code: "ACU001",
     key: "1029398"
 }];
-const apiUrl = "https://app.alias-solutions.net:5003/";
+// const apiUrl = "https://app.alias-solutions.net:5003/";
+// const apiurl = "http://localhost:5000/";
 const apiurl = "https://app.alias-solutions.net:5003/";
 
 
@@ -87,7 +85,7 @@ exports.validateOfficer = (req, res) => {
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
-    var api_endpoint = apiurl + 'otp/' + val.mobile + '/' + val.merchant + '?id=OFFICER';;
+    var api_endpoint = apiurl + 'otp/' + val.mobile + '/' + val.merchant + '?id=OFFICER';
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -112,6 +110,7 @@ exports.verifyOtp = async (req, res) => {
 
     // var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
     var api_endpoint = apiurl + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=OFFICER';
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -512,7 +511,7 @@ exports.Deposit = async (req, res) => {
 };
 
 exports.getMerchants = async (req, res) => {
-    const uri = `${apiUrl}App/GetMerchants`
+    const uri = `${apiurl}App/GetMerchants`
     var request = unirest('GET', uri)
         .end(async (resp) => {
             if (resp.error) {
