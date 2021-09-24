@@ -6,10 +6,12 @@ let sessions = {};
 let genderArray = ["", "Male", "Female"];
 var numbers = /^[0-9]+$/;
 const AirtelService = require('./services/airtel_service');
+const bcrypt = require('bcryptjs');
 
-let access = { code: "ACU001", key: "1029398" };
+let access = { code: "AirtelTigo", key: "1234" };
+let merchant = "AirtelTigo";
 let optionArray = ['Daily', 'Weekly', 'Monthly', 'Only Once'];
-let member_roles = ['Member', 'Vice'];
+let member_roles = ['Member', 'Ass. Leader'];
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -48,9 +50,9 @@ menu.startState({
         let WelcomeNewUser = 'Welcome to Daakye Personal SUSU\nSelect Susu Type\n' +
             '\n1. Personal' +
             '\n2. Group';
-        await AirtelService.fetchCustomer(menu.args.phoneNumber, access,
+        await AirtelService.fetchCustomer(helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             (response) => {
-                if (response.pin_changed == true) {
+                if (response.pin) {
                     menu.con(WelcomeNewUser)
                 }
                 else {
@@ -75,7 +77,7 @@ menu.startState({
 
 menu.state('Personal', {
     run: async () => {
-        await AirtelService.fetchCustomer(menu.args.phoneNumber, access,
+        await AirtelService.fetchCustomer(helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             (response) => {
                 menu.con('Welcome to Daakye Personal SUSU' +
                     '\n1. Savings' +
@@ -129,12 +131,30 @@ menu.state('Personal.Register.Read', {
 
 menu.state('Personal.Register.AcceptDecline', {
     run: async () => {
-        menu.con(
-            'Dear customer, ' +
-            '\nThank you for registering, Press' +
-            '\n1. Accept' +
-            '\n2. Decline'
-        )
+        
+        await AirtelService.getInfo( access.code, access.key, menu.args.phoneNumber,
+            (response) => {
+                if(response.firstname && response.lastname){
+                    menu.session.set('firstname', response.firstname)
+                    menu.session.set('lastname', response.lastname)
+                }
+                else
+                {                
+                    menu.session.set('firstname', "N/A")
+                    menu.session.set('lastname', "")
+                }
+                menu.con(
+                    'Dear customer, ' +
+                    '\nThank you for registering, Press' +
+                    '\n1. Accept' +
+                    '\n2. Decline'
+                )
+            },
+            (error) => {
+                menu.end("Sorry could not register your account");
+            })
+            
+        
     },
     next: {
         '1': 'Personal.Register.Accept',
@@ -144,15 +164,32 @@ menu.state('Personal.Register.AcceptDecline', {
 
 menu.state('Personal.Register.Accept', {
     run: async () => {
-        menu.con(
-            'You have successfully completed your account registration, ' +
-            '\nYour account number is ###' +
-            '\n1. Make Payment' +
-            '\n2. Exit'
-        )
+
+        let firstname = await menu.session.get('firstname');
+        let lastname = await menu.session.get('lastname');
+        let gender = "N/A";
+        let customer = {
+            "FullName": `${firstname} ${lastname}`,
+            "Mobile": menu.args.phoneNumber,
+            "Gender": gender
+        }
+        await AirtelService.CreateCustomer(customer, merchant, access,
+            (response) => {
+                let account = response.accounts[0];
+                menu.con(
+                    'You have successfully completed your account registration, ' +
+                    `\nYour account number is ${account.code}` +
+                    '\n1. Make Payment' +
+                    '\n0. Exit'
+                )
+            },
+            (error) => {
+                menu.end("Sorry could not register your account");
+            })
+
     },
     next: {
-        '2': 'Exit'
+        '0': 'Exit'
     },
     defaultNext: '__start__'
 })
@@ -184,8 +221,7 @@ menu.state('Personal.Savings.ChooseOption', {
         //variable won't exist if user is now selecting option but not choosing back
         let personal_savings_option = await menu.session.get('personal_savings_option');
         let option_selected = null;
-        if(!personal_savings_option)
-        {
+        if (!personal_savings_option) {
             var option_index = Number(menu.val);
             option_selected = optionArray[(option_index - 1)];
             menu.session.set('personal_savings_option', option_selected);
@@ -394,7 +430,7 @@ menu.state('User.newpin', {
         if (menu.val.length == 4) {
             var newpin = menu.val;
             menu.session.set('newpin', newpin);
-            menu.con('Re-enter the 4 digits');
+            menu.con('Please re-enter your 4 digits pin');
         } else {
             menu.end('Pin must be 4 digits');
         }
@@ -410,14 +446,20 @@ menu.state('User.verifypin', {
     run: async () => {
         var pin = await menu.session.get('newpin');
         if (menu.val === pin) {
-            var newpin = Number(menu.val);
+            // var newpin = Number(menu.val);
+            const newpin = bcrypt.hashSync(menu.val, 10);
+            // console.log(newpin)
             var mobile = menu.args.phoneNumber;
-            var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
-            await postChangePin(value, access, (data) => {
-                // console.log(1,data); 
-                menu.session.set('pin', newpin);
-                menu.con(data.message);
-            }).catch((err) => { menu.end(err); });;
+            
+            var customer = { "Type": "Customer", "Mobile": helpers.formatPhoneNumber(mobile), "Pin": newpin, "NewPin": newpin, "ConfirmPin": newpin };
+            console.log(customer)
+            await AirtelService.postChangePin(customer, merchant, access, (data) => {
+                // menu.session.set('pin', newpin);
+                menu.end("Pin successfully changed");
+            },(err) => { 
+                console.log(err)
+                menu.end("Sorry pin could not be changed"); 
+            });
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
@@ -432,16 +474,16 @@ menu.state('User.verifypin', {
 
 menu.state('Group', {
     run: () => {
-                menu.con('Welcome to Daakye Group SUSU' +
-                    '\n1. Create/Join Group' +
-                    '\n2. Savings' +
-                    '\n3. Withdrawal' +
-                    '\n4. Approval' +
-                    '\n5. Group Mgt'
-                    )
+        menu.con('Welcome to Daakye Group SUSU' +
+            '\n1. Create/Join Group' +
+            '\n2. Savings' +
+            '\n3. Withdrawal' +
+            '\n4. Approval' +
+            '\n5. Group Mgt'
+        )
     },
     next: {
-        '1': 'Group.Create',
+        '1': 'Group.CreateOrJoin',
         '2': 'Group.Savings',
         '3': 'Group.Withdrawal',
         '4': 'Group.Approval',
@@ -449,7 +491,7 @@ menu.state('Group', {
     }
 })
 
-menu.state('Group.Create', {
+menu.state('Group.CreateOrJoin', {
     run: () => {
         menu.con(
             `1. Create New Group\n` +
@@ -457,23 +499,23 @@ menu.state('Group.Create', {
         )
     },
     next: {
-        '1': 'Group.Create.Create',
-        '2': 'Group.Create.Join'
+        '1': 'Group.CreateOrJoin.Create',
+        '2': 'Group.CreateOrJoin.Join'
     }
 })
 
-menu.state('Group.Create.Create', {
+menu.state('Group.CreateOrJoin.Create', {
     run: () => {
         menu.con(
             `Enter Group Name\n`
         )
     },
     next: {
-        '*[a-zA-Z0-9 _]*$': 'Group.Create.Create.Name'
+        '*[a-zA-Z0-9 _]*$': 'Group.CreateOrJoin.Create.Name'
     }
 })
 
-menu.state('Group.Create.Create.Name', {
+menu.state('Group.CreateOrJoin.Create.Name', {
     run: () => {
         menu.session.set('group_name', menu.val);
         menu.con(
@@ -481,42 +523,42 @@ menu.state('Group.Create.Create.Name', {
         )
     },
     next: {
-        '*[a-zA-Z0-9 _]*$': 'Group.Create.Create.Name.Description'
+        '*[a-zA-Z0-9 _]*$': 'Group.CreateOrJoin.Create.Name.Description'
     }
 })
 
-menu.state('Group.Create.Create.Name.Description', {
+menu.state('Group.CreateOrJoin.Create.Name.Description', {
     run: async () => {
         let group_name = await menu.session.get('group_name');
         menu.con(
             `You have created group ${group_name} successfully\n` +
             `You can add new members from the Group Mgt menu\n` +
-            `1. Confirm\n` + 
+            `1. Confirm\n` +
             `2. Back\n` +
             `0. Cancel\n`
         )
     },
     next: {
         '1': 'Exit',
-        '2': 'Group.Create.Create',
+        '2': 'Group.CreateOrJoin.Create',
         '0': 'Exit',
     }
 })
 
-menu.state('Group.Create.Join', {
+menu.state('Group.CreateOrJoin.Join', {
     run: () => {
         menu.con(
             `Select group to join\n` +
-            `1. Group A\n` + 
+            `1. Group A\n` +
             `2. Group B\n`
         )
     },
     next: {
-        '*[1-2]': 'Group.Create.Join.Select',
+        '*[1-2]': 'Group.CreateOrJoin.Join.Select',
     }
 })
 
-menu.state('Group.Create.Join.Select', {
+menu.state('Group.CreateOrJoin.Join.Select', {
     run: async () => {
         menu.con(
             `Confirm addition to group` +
@@ -526,13 +568,13 @@ menu.state('Group.Create.Join.Select', {
         )
     },
     next: {
-        '1': 'Group.Create.Join.Select.Confirm',
-        '2': 'Group.Create.Join',
+        '1': 'Group.CreateOrJoin.Join.Select.Confirm',
+        '2': 'Group.CreateOrJoin.Join',
         '0': 'Exit',
     }
 })
 
-menu.state('Group.Create.Join.Select.Confirm', {
+menu.state('Group.CreateOrJoin.Join.Select.Confirm', {
     run: async () => {
         menu.con(
             `Thank you, You have successfully been added to the group` +
@@ -549,7 +591,7 @@ menu.state('Group.Create.Join.Select.Confirm', {
 menu.state('Group.Management', {
     run: () => {
         menu.con(
-            `1. Add Members\n` + 
+            `1. Add Members\n` +
             `2. Check Balance\n` +
             `3. Mini Statement\n`
         )
@@ -576,9 +618,8 @@ menu.state('Group.Management.AddMember.Mobile', {
     run: async () => {
 
         let group_member_phone = await menu.session.get('member_phonenumber');
-        if(!group_member_phone)
-        {
-            let phone_number =  helpers.formatPhoneNumber(menu.val);
+        if (!group_member_phone) {
+            let phone_number = helpers.formatPhoneNumber(menu.val);
             menu.session.set('member_phonenumber', phone_number);
         }
 
@@ -586,7 +627,7 @@ menu.state('Group.Management.AddMember.Mobile', {
         member_roles.forEach((element, index) => {
             message += `${(index + 1)}. ${element}\n`;
         });
-        
+
         menu.con(message)
     },
     next: {
@@ -601,8 +642,8 @@ menu.state('Group.Management.AddMember.Mobile.Role', {
         menu.con(
             `You have added ${member_phonenumber}\n` +
             `to the group\n` +
-            `1. Confirm \n` + 
-            `2. Back \n` + 
+            `1. Confirm \n` +
+            `2. Back \n` +
             `0. Cancel \n`
         )
     },
@@ -631,7 +672,7 @@ menu.state('Group.Management.CheckBalance', {
     next: {
         '*\\d+': 'Group.Management.CheckBalance.Pin'
     }
-    
+
 })
 
 
@@ -652,7 +693,7 @@ menu.state('Group.Management.MiniStatement', {
     next: {
         '*\\d+': 'Group.Management.MiniStatement.Pin'
     }
-    
+
 })
 
 menu.state('Group.Management.MiniStatement.Pin', {
@@ -661,7 +702,7 @@ menu.state('Group.Management.MiniStatement.Pin', {
             `Your last 3 transactions are\n` +
             `1. XXX\n` +
             `2. XXX\n` +
-            `3. XXX\n` 
+            `3. XXX\n`
         )
     }
 })
@@ -670,8 +711,8 @@ menu.state('Group.Savings', {
     run: () => {
         menu.con(
             `Select group to pay` +
-            `1. Group 1\n` + 
-            `2. Group 2\n` 
+            `1. Group 1\n` +
+            `2. Group 2\n`
         )
     },
     next: {
@@ -693,7 +734,7 @@ menu.state('Group.Savings.SelectGroup', {
 })
 
 menu.state('Group.Savings.SelectGroup.Option', {
-    run: () => {        
+    run: () => {
         var option_index = Number(menu.val);
         var option = optionArray[(option_index - 1)];
         menu.session.set('savings_group_selected', option);
@@ -709,7 +750,7 @@ menu.state('Group.Savings.SelectGroup.Option', {
 
 menu.state('Group.Savings.SelectGroup.Option.Amount', {
     run: () => {
-        
+
         var savings_amount = Number(menu.val);
         menu.con(
             `Dear customer, confirm payment of GHS ${savings_amount}\n` +
@@ -726,7 +767,7 @@ menu.state('Group.Savings.SelectGroup.Option.Amount', {
 
 menu.state('Group.Savings.SelectGroup.Option.Amount.Confirm', {
     run: () => {
-        
+
         menu.end(
             `You will soon receive a prompt to confirm payment\n`
         )
@@ -737,8 +778,8 @@ menu.state('Group.Withdrawal', {
     run: () => {
         menu.con(
             `Select group to withdraw` +
-            `1. Group 1\n` + 
-            `2. Group 2\n` 
+            `1. Group 1\n` +
+            `2. Group 2\n`
         )
     },
     next: {
@@ -762,8 +803,8 @@ menu.state('Group.Withdrawal.SelectGroup.Amount', {
         let withdrawal_amount = Number(menu.val);
         menu.con(
             `Confirm withdrawal of ${withdrawal_amount} from group\n` +
-            `1. Confirm` + 
-            `2. Back` + 
+            `1. Confirm` +
+            `2. Back` +
             `0. Cancel`
         )
     },
@@ -798,8 +839,8 @@ menu.state('Group.Approval', {
     run: () => {
         menu.con(
             `Select group` +
-            `1. Group 1\n` + 
-            `2. Group 2\n` 
+            `1. Group 1\n` +
+            `2. Group 2\n`
         )
     },
     next: {
@@ -811,8 +852,8 @@ menu.state('Group.Approval.SelectGroup', {
     run: () => {
         menu.con(
             `Transactions\n` +
-            `1. Member 1... GHS amount ...\n` + 
-            `2. Member 2... GHS amount ...\n` 
+            `1. Member 1... GHS amount ...\n` +
+            `2. Member 2... GHS amount ...\n`
         )
     },
     next: {
@@ -824,7 +865,7 @@ menu.state('Group.Approval.SelectGroup.Transactions', {
     run: () => {
         menu.con(
             `Confirm withdrawal of GHS amount\n` +
-            `from your Daakye Susu account\n` + 
+            `from your Daakye Susu account\n` +
             `1. Approve\n` +
             `2. Decline\n`
         )
@@ -885,7 +926,6 @@ exports.ussdApp = async (req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    // console.log(args);
     menu.run(args, ussdResult => {
         if (args.Operator) { menu.session.set('network', args.Operator); }
         res.send(ussdResult);
