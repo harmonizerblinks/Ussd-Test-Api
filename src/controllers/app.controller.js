@@ -146,8 +146,8 @@ exports.setPassword = async (req, res) => {
         confirmpin: newpin
     };
     console.log(JSON.stringify(value));
-    const access = getkey(val.merchant);
-    var api_endpoint = apiurl + 'Change/' + access.code + '/' + access.key;
+    const access = getkey(req.body.merchant);
+    var api_endpoint = apiurl + 'Ussd/Change/' + access.code + '/' + access.key;
     console.log(api_endpoint)
     var request = unirest('POST', api_endpoint)
         .headers({
