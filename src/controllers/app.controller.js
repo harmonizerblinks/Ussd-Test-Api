@@ -87,7 +87,7 @@ exports.validateOfficer = (req, res) => {
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
-    var api_endpoint = apiurl + 'otp/' + val.mobile + '/' + val.merchant;
+    var api_endpoint = apiurl + 'otp/' + val.mobile + '/' + val.merchant + '?id=OFFICER';;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -111,7 +111,7 @@ exports.verifyOtp = async (req, res) => {
     var val = req.body;
 
     // var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
-    var api_endpoint = apiurl + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '&id=AGENT';
+    var api_endpoint = apiurl + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=OFFICER';
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
