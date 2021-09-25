@@ -1,6 +1,6 @@
 module.exports = function(app) {
 
-    var apps =  require('../controllers/app.controller');
+    var apps =  require('../controllers/app.officer.controller');
     const verify = require('../middleware/verifyJwtToken.middleware');
     // const user = require('../middleware/verifysignup.middleware.js');
 
