@@ -204,8 +204,9 @@ exports.login = (req, res) => {
                     pin: false
                 });
             }
-            var hash = bcrypt.hashSync(data.pin);
-            var passwordIsValid = bcrypt.compareSync(val.pin, hash);
+            // var hash = bcrypt.hashSync(data.pin);
+            // console.log(hash);
+            var passwordIsValid = bcrypt.compareSync(val.pin, data.pin);
             if (passwordIsValid) {
                 const token = jwt.sign({
                     type: 'user',
