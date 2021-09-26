@@ -170,10 +170,12 @@ exports.setPassword = async (req, res) => {
             // console.log(response, response.code);
             if (response.code != 1) {
                 return res.status(500).send({
+                    success: false,
                     message: resp.body.message || "Error While Setting User Pin"
                 });;
             }
-            res.send({
+            res.status(200).send({
+                success: true,
                 message: "pin Set successfully"
             });
         });
