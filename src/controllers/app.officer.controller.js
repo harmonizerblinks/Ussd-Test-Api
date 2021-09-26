@@ -211,7 +211,7 @@ exports.login = (req, res) => {
                 const token = jwt.sign({
                     type: 'user',
                     data: {
-                        id: "AGENT",
+                        id: "OFFICER",
                         officerid: data.officerid,
                         code: data.code,
                         fullname: data.fullname,
