@@ -139,6 +139,7 @@ exports.setPassword = async (req, res) => {
         });;
     }
     var mobile = req.body.mobile;
+    console.log(req.mobile);
     const newpin = bcrypt.hashSync(req.body.newpin, 10);
 
     var value = {
@@ -159,17 +160,17 @@ exports.setPassword = async (req, res) => {
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
+                console.log(resp.body);
                 return res.status(500).send({
-                    message: "Error updating Officer Pin "
+                    message: resp.body.message || "Error updating Officer Pin "
                 });;
             }
-            console.log(resp.raw_body);
+            console.log(resp.raw_body, resp.body);
             var response = JSON.parse(resp.raw_body);
-            console.log(response, response.code);
+            // console.log(response, response.code);
             if (response.code != 1) {
                 return res.status(500).send({
-                    message: "Error While Setting User Pin"
+                    message: resp.body.message || "Error While Setting User Pin"
                 });;
             }
             res.send({
@@ -274,7 +275,7 @@ exports.changePassword = async (req, res) => {
                 res.status(500).send({
                     success: false,
                     register: false,
-                    message: 'Invalid Mobile Number'
+                    message: resp.body.message || 'Invalid Mobile Number'
                 });
             }
             console.log(resp.raw_body);
@@ -305,12 +306,12 @@ exports.changePassword = async (req, res) => {
                     .end(async (resp) => {
                         if (resp.error) {
                             return res.status(500).send({
-                                message: "Error updating user Password "
+                                message: resp.body.message || "Error updating user Password "
                             });;
                         }
                         // console.log(resp.raw_body);
                         res.send({
-                            message: "Password Changed successfully"
+                            message: resp.body.message || "Password Changed successfully"
                         });
                     });
             } else {
