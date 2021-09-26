@@ -404,9 +404,9 @@ exports.getAccounts = async (req, res) => {
 
 exports.getGroups = async (req, res) => {
     const access = await getkey(req.user.merchant);
-    const { page,limit } =  req.query;
+    const { page,limit,search } =  req.query;
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = apiurl + `App/Get/Groups/${access.key}/${access.code}?page=${page}&limit=${limit}`;
+    var api_endpoint = apiurl + `App/Get/Groups/${access.key}/${access.code}?page=${page}&limit=${limit}&search=${search}`;
     // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
