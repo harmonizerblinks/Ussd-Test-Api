@@ -406,8 +406,8 @@ exports.getGroups = async (req, res) => {
     const access = await getkey(req.user.merchant);
     const { page,limit,search } =  req.query;
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = apiurl + `App/Get/Groups/${access.key}/${access.code}?page=${page}&limit=${limit}&search=${search}`;
-    // console.log(api_endpoint);
+    var api_endpoint = apiurl + `App/Get/Groups/${access.code}/${access.key}?page=${page}&limit=${limit}&search=${search}`;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -427,8 +427,9 @@ exports.getGroups = async (req, res) => {
 };
 
 exports.getGroup = async (req, res) => {
-    var val = req.params.scheme;
-    var api_endpoint = apiurl + 'Schemeinfo/' + val;
+    // var val = req.params.scheme;
+    const access = await getkey(req.user.merchant);
+    var api_endpoint = apiurl + 'App/getGroup/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -560,11 +561,13 @@ exports.getOfficer = async (req, res) => {
 
 }
 exports.getOfficerGroups = async (req, res) =>{
-    const { page,limit, code} = req.query;
+    const { page,limit } = req.query;
     const access = getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
-    const { officerid } = req.user;
-    var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?officer=${officerid}&page=${page}&limit=${limit}`;
+    console.log(req.user);
+    const { code } = req.user;
+    // var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?officer=${code}&page=${page}&limit=${limit}`;
+    var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?page=${page}&limit=${limit}`;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -580,6 +583,7 @@ exports.getOfficerGroups = async (req, res) =>{
             })
         })
 }
+
 exports.getOfficerGroup = async (req, res) =>{
     const { code} = req.query;
     const access = getkey(req.user.merchant);

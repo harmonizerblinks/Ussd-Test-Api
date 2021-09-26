@@ -23,7 +23,7 @@ module.exports = function(app) {
     app.get('/officer/getMerchants', apps.getMerchants);
     app.post('/officer/getOfficer', verify.verifyToken, apps.getOfficer);
     app.get('/officer/getAccounts', verify.verifyToken, apps.getAccounts);
-    app.get('/officer/get-groups', verify.verifyToken, apps.getOfficerGroups);
+    app.get('/officer/getgroups', verify.verifyToken, apps.getOfficerGroups);
     app.get('/officer/getGroup', verify.verifyToken, apps.getOfficerGroup);
     app.get('/officer/transaction/:id', verify.verifyToken, apps.getOfficerGroups);
     app.post('/officer/create-transaction/:merchant', verify.verifyToken, apps.createTransaction);
