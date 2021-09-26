@@ -174,7 +174,7 @@ exports.setPassword = async (req, res) => {
                 });;
             }
             res.send({
-                message: "Password Set successfully"
+                message: "pin Set successfully"
             });
         });
 };
@@ -311,13 +311,13 @@ exports.changePassword = async (req, res) => {
                         }
                         // console.log(resp.raw_body);
                         res.send({
-                            message: resp.body.message || "Password Changed successfully"
+                            message: resp.body.message || "Pin Changed successfully"
                         });
                     });
             } else {
                 res.status(500).send({
                     success: false,
-                    message: 'Current Password is not correct'
+                    message: 'Current Pin is not correct'
                 });
             }
         });
