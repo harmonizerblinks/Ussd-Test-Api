@@ -62,7 +62,7 @@ exports.validateOfficer = (req, res) => {
             }
             var response = JSON.parse(resp.raw_body);
             console.log(response)
-            if (response.active && response.pin != null && response.pin !="1234" && response.pin.length==4) {
+            if (response.active && response.pin != null && response.pin !="1234" && response.pin.length != 4) {
                 res.send({
                     success: true,
                     register: true,
@@ -568,6 +568,7 @@ exports.getOfficerGroups = async (req, res) =>{
     const { code } = req.user;
     // var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?officer=${code}&page=${page}&limit=${limit}`;
     var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?page=${page}&limit=${limit}`;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -589,6 +590,7 @@ exports.getOfficerGroup = async (req, res) =>{
     const access = getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     var api_endpoint = `${apiurl}app/getGroup/${access.code}/${access.key}/${code}`;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -597,10 +599,10 @@ exports.getOfficerGroup = async (req, res) =>{
                     message: 'Invalid officer code or mobile number'
                 });
             }
-            const response = JSON.parse(resp.raw_body); 
+            // const response = JSON.parse(resp.raw_body); 
             res.send({
                 success: true,
-                data: response
+                data: resp.body
             })
         })
 }
