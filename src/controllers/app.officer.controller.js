@@ -25,23 +25,21 @@ let accesses = [{
 const apiurl = "https://app.alias-solutions.net:5003/";
 
 
-exports.getMerchant = (req, res) => {
-    var api_endpoint = apiurl + 'App';
-    var request = unirest('GET', api_endpoint)
+exports.getMerchants = async (req, res) => {
+    const uri = `${apiurl}App/GetMerchants`
+    var request = unirest('GET', uri)
         .end(async (resp) => {
             if (resp.error) {
                 console.log(resp.error);
-                console.log(resp.raw_body);
                 res.status(500).send({
                     success: false,
-                    message: resp.error
+                    message: 'Error occured while fetching merchants'
                 });
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             res.send(response);
         });
-};
+}
 
 exports.validateOfficer = (req, res) => {
     const access = getkey(req.params.merchant);
@@ -85,6 +83,31 @@ exports.validateOfficer = (req, res) => {
         });
 };
 
+exports.getOfficer = async (req, res) => {
+    const val = req.body;
+    const access = getkey(val.merchant);
+    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
+    var api_endpoint = apiurl + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                res.status(500).send({
+                    success: false,
+                    message: 'Invalid Mobile Number'
+                });
+            }
+            var response = JSON.parse(resp.raw_body);
+            if (response.officerid == 0) {
+                res.status(500).send({
+                    success: false,
+                    message: 'Invalid Mobile Number'
+                })
+            } else {
+                res.send(response);
+            }
+        })
+}
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
@@ -448,7 +471,6 @@ exports.getGroup = async (req, res) => {
         });
 };
 
-
 exports.getStatement = async (req, res) => {
     var val = req.body;
     console.log(val);
@@ -518,48 +540,7 @@ exports.Deposit = async (req, res) => {
         });
 };
 
-exports.getMerchants = async (req, res) => {
-    const uri = `${apiurl}App/GetMerchants`
-    var request = unirest('GET', uri)
-        .end(async (resp) => {
-            if (resp.error) {
-                console.log(resp.error);
-                res.status(500).send({
-                    success: false,
-                    message: 'Error occured while fetching merchants'
-                });
-            }
-            var response = JSON.parse(resp.raw_body);
-            res.send(response);
-        });
-}
 
-exports.getOfficer = async (req, res) => {
-    const val = req.body;
-    const access = getkey(val.merchant);
-    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = apiurl + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
-    console.log(api_endpoint);
-    var request = unirest('GET', api_endpoint)
-        .end(async (resp) => {
-            if (resp.error) {
-                res.status(500).send({
-                    success: false,
-                    message: 'Invalid Mobile Number'
-                });
-            }
-            var response = JSON.parse(resp.raw_body);
-            if (response.officerid == 0) {
-                res.status(500).send({
-                    success: false,
-                    message: 'Invalid Mobile Number'
-                })
-            } else {
-                res.send(response);
-            }
-        })
-
-}
 exports.getOfficerGroups = async (req, res) =>{
     const { page,limit } = req.query;
     const access = getkey(req.user.merchant);
@@ -596,7 +577,7 @@ exports.getOfficerGroup = async (req, res) =>{
             if (resp.error) {
                 res.status(500).send({
                     success: false,
-                    message: 'Invalid officer code or mobile number'
+                    message: 'Invalid Group code or mobile number'
                 });
             }
             // const response = JSON.parse(resp.raw_body); 
@@ -609,7 +590,7 @@ exports.getOfficerGroup = async (req, res) =>{
 
 exports.getTransaction =  async (req, res) =>{
     const { id } =  req.params;
-    const access =  getkey(req.query.merchant);
+    const access =  getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     var api_endpoint = `${apiurl}accounts/transactions/${id}`;
     var request = unirest('GET', api_endpoint)
@@ -630,18 +611,22 @@ exports.getTransaction =  async (req, res) =>{
 
 //create transaction
 exports.createTransaction = async (req, res)=>{
-    const { merchant } =  req.params;
-    const access =  getkey(merchant);
+    // const { merchant } =  req.params;
+    const access =  getkey(req.user.merchant);
+    const value = req.body; 
+    if(req.user.officerid) { value.officerid = req.user.officerid; }
+    if(req.user.agentid) { value.agentid = req.user.agentid; }
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     var api_endpoint = `${apiurl}app/agent/deposit/${access.code}/${access.key}`;
     var request = unirest('POST', api_endpoint)
-        .send(JSON.stringify(req.body))
+        .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
                 res.status(500).send({
                     success: false,
                     message: 'Error creating transactions',
-                    error: resp.error
+                    error: resp.error,
+                    body: resp.body
                 });
             }
             const response = JSON.parse(resp.raw_body);
@@ -651,6 +636,7 @@ exports.createTransaction = async (req, res)=>{
             })
         })
 }
+
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);

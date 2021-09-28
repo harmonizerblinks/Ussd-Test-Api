@@ -531,7 +531,7 @@ menu.state('Agent', {
         '1': 'Registers',
         '2': 'Pay'
     }
-})
+});
 
 menu.state('Registers', {
     run: () => {
@@ -540,8 +540,7 @@ menu.state('Registers', {
     next: {
         '*[0-9],{10,}+': 'Register.Auto'
     }
-})
-
+});
 
 menu.state('Pay', {
     run: () => {
