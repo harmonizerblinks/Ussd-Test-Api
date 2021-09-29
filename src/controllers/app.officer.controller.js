@@ -619,6 +619,9 @@ exports.createTransaction = async (req, res)=>{
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     var api_endpoint = `${apiurl}app/agent/deposit/${access.code}/${access.key}`;
     var request = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
