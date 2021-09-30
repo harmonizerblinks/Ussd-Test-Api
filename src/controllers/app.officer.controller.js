@@ -399,10 +399,11 @@ exports.getCustomer = async (req, res) => {
 
 exports.getAccounts = async (req, res) => {
     var val = req.query;
-    const access =  getkey(val.merchant);
-    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
+    console.log(req.user);
+    const access =  getkey(req.user.merchant);
+    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     const { limit, page,search } =  val;
-    var api_endpoint = apiurl + 'App/GetAccounts/' + access.code + '/' + access.key + `/?page=${page}&limit=${limit}&search=${search}`;
+    var api_endpoint = apiurl + 'App/GetAccounts/' + access.code + '/' + access.key + `/?page=${page}&limit=${limit}&search=${search == undefined? '': search}`;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -512,6 +513,9 @@ exports.Deposit = async (req, res) => {
         withdrawal: false,
         reference: 'Deposit to Account Number ' + val.account
     };
+    
+    if(req.user.officerid) { value.officerid = req.user.officerid; }
+    if(req.user.agentid) { value.agentid = req.user.agentid; }
 
     var api_endpoint = apiurl + 'App/Agent/Deposit/' + access.code + '/' + access.key;
     console.log(api_endpoint);
@@ -613,7 +617,9 @@ exports.getTransaction =  async (req, res) =>{
 exports.createTransaction = async (req, res)=>{
     // const { merchant } =  req.params;
     const access =  getkey(req.user.merchant);
-    const value = req.body; 
+    const value = req.body;
+    console.log(value)
+    value.reference = 'Deposit to Account Number ' + value.account +' from '+value.network;
     if(req.user.officerid) { value.officerid = req.user.officerid; }
     if(req.user.agentid) { value.agentid = req.user.agentid; }
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
@@ -632,10 +638,11 @@ exports.createTransaction = async (req, res)=>{
                     body: resp.body
                 });
             }
-            const response = JSON.parse(resp.raw_body);
+            console.log(resp.raw_body)
+            // const response = JSON.parse(resp.raw_body);
             res.send({
                 success: true,
-                data: response
+                data: resp.body
             })
         })
 }
