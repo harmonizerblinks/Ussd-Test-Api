@@ -617,7 +617,7 @@ exports.createTransaction = async (req, res)=>{
     if(req.user.officerid) { value.officerid = req.user.officerid; }
     if(req.user.agentid) { value.agentid = req.user.agentid; }
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
-    var api_endpoint = `${apiurl}app/agent/deposit/${access.code}/${access.key}`;
+    var api_endpoint = `${apiurl}ussd/agent/deposit/${access.code}/${access.key}`;
     var request = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'

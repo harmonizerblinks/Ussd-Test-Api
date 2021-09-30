@@ -12,12 +12,12 @@ var numbers = /^[0-9]+$/;
 
 
 // Test Credentials
-// let base_url = "https://app.alias-solutions.net:5010/"; 
-// let access = { code: "ENTLIFE", key: "1029398" };
+let base_url = "https://app.alias-solutions.net:5010/"; 
+let access = { code: "ENTLIFE", key: "1029398" };
 
 // Live Credential
-let base_url = "https://app.alias-solutions.net:5011/";
-let access = { code: "ENTLIFE", key: "1029398" };
+// let base_url = "https://app.alias-solutions.net:5011/";
+// let access = { code: "ENTLIFE", key: "1029398" };
 
 
 let apiurl = `${base_url}Ussd/`;
