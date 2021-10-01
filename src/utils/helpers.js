@@ -8,5 +8,8 @@ module.exports = {
         }
         return phone_number;
     },
-
+    isValidDate(dateObject)
+    {
+        return new Date(dateObject).toString() !== 'Invalid Date';
+    }
 };

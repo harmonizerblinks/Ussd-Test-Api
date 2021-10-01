@@ -1,11 +1,10 @@
-const apiurl = "https://app.alias-solutions.net:5003/Ussd/";
-// const apiurl = "http://localhost:4041/api/";
+// const apiurl = "https://app.alias-solutions.net:5003/Ussd/";
 var unirest = require('unirest');
 exports.randomBoolean = () => {
     return Math.random() < 0.5;
 };
 
-exports.fetchCustomer = async (mobile_num, merchant, access, callback, errorCallback) => {
+exports.fetchCustomer = async (apiurl,mobile_num, merchant, access, callback, errorCallback) => {
     // try {
     var api_endpoint = `${apiurl}getCustomer/${merchant}/${access.key}/${mobile_num}`;
     var request = unirest('GET', api_endpoint)
@@ -23,7 +22,7 @@ exports.fetchCustomer = async (mobile_num, merchant, access, callback, errorCall
         });
 }
 
-exports.postChangePin = async (customer, merchant, access, callback, errorCallback) => {
+exports.postChangePin = async (apiurl, customer, merchant, access, callback, errorCallback) => {
 
     var api_endpoint = `${apiurl}Change/${merchant}/${access.key}`;
     var request = unirest('POST', api_endpoint)
@@ -40,7 +39,7 @@ exports.postChangePin = async (customer, merchant, access, callback, errorCallba
         });
 }
 
-exports.CreateCustomer = async (customer, merchant, access, callback, errorCallback) => {
+exports.CreateCustomer = async (apiurl, customer, merchant, access, callback, errorCallback) => {
 
     var api_endpoint = `${apiurl}CreateCustomer/${merchant}/${access.key}`;
     var request = unirest('POST', api_endpoint)
@@ -59,7 +58,7 @@ exports.CreateCustomer = async (customer, merchant, access, callback, errorCallb
         });
 }
 
-exports.getInfo = async (appid, key, mobile, callback, errorCallback) => {
+exports.getInfo = async (apiurl, appid, key, mobile, callback, errorCallback) => {
     var api_endpoint = `${apiurl}getInfo/${appid}/${key}/${mobile}`;
     var req = unirest('GET', api_endpoint)
         .headers({
@@ -73,4 +72,8 @@ exports.getInfo = async (appid, key, mobile, callback, errorCallback) => {
             }
             return await callback(resp.body);
         });
+}
+
+exports.getCustomerAccount = async (apiurl, merch ,  key, mobile, index ) => {
+    
 }

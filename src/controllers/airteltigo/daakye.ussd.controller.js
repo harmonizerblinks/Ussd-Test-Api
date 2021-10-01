@@ -8,6 +8,12 @@ var numbers = /^[0-9]+$/;
 const AirtelService = require('./services/airtel_service');
 const bcrypt = require('bcryptjs');
 
+//TEST
+const apiurl = "https://app.alias-solutions.net:5003/Ussd/";
+
+//LIVE
+// const apiurl = "https://app.alias-solutions.net:5003/Ussd/";
+
 let access = { code: "AirtelTigo", key: "1234" };
 let merchant = "AirtelTigo";
 let optionArray = ['Daily', 'Weekly', 'Monthly', 'Only Once'];
@@ -50,7 +56,7 @@ menu.startState({
         let WelcomeNewUser = 'Welcome to Daakye Personal SUSU\nSelect Susu Type\n' +
             '\n1. Personal' +
             '\n2. Group';
-        await AirtelService.fetchCustomer(helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
+        await AirtelService.fetchCustomer(apiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             (response) => {
                 if (response.pin) {
                     menu.con(WelcomeNewUser)
@@ -77,7 +83,7 @@ menu.startState({
 
 menu.state('Personal', {
     run: async () => {
-        await AirtelService.fetchCustomer(helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
+        await AirtelService.fetchCustomer(apiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             (response) => {
                 menu.con('Welcome to Daakye Personal SUSU' +
                     '\n1. Savings' +
@@ -132,7 +138,7 @@ menu.state('Personal.Register.Read', {
 menu.state('Personal.Register.AcceptDecline', {
     run: async () => {
         
-        await AirtelService.getInfo( access.code, access.key, menu.args.phoneNumber,
+        await AirtelService.getInfo( apiurl, access.code, access.key, menu.args.phoneNumber,
             (response) => {
                 if(response.firstname && response.lastname){
                     menu.session.set('firstname', response.firstname)
@@ -173,7 +179,7 @@ menu.state('Personal.Register.Accept', {
             "Mobile": menu.args.phoneNumber,
             "Gender": gender
         }
-        await AirtelService.CreateCustomer(customer, merchant, access,
+        await AirtelService.CreateCustomer(apiurl, customer, merchant, access,
             (response) => {
                 let account = response.accounts[0];
                 menu.con(
@@ -453,7 +459,7 @@ menu.state('User.verifypin', {
             
             var customer = { "Type": "Customer", "Mobile": helpers.formatPhoneNumber(mobile), "Pin": newpin, "NewPin": newpin, "ConfirmPin": newpin };
             console.log(customer)
-            await AirtelService.postChangePin(customer, merchant, access, (data) => {
+            await AirtelService.postChangePin(apiurl, customer, merchant, access, (data) => {
                 // menu.session.set('pin', newpin);
                 menu.end("Pin successfully changed");
             },(err) => { 
