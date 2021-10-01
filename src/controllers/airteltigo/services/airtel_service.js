@@ -1,22 +1,19 @@
-const apiurl = "http://127.0.0.1:8000/api/";
+const apiurl = "https://app.alias-solutions.net:5003/Ussd/";
+// const apiurl = "http://localhost:4041/api/";
 var unirest = require('unirest');
 exports.randomBoolean = () => {
     return Math.random() < 0.5;
 };
 
-exports.fetchCustomer = async (val, access, callback, errorCallback) => {
+exports.fetchCustomer = async (mobile_num, merchant, access, callback, errorCallback) => {
     // try {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }
-    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = `${apiurl}getCustomer/${merchant}/${access.key}/${mobile_num}`;
     var request = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
         .end(async (resp) => {
             if (resp.error) {
-                // console.log(resp.error);
-                // var response = JSON.parse(res);
-                // return res;
                 return await errorCallback(resp.body);
             }
             else {
@@ -26,16 +23,33 @@ exports.fetchCustomer = async (val, access, callback, errorCallback) => {
         });
 }
 
-exports.postChangePin = async (customer, access, callback, errorCallback) => {
+exports.postChangePin = async (customer, merchant, access, callback, errorCallback) => {
 
-    var api_endpoint = `${apiurl}postChangePin/${access.code}/${access.key}`;
+    var api_endpoint = `${apiurl}Change/${merchant}/${access.key}`;
     var request = unirest('POST', api_endpoint)
+        .send(JSON.stringify(customer))
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .end(async (resp) => {
+            if (resp.error) {
+                return await errorCallback(resp.body);
+            }
+            return await callback(resp.body);
+
+        });
+}
+
+exports.CreateCustomer = async (customer, merchant, access, callback, errorCallback) => {
+
+    var api_endpoint = `${apiurl}CreateCustomer/${merchant}/${access.key}`;
+    var request = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
         .send(JSON.stringify(customer))
         .end(async (resp) => {
             if (resp.error) {
-                // console.log(resp.error);
-                // var response = JSON.parse(res);
-                // return res;
                 return await errorCallback(resp.body);
             }
             else {
@@ -45,21 +59,18 @@ exports.postChangePin = async (customer, access, callback, errorCallback) => {
         });
 }
 
-exports.postChangePin = async (customer, callback, errorCallback) => {
-
-    var api_endpoint = `${apiurl}postChangePin/${access.code}/${access.key}`;
-    var request = unirest('POST', api_endpoint)
-        .send(JSON.stringify(customer))
+exports.getInfo = async (appid, key, mobile, callback, errorCallback) => {
+    var api_endpoint = `${apiurl}getInfo/${appid}/${key}/${mobile}`;
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
         .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                // console.log(resp.error);
-                // var response = JSON.parse(res);
                 // return res;
                 return await errorCallback(resp.body);
             }
-            else {
-                return await callback(resp.body);
-            }
-
+            return await callback(resp.body);
         });
 }
