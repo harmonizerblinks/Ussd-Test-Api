@@ -329,7 +329,7 @@ exports.getMember = async(req, res) => {
         if (resp.error) {
             console.log(resp.error);
             res.status(200).send({ 
-                success: false, register: false, message: 'Provide the following details to Signup', error: resp 
+                success: false, register: false, message: 'Provide the following details to Signup', error: resp.body 
             });
         }
         console.log(resp.raw_body);
@@ -367,7 +367,7 @@ exports.getMemberPersonal = async(req, res) => {
         if (resp.error) {
             console.log(resp.error);
             res.status(200).send({ 
-                success: false, register: false, error: resp 
+                success: false, register: false, error: resp.body 
             });
         }
         console.log(resp.raw_body);
@@ -475,7 +475,8 @@ exports.getMemberinfos = async(req, res) => {
 
 // Login user
 exports.login = (req, res) => {
-    var val = req.body.mobile;
+    var val = req.body;
+    console.log(req.body);
     // if (val && val.startsWith('+233')) {
     //     // Remove Bearer from string
     //     val = val.replace('+233', '0');
@@ -484,7 +485,7 @@ exports.login = (req, res) => {
     //     val = val.replace('233', '0');
     // }
     // if (val && val.startsWith('+')){ val = val.replace('+', ''); }
-    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val.mobile;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
@@ -494,14 +495,16 @@ exports.login = (req, res) => {
                 success: false, register: false, message: 'Password is not correct' 
             });
         }
-        console.log(resp.raw_body);
-        var data = JSON.parse(resp.raw_body);
+        console.log(resp.raw_body, resp.body);
+        // var data = JSON.parse(resp.raw_body);
+        var data = resp.body;
         if (data.active && data.pin == null) {
             res.send({
                 success: true, register: true, pin: false
             });
         }
-        var passwordIsValid = bcrypt.compareSync(req.body.pin, data.pin);
+        console.log(data.pin, req.body.pin);
+        var passwordIsValid = bcrypt.compareSync(val.pin.toString(), data.pin);
         if (passwordIsValid) {
             const token = jwt.sign({
                 type: 'user',

@@ -9,36 +9,37 @@ const nodemailer = require("nodemailer");
 //Integration Setup
 let accesses = [{
     code: "PPT",
-    key: "178116723"
+    key: "178116723",
+    apiurl: ""
 }, {
     code: "ACU001",
-    key: "1029398"
+    key: "1029398",
+    apiurl: ""
 }, {
     code: "ACU001",
-    key: "1029398"
+    key: "1029398",
+    apiurl: ""
 }];
 // const apiUrl = "https://app.alias-solutions.net:5003/";
 // const apiurl = "http://localhost:5000/";
 const apiurl = "https://app.alias-solutions.net:5003/";
 
 
-exports.getMerchant = (req, res) => {
-    var api_endpoint = apiurl + 'App';
-    var request = unirest('GET', api_endpoint)
+exports.getMerchants = async (req, res) => {
+    const uri = `${apiurl}App/GetMerchants`
+    var request = unirest('GET', uri)
         .end(async (resp) => {
             if (resp.error) {
                 console.log(resp.error);
-                console.log(resp.raw_body);
                 res.status(500).send({
                     success: false,
-                    message: resp.error
+                    message: 'Error occured while fetching merchants'
                 });
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             res.send(response);
         });
-};
+}
 
 exports.validateOfficer = (req, res) => {
     const access = getkey(req.params.merchant);
@@ -59,7 +60,7 @@ exports.validateOfficer = (req, res) => {
             }
             var response = JSON.parse(resp.raw_body);
             console.log(response)
-            if (response.active && response.pin != null && response.pin !="1234" && response.pin.length==4) {
+            if (response.active && response.pin != null && response.pin !="1234" && response.pin.length != 4) {
                 res.send({
                     success: true,
                     register: true,
@@ -82,6 +83,31 @@ exports.validateOfficer = (req, res) => {
         });
 };
 
+exports.getOfficer = async (req, res) => {
+    const val = req.body;
+    const access = getkey(val.merchant);
+    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
+    var api_endpoint = apiurl + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                res.status(500).send({
+                    success: false,
+                    message: 'Invalid Mobile Number'
+                });
+            }
+            var response = JSON.parse(resp.raw_body);
+            if (response.officerid == 0) {
+                res.status(500).send({
+                    success: false,
+                    message: 'Invalid Mobile Number'
+                })
+            } else {
+                res.send(response);
+            }
+        })
+}
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
@@ -136,6 +162,7 @@ exports.setPassword = async (req, res) => {
         });;
     }
     var mobile = req.body.mobile;
+    console.log(req.mobile);
     const newpin = bcrypt.hashSync(req.body.newpin, 10);
 
     var value = {
@@ -156,21 +183,23 @@ exports.setPassword = async (req, res) => {
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
+                console.log(resp.body);
                 return res.status(500).send({
-                    message: "Error updating Officer Pin "
+                    message: resp.body.message || "Error updating Officer Pin "
                 });;
             }
-            console.log(resp.raw_body);
+            console.log(resp.raw_body, resp.body);
             var response = JSON.parse(resp.raw_body);
-            console.log(response, response.code);
+            // console.log(response, response.code);
             if (response.code != 1) {
                 return res.status(500).send({
-                    message: "Error While Setting User Pin"
+                    success: false,
+                    message: resp.body.message || "Error While Setting User Pin"
                 });;
             }
-            res.send({
-                message: "Password Set successfully"
+            res.status(200).send({
+                success: true,
+                message: "pin Set successfully"
             });
         });
 };
@@ -198,13 +227,14 @@ exports.login = (req, res) => {
                     pin: false
                 });
             }
-            var hash = bcrypt.hashSync(data.pin);
-            var passwordIsValid = bcrypt.compareSync(val.pin, hash);
+            // var hash = bcrypt.hashSync(data.pin);
+            // console.log(hash);
+            var passwordIsValid = bcrypt.compareSync(val.pin, data.pin);
             if (passwordIsValid) {
                 const token = jwt.sign({
                     type: 'user',
                     data: {
-                        id: "AGENT",
+                        id: "OFFICER",
                         officerid: data.officerid,
                         code: data.code,
                         fullname: data.fullname,
@@ -271,7 +301,7 @@ exports.changePassword = async (req, res) => {
                 res.status(500).send({
                     success: false,
                     register: false,
-                    message: 'Invalid Mobile Number'
+                    message: resp.body.message || 'Invalid Mobile Number'
                 });
             }
             console.log(resp.raw_body);
@@ -302,18 +332,18 @@ exports.changePassword = async (req, res) => {
                     .end(async (resp) => {
                         if (resp.error) {
                             return res.status(500).send({
-                                message: "Error updating user Password "
+                                message: resp.body.message || "Error updating user Password "
                             });;
                         }
                         // console.log(resp.raw_body);
                         res.send({
-                            message: "Password Changed successfully"
+                            message: resp.body.message || "Pin Changed successfully"
                         });
                     });
             } else {
                 res.status(500).send({
                     success: false,
-                    message: 'Current Password is not correct'
+                    message: 'Current Pin is not correct'
                 });
             }
         });
@@ -397,10 +427,10 @@ exports.getAccounts = async (req, res) => {
 
 exports.getGroups = async (req, res) => {
     const access = await getkey(req.user.merchant);
-    const { page,limit } =  req.query;
+    const { page,limit,search } =  req.query;
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = apiurl + `App/Get/Groups/${access.key}/${access.code}?page=${page}&limit=${limit}`;
-    // console.log(api_endpoint);
+    var api_endpoint = apiurl + `App/Get/Groups/${access.code}/${access.key}?page=${page}&limit=${limit}&search=${search}`;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -420,8 +450,9 @@ exports.getGroups = async (req, res) => {
 };
 
 exports.getGroup = async (req, res) => {
-    var val = req.params.scheme;
-    var api_endpoint = apiurl + 'Schemeinfo/' + val;
+    // var val = req.params.scheme;
+    const access = await getkey(req.user.merchant);
+    var api_endpoint = apiurl + 'App/getGroup/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -439,7 +470,6 @@ exports.getGroup = async (req, res) => {
             res.send(response);
         });
 };
-
 
 exports.getStatement = async (req, res) => {
     var val = req.body;
@@ -510,59 +540,21 @@ exports.Deposit = async (req, res) => {
         });
 };
 
-exports.getMerchants = async (req, res) => {
-    const uri = `${apiurl}App/GetMerchants`
-    var request = unirest('GET', uri)
-        .end(async (resp) => {
-            if (resp.error) {
-                console.log(resp.error);
-                res.status(500).send({
-                    success: false,
-                    message: 'Error occured while fetching merchants'
-                });
-            }
-            var response = JSON.parse(resp.raw_body);
-            res.send(response);
-        });
-}
 
-exports.getOfficer = async (req, res) => {
-    const val = req.body;
-    const access = getkey(val.merchant);
-    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = apiurl + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
+exports.getOfficerGroups = async (req, res) =>{
+    const { page,limit } = req.query;
+    const access = getkey(req.user.merchant);
+    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
+    console.log(req.user);
+    const { code } = req.user;
+    // var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?officer=${code}&page=${page}&limit=${limit}`;
+    var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?page=${page}&limit=${limit}`;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
                 res.status(500).send({
                     success: false,
-                    message: 'Invalid Mobile Number'
-                });
-            }
-            var response = JSON.parse(resp.raw_body);
-            if (response.officerid == 0) {
-                res.status(500).send({
-                    success: false,
-                    message: 'Invalid Mobile Number'
-                })
-            } else {
-                res.send(response);
-            }
-        })
-
-}
-exports.getOfficerGroups = async (req, res) =>{
-    const { page,limit, code} = req.query;
-    const access = getkey(req.user.merchant);
-    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
-    const { officerid } = req.user;
-    var api_endpoint = `${apiurl}app/getGroups/${access.code}/${access.key}/?officer=${officerid}&page=${page}&limit=${limit}`;
-    var request = unirest('GET', api_endpoint)
-        .end(async (resp) => {
-            if (resp.error) {
-                res.status(500).send({
-                    success: false,
                     message: 'Invalid officer code or mobile number'
                 });
             }
@@ -573,30 +565,32 @@ exports.getOfficerGroups = async (req, res) =>{
             })
         })
 }
+
 exports.getOfficerGroup = async (req, res) =>{
     const { code} = req.query;
     const access = getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     var api_endpoint = `${apiurl}app/getGroup/${access.code}/${access.key}/${code}`;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
                 res.status(500).send({
                     success: false,
-                    message: 'Invalid officer code or mobile number'
+                    message: 'Invalid Group code or mobile number'
                 });
             }
-            const response = JSON.parse(resp.raw_body); 
+            // const response = JSON.parse(resp.raw_body); 
             res.send({
                 success: true,
-                data: response
+                data: resp.body
             })
         })
 }
 
 exports.getTransaction =  async (req, res) =>{
     const { id } =  req.params;
-    const access =  getkey(req.query.merchant);
+    const access =  getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     var api_endpoint = `${apiurl}accounts/transactions/${id}`;
     var request = unirest('GET', api_endpoint)
@@ -617,18 +611,22 @@ exports.getTransaction =  async (req, res) =>{
 
 //create transaction
 exports.createTransaction = async (req, res)=>{
-    const { merchant } =  req.params;
-    const access =  getkey(merchant);
+    // const { merchant } =  req.params;
+    const access =  getkey(req.user.merchant);
+    const value = req.body; 
+    if(req.user.officerid) { value.officerid = req.user.officerid; }
+    if(req.user.agentid) { value.agentid = req.user.agentid; }
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     var api_endpoint = `${apiurl}app/agent/deposit/${access.code}/${access.key}`;
     var request = unirest('POST', api_endpoint)
-        .send(JSON.stringify(req.body))
+        .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
                 res.status(500).send({
                     success: false,
                     message: 'Error creating transactions',
-                    error: resp.error
+                    error: resp.error,
+                    body: resp.body
                 });
             }
             const response = JSON.parse(resp.raw_body);
@@ -638,6 +636,7 @@ exports.createTransaction = async (req, res)=>{
             })
         })
 }
+
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
