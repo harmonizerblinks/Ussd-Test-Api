@@ -70,7 +70,7 @@ menu.startState({
                     '\n3. Claims' +
                     '\n4. Policies' +
                     '\n5. Agent' +
-                    '\n6. Others'
+                    '\n6. Add Details'
                 );
             } else {
                 menu.con('Welcome to Enterprise Life Boafo Pa. Press (0) zero to register \n0. Register');
@@ -583,7 +583,7 @@ menu.state('Others.Beneficiary.DOB', {
 
         // let dt = new Date(menu.val);
 
-        if ( helpers.isValidDate( new Date(menu.val)) ) {
+        if ( helpers.isValidDate( menu.val) ) {
             menu.session.set('beneficiary_dob', menu.val);
             menu.con(`Add ${beneficiary_firstname} ${beneficiary_lastname} as your beneficiary ?\n1. Confirm\n2. Cancel`);
         }
