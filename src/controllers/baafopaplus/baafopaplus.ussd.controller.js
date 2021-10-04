@@ -161,7 +161,7 @@ menu.state('Register.Policy', {
 
 menu.state('Register.Policy.Selected', {
     run: async () => {
-        if (menu.val > 5 || menu.val <= 0) {
+        if (menu.val > 8 || menu.val <= 0) {
             menu.end('Invalid option. Please try again.')
         } else {
             // menu.session.set('policyoption', policyArray[Number(menu.val)])
@@ -329,10 +329,10 @@ menu.state('Deposit', {
 menu.state('Deposit.view', {
     run: async () => {
         var amount = Number(menu.val);
-        menu.session.set('amount', amount);
         if (amount > 10000) {
             menu.end('Invalid Amount Provided. Please Try again.');
         } else {
+            menu.session.set('amount', amount);
             var mobile = await menu.session.get('mobile');
             var val = { mobile: mobile, index: 1 };
             await fetchCustomerAccount(val, (data) => {
@@ -371,8 +371,10 @@ menu.state('Deposit.confirm', {
             mobile = menu.args.phoneNumber;
         }
         var data = { merchant: access.code, account: account.code, type: 'Deposit', network: network, mobile: mobile, amount: amount, method: 'MOMO', source: 'USSD', withdrawal: false, reference: 'Deposit to Account Number ' + account.code, merchantid: account.merchantid };
+        console.log(data);
         await postDeposit(data, async (result) => {
             // menu.end(JSON.stringify(result)); 
+            console.log(JSON.stringify(result)); 
         });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
     }
@@ -516,7 +518,7 @@ menu.state('Policies', {
 
 menu.state('Policies.Selected', {
     run: async () => {
-        if (menu.val > 5) {
+        if (menu.val > 8) {
             menu.end('Invalid option. Please try again.')
         } else {
             // menu.session.set('policyoption', policyArray[Number(menu.val)])
@@ -969,8 +971,10 @@ async function postDeposit(val, callback) {
         .send(JSON.stringify(val))
         .end(async (resp) => {
             if (resp.error) {
+                console.log(resp.body);
+                console.log(resp.raw_body);
                 // await postDeposit(val);
-                return await callback(resp);
+                return await callback(resp.body);
             }
             var response = JSON.parse(resp.raw_body);
             return await callback(response);

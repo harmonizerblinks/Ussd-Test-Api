@@ -160,7 +160,7 @@ menu.state('Register.Policy', {
 
 menu.state('Register.Policy.Selected', {
     run: async () => {
-        if (menu.val > 5 || menu.val <= 0) {
+        if (menu.val > 8 || menu.val <= 0) {
             menu.end('Invalid option. Please try again.')
         } else {
             // menu.session.set('policyoption', policyArray[Number(menu.val)])
@@ -450,7 +450,7 @@ menu.state('Policies', {
 
 menu.state('Policies.Selected', {
     run: async () => {
-        if (menu.val > 5) {
+        if (menu.val > 8) {
             menu.end('Invalid option. Please try again.')
         } else {
             // menu.session.set('policyoption', policyArray[Number(menu.val)])
