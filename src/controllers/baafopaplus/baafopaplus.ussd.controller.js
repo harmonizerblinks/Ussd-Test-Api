@@ -3,6 +3,7 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 var unirest = require('unirest');
 let helpers = require('../../utils/helpers')
 let sessions = {};
+var nodemailer = require('nodemailer');
 // let types = ["", "Current", "Savings", "Susu"];
 // let maritalArray = ["", "Single", "Married", "Private", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"];
@@ -12,12 +13,12 @@ var numbers = /^[0-9]+$/;
 
 
 // Test Credentials
-// let base_url = "https://app.alias-solutions.net:5010/"; 
-// let access = { code: "ENTLIFE", key: "1029398" };
+let base_url = "https://app.alias-solutions.net:5010/";
+let access = { code: "ENTLIFE", key: "1029398" };
 
 // Live Credential
-let base_url = "https://app.alias-solutions.net:5011/";
-let access = { code: "ENTLIFE", key: "1029398" };
+// let base_url = "https://app.alias-solutions.net:5011/";
+// let access = { code: "ENTLIFE", key: "1029398" };
 
 
 let apiurl = `${base_url}Ussd/`;
@@ -419,7 +420,72 @@ menu.state('CheckStatus', {
 
 menu.state('Claims', {
     run: () => {
-        menu.end('You will be contacted shortly.')
+        menu.con('Please enter reason for claim.')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Claims.Reason',
+    },
+});
+
+menu.state('Claims.Reason', {
+    run: async () => {
+        await fetchCustomer(menu.args.phoneNumber, (data) => {
+            if (data && data.active) {
+                let account = data.accounts[0];
+
+                menu.session.set('claims_reason',menu.val);
+                menu.session.set('claims_fullname',data.fullname);
+                menu.session.set('claims_mobile',data.mobile);
+                menu.session.set('claims_policy_number',account.code);
+                menu.session.set('claims_policy_type',account.type);
+
+                menu.con('Please confirm the claim:\n' +
+                `Name: ${data.fullname}\nMobile Number: ${data.mobile}\nPolicy Number: ${account.code}\nPolicy Type: ${account.type}\nReason: ${menu.val}` +
+                    '\n1. Confirm\n2. Cancel'
+                )
+            } else {
+                menu.end('Sorry cannot proceed to make claim');
+            }
+        });
+    },
+    next: {
+        '1': 'Claims.Reason.Confirm',
+        '2': 'Exit'
+    },
+    defaultNext: 'IncorrectInput'
+});
+
+menu.state('Claims.Reason.Confirm', {
+    run: async () => {
+
+        let claims_reason = await menu.session.get('claims_reason');
+        let claims_fullname = await menu.session.get('claims_fullname');
+        let claims_mobile = await menu.session.get('claims_mobile');
+        let claims_policy_number = await menu.session.get('claims_policy_number');
+        let claims_policy_type = await menu.session.get('claims_policy_type');
+                
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: 'monitoring.and.evaluation.20@gmail.com',
+              pass: 'Cdnalsi90'
+            }
+          });
+
+          var mailOptions = {
+            from: 'monitoring.and.evaluation.20@gmail.com',
+            to: 'mclean@alias-solutions.net',
+            subject: `Claim Requested by :${claims_fullname}`,
+            text: `Customer name: ${claims_fullname}\nCustomer Phone: ${claims_mobile}\n Policy Number: ${claims_policy_number}\nPolicy Type: ${claims_policy_type}\nReason: ${claims_reason}`
+          };
+          
+          transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              menu.end("Sorry, claim could not be processed")
+            } else {
+              menu.end("Claim successfully requested, you will be notified when processing is completed")
+            }
+          });
     }
 });
 
@@ -533,12 +599,12 @@ menu.state('Others.Beneficiary.LastName', {
 
         let the_message = "Please select the beneficiary\'s gender\n";
         genderArray.forEach((element, index) => {
-            if(index > 0)
-            the_message += `${(index)}. ${element}\n`;
+            if (index > 0)
+                the_message += `${(index)}. ${element}\n`;
         });
         menu.con(
             the_message
-            )
+        )
     },
     next: {
         '*[1-2]': 'Others.Beneficiary.Gender'
@@ -549,8 +615,7 @@ menu.state('Others.Beneficiary.LastName', {
 menu.state('Others.Beneficiary.Gender', {
     run: () => {
         let gender_index = Number(menu.val);
-        if(gender_index <= 2 && gender_index > 0)
-        {
+        if (gender_index <= 2 && gender_index > 0) {
             let gender_selected = genderArray[(gender_index)];
             menu.session.set('beneficiary_gender', gender_selected);
         }
@@ -583,7 +648,7 @@ menu.state('Others.Beneficiary.DOB', {
 
         // let dt = new Date(menu.val);
 
-        if ( helpers.isValidDate( menu.val) ) {
+        if (helpers.isValidDate(menu.val)) {
             menu.session.set('beneficiary_dob', menu.val);
             menu.con(`Add ${beneficiary_firstname} ${beneficiary_lastname} as your beneficiary ?\n1. Confirm\n2. Cancel`);
         }
@@ -625,7 +690,7 @@ menu.state('Others.Beneficiary.DOB.Confirm', {
             }
         });
 
-        
+
 
     },
 })
@@ -688,7 +753,7 @@ menu.state('Others.Relatives.Relation.Confirm', {
         let relatives_relation = await menu.session.get('relatives_relation');
 
         var relation = {
-            code: access.code, key: access.key, firstname: relatives_firstname, lastname: relatives_lastname, relationship: relatives_relation 
+            code: access.code, key: access.key, firstname: relatives_firstname, lastname: relatives_lastname, relationship: relatives_relation
         };
 
         var user = { mobile: helpers.formatPhoneNumber(menu.args.phoneNumber), index: 1 };
@@ -706,7 +771,7 @@ menu.state('Others.Relatives.Relation.Confirm', {
             }
         });
 
-        
+
     }
 })
 
@@ -781,11 +846,6 @@ async function postCustomer(val, callback, errorCallback) {
 }
 
 async function fetchCustomer(val, callback) {
-    // try {
-    // if (val && val.startsWith('+233')) {
-    //     // Remove Bearer from string
-    //     val = val.replace('+233', '0');
-    // }
     let mobile = helpers.formatPhoneNumber(val);
     var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + mobile;
     var request = unirest('GET', api_endpoint)
@@ -974,8 +1034,7 @@ async function getInfo(val, callback) {
     return true
 }
 
-async function AddRelation(relation, callback, errorCallback)
-{    
+async function AddRelation(relation, callback, errorCallback) {
     var api_endpoint = integration_apiurl + 'AddRelation/';
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -993,8 +1052,7 @@ async function AddRelation(relation, callback, errorCallback)
 }
 
 
-async function AddBeneficiary(beneficiary, callback, errorCallback)
-{    
+async function AddBeneficiary(beneficiary, callback, errorCallback) {
     var api_endpoint = integration_apiurl + 'AddBeneficiary/';
     var req = unirest('POST', api_endpoint)
         .headers({
