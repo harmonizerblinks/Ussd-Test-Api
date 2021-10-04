@@ -731,7 +731,7 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    // console.log(args);
+    console.log('request',req.body);
     // let resp = await menu.run(args)
     // res.send(resp);
     await menu.run(args, ussdResult => {
