@@ -7,7 +7,6 @@ const xss = require('xss-clean');
 const http = require('http');
 // const socketIO = require('socket.io');
 const bodyParser = require('body-parser');
-// const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const path = require('path');
 
@@ -16,7 +15,6 @@ const path = require('path');
 
 // initialize the app
 const app = express();
-
 global.appRoot = path.resolve(__dirname);
 
 const PORT = process.env.PORT || 5006;
@@ -84,6 +82,7 @@ require('./routes/app.ppt.routes.js')(app);
 require('./routes/app.ppt.test.routes.js')(app);
 require('./routes/ussd.routes.js')(app);
 require('./routes/app.officer.routes')(app);
+require('./routes/app.customer.routes')(app);
 // Handler for 404 - Resource Not Found
 app.use((req, res, next) => {
     res.status(404).send({ message: 'We think you are lost!' });

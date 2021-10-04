@@ -3,8 +3,7 @@
     "",
     "\\src",
     "\\src\\controllers",
-    "\\src\\controllers\\aslan"
+    "\\src\\routes"
   ],
-  "SelectedNode": "\\src\\controllers\\aslan\\aslan.ussd.controller.js",
   "PreviewInSolutionExplorer": false
 }
