@@ -619,7 +619,7 @@ exports.createTransaction = async (req, res)=>{
     const access =  getkey(req.user.merchant);
     const value = req.body;
     console.log(value)
-    value.reference = 'Deposit to Account Number ' + value.account +' from '+value.network;
+    value.reference = 'Deposit to Account Number ' + value.Account +' from Mobile number '+value.Mobile;
     if(req.user.officerid) { value.officerid = req.user.officerid; }
     if(req.user.agentid) { value.agentid = req.user.agentid; }
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
