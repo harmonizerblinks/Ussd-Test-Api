@@ -1,6 +1,7 @@
 module.exports = function(app) {
 
     var apps = require('../controllers/ppt/ppt.app.test.controller.js');
+    var diaspora = require('../controllers/ppt/ppt.diaspora.controller.js');
     // var contact = require('../controllers/mail.controller.js');
     var ussd = require('../controllers/ussd.controller.js');
     const verify = require('../middleware/verifyJwtToken.middleware.js');
