@@ -44,6 +44,7 @@
     "socket.io": "^3.0.5",
     "unirest": "^0.6.0",
     "ussd-builder": "^1.1.1",
+    "validatorjs": "^3.22.1",
     "xss-clean": "^0.1.1"
   },
   "devDependencies": {
