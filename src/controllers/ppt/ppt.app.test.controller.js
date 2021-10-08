@@ -246,7 +246,7 @@ exports.sendOtp = async(req, res) => {
             console.log(resp.error);
             res.status(500).send({ success: false, message: 'Unable to sent Otp' });
         }
-        // console.log(resp.body);
+        console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
         res.send({
             success: true, message: response.message

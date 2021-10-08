@@ -51,6 +51,7 @@ module.exports = function(app) {
     var gprtuofficer = require('../controllers/gprtu/gprtu.officer.ussd.controller.js');
 
     var daakyeSusu = require('../controllers/airteltigo/daakye.ussd.controller.js');
+    var chopboxonline = require('../controllers/chopboxonline/chopboxonline.controller.js');
 
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
     app.post('/group', hmplus.ussdApp);
@@ -105,5 +106,8 @@ module.exports = function(app) {
 
     //AIRTELTIGO
     app.post('/api/airteltigo', daakyeSusu.ussdApp);
+    
+    // CHOPBOXONLINE
+    app.post('/api/chopboxonline', chopboxonline.ussdApp);
 
 }

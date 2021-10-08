@@ -109,6 +109,32 @@ exports.getOfficer = async (req, res) => {
         })
 }
 
+exports.getOfficerDashBoard = async (req, res) => {
+    const val = req.user;
+    const access = getkey(val.merchant);
+    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
+    var api_endpoint = apiurl + 'app/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                res.status(500).send({
+                    success: false,
+                    message: 'Invalid Officer Mobile Number'
+                });
+            }
+            // var response = JSON.parse(resp.raw_body);
+            if (!resp.body) {
+                res.status(500).send({
+                    success: false,
+                    message: 'Invalid Officer Mobile Number'
+                })
+            } else {
+                res.send(resp.body);
+            }
+        })
+}
+
 exports.sendOtp = async (req, res) => {
     var val = req.body;
     var api_endpoint = apiurl + 'otp/' + val.mobile + '/' + val.merchant + '?id=OFFICER';

@@ -6,6 +6,7 @@ let sessions = {};
 const appKey = '21410742'; const appId = '6854841673';
 const apiUrl = "https://api.paynowafrica.com";
 
+let package = [null, 'Love pack - GHS 100', '']
 let unipackArray = ['', '']
 
 
@@ -276,14 +277,14 @@ menu.state('contact',{
 
 
 //////////-------------START SESSION FUNCTION--------------//////////////
-module.exports.startSession = (req, res) => {
+module.exports.ussdApp = async(req, res) => {
     let args = req.body;
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    menu.run(args, ussdResult => {
-        if (args.Operator) { menu.session.set('network', args.Operator);}
-        res.send(ussdResult);
+    await menu.run(args, async(ussdResult) => {
+        // if (args.Operator) { menu.session.set('network', args.Operator);}
+        await res.send(ussdResult);
     });
 }
 
