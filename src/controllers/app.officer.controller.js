@@ -113,7 +113,7 @@ exports.getOfficerDashBoard = async (req, res) => {
     const val = req.user;
     const access = getkey(val.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = apiurl + 'app/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
+    var api_endpoint = apiurl + 'app/getOfficerOverview/' + access.code + '/' + access.key + '/' + val.mobile;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -618,11 +618,32 @@ exports.getOfficerGroup = async (req, res) =>{
         })
 }
 
-exports.getTransaction =  async (req, res) =>{
+exports.getAccountTransaction =  async (req, res) =>{
     const { id } =  req.params;
     const access =  getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     var api_endpoint = `${apiurl}accounts/transactions/${id}`;
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                res.status(500).send({
+                    success: false,
+                    message: 'Error geting transactions'
+                });
+            }
+            const response = JSON.parse(resp.raw_body);
+            res.send({
+                success: true,
+                data: response
+            })
+        })
+}
+
+exports.getTransactions =  async (req, res) =>{
+    const { id } =  req.params;
+    const access =  getkey(req.user.merchant);
+    if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
+    var api_endpoint = `${apiurl}/gettransactions`;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
