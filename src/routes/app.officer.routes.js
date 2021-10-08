@@ -10,7 +10,7 @@ module.exports = function(app) {
     app.get('/officer/app/logout', verify.verifyToken, apps.logout);
 
     // Validate Officer Mobile With Merchant Code
-    app.post('/officer/validate/:merchant', apps.validateOfficer);
+    app.post('/officer/validate/:merchant/:mobile', apps.validateOfficer);
     // Send Otp to Officer
     app.post('/officer/send-otp', apps.sendOtp);
     // Verifiy Otp Input with Otp Sent to Officer
