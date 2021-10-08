@@ -6,7 +6,8 @@ let sessions = {};
 const appKey = 'CHOP100'; const appId = '985684734';
 const apiUrl = "https://api.paynowafrica.com";
 
-let package = [null, 'Love pack - GHS 100', '']
+let package = [null, {name: 'Love Pack', amount: 100},{name: 'Special pack', amount: 200},{name: 'Surprise pack', amount: 300},null]
+let birthdays = [null, {name: 'Love Pack', amount: 100},{name: 'Special pack', amount: 200},{name: 'Surprise pack', amount: 300},null]
 let unipackArray = ['', '']
 
 
@@ -341,7 +342,7 @@ async function createpin (val, callback) {
 
 async function payment (data, callback) {
 
-    var request = unirest('POST', `{apiUrl}/PayNow/Merchant`)
+    var request = unirest('POST', `${apiUrl}/PayNow/Merchant`)
         .headers({
             'Content-Type': ['application/json', 'application/json']
         })
