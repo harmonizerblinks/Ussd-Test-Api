@@ -640,10 +640,10 @@ exports.getAccountTransaction =  async (req, res) =>{
 }
 
 exports.getTransactions =  async (req, res) =>{
-    const { id } =  req.params;
     const access =  getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
-    var api_endpoint = `${apiurl}/gettransactions`;
+    var api_endpoint = `${apiurl}app/getTransactions/${access.code}/${access.key}`;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
