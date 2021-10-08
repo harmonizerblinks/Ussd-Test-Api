@@ -21,7 +21,7 @@ module.exports = function(app) {
     app.post('/officer/change-pin', verify.verifyToken, apps.changePassword);
     //get merchants
     app.get('/officer/getMerchants', apps.getMerchants);
-    app.post('/officer/dashboard', verify.verifyToken, apps.getOfficerDashBoard);
+    app.get('/officer/dashboard', verify.verifyToken, apps.getOfficerDashBoard);
     app.post('/officer/getOfficer', verify.verifyToken, apps.getOfficer);
     app.get('/officer/getAccounts', verify.verifyToken, apps.getAccounts);
     app.get('/officer/getgroups', verify.verifyToken, apps.getOfficerGroups);
