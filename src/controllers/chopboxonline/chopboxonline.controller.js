@@ -290,64 +290,27 @@ module.exports.ussdApp = async(req, res) => {
 }
 
 async function fetchaccount (val, callback) {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233','233');
-    }
-
-    let data = {
-        appId: appId,
-        appKey: appKey,
-        mobile: val
-    }
-
-    // console.log(data);
-
-    var request = unirest('POST', `{apiUrl}/accountInfo`)
+    
+    var request = unirest('POST', `${apiUrl}/accountInfo`)
         .headers({
             'Content-Type': ['application/json', 'application/json']
         })
         .send(JSON.stringify(data))
         .then(async (response) => {
-                menu.session.set('accountinfo', response.body);
+                // menu.session.set('accountinfo', response.body);
                 // console.log(response.body)
                 return await callback(response);
         })
 }
 
-async function createpin (val, callback) {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233','233');
-    }
+async function payment(data, callback) {
 
-    let data = {
-        appId: appId,
-        appKey: appKey,
-        mobile: val,
-        pin: await menu.session.get('pin')
-    }
-
-    // console.log(data);
-
-    var request = unirest('POST', `{apiUrl}/createPin`)
+    var request = unirest('POST', `${apiUrl}/PayNow/Merchant`)
         .headers({
-            'Content-Type': ['application/json', 'application/json']
+            'Content-Type': ['application/json']
         })
         .send(JSON.stringify(data))
         .then(async (response) => {
             return await callback(response);
-        })
-}
-
-async function payment (data, callback) {
-
-    var request = unirest('POST', `${apiUrl}/PayNow/Merchant`)
-        .headers({
-            'Content-Type': ['application/json', 'application/json']
-        })
-        .send(JSON.stringify(data))
-        .then(async (response) => {
-                return await callback(response);
-        })
+        });
 }
