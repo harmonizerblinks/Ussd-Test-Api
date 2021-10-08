@@ -7,7 +7,9 @@ const config = require('../../config/mongodb.config.js');
 const { response } = require('express');
 let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
-let genderArray = ["", "Male", "Female"]
+let genderArray = ["", "Male", "Female"];
+let helpers = require('../../utils/helpers')
+let Validator = require('validatorjs');
 
 // let apiurl = "http://localhost:5000/Ussd/";
 let apiurl = "https://app.alias-solutions.net:5008/ussd/";
@@ -15,6 +17,8 @@ let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/
 let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 let access = { code: "446785909", key: "164383692" };
 let chanel = { code: "446785909", key: "164383692" };
+
+let diaspora_base_url = "https://app.alias-solutions.net:5008/";
 
 //Integration Setup
 let accesses = [{
@@ -49,19 +53,16 @@ exports.Register = async(req, res) => {
     .send(JSON.stringify(value))
     .end((resp)=> { 
         if (resp.error) {
-            console.log(resp.error)
-            console.log(resp.raw_body)
-            res.status(500).send({
+            return res.status(500).send({
                 message: resp.error
             }); 
         }
-        console.log(res.raw_body);
-        res.send(res.raw_body);
+        return res.send(res.raw_body);
     });
 };
 
 exports.getIcareAccounts = (req, res) => {
-    console.log('geticare');
+    // console.log('geticare');
     var api_endpoint = apiurl + 'getIcare/Accounts/' + access.code + '/' + access.key+ '/' + req.user.mobile;
     console.log(api_endpoint)
     var req = unirest('GET', api_endpoint)
@@ -71,13 +72,13 @@ exports.getIcareAccounts = (req, res) => {
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
     .end(function (resp) { 
         if (resp.error) {
-            res.status(500).send({
+            return res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(resp.raw_body);
+        return res.send(resp.raw_body);
     });
 };
 
@@ -92,13 +93,13 @@ exports.getinfo = (req, res) => {
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
     .end(function (resp) { 
         if (resp.error) {
-            res.status(500).send({
+            return res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(resp.raw_body);
+        return res.send(resp.raw_body);
     });
 };
 
@@ -113,13 +114,13 @@ exports.agentinfo = (req, res) => {
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber}))
     .end(function (resp) { 
         if (resp.error) {
-            res.status(500).send({
+            return res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(resp.raw_body);
+        return res.send(resp.raw_body);
     });
 };
 
@@ -131,12 +132,11 @@ exports.sendOtp = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            res.status(500).send({ success: false, message: 'Unable to sent Otp' });
+            return res.status(500).send({ success: false, message: 'Unable to sent Otp' });
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
-        res.send({
+        return res.send({
             success: true, message: response.message
         });
     });
@@ -150,12 +150,11 @@ exports.verifyOtp = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            res.status(500).send({ success: false, register: false, message: 'Code Not Valid' });
+            return res.status(500).send({ success: false, register: false, message: 'Code Not Valid' });
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
-        res.send({
+        return res.send({
             success: true, message: response.message
         });
     });
@@ -177,19 +176,18 @@ exports.getMemberPersonal = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            res.status(200).send({ 
+            return res.status(200).send({ 
                 success: false, register: false, error: resp.body 
             });
         }
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
         if (response.active) {
-            res.send({
+            return res.send({
                 success: true, register: true, data: response
             });
         } else {
-            res.send({
+            return res.send({
                 success: false, register: false, data: response
             });
         }
@@ -203,15 +201,14 @@ exports.getScheme = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            res.status(500).send({ 
+            return res.status(500).send({ 
                 success: false, register: false, message: 'Current Password is not correct' 
             });
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
         response.pin = null;
-        res.send(response.payments);
+        return res.send(response.payments);
     });
 };
 
@@ -222,15 +219,14 @@ exports.getSchemeinfo = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            res.status(500).send({ 
+            return res.status(500).send({ 
                 success: false, register: false, message: 'Current Password is not correct'
             });
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
         // response.pin = null;
-        res.send(response);
+        return res.send(response);
     });
 };
 
@@ -245,22 +241,205 @@ exports.getMemberinfo = async(req, res) => {
     // }
     // if (val && val.startsWith('+')){ val = val.replace('+', ''); } 
     var api_endpoint = apiurl + 'Memberinfo/' + val;
-    console.log(api_endpoint);
+    // console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            console.log(resp.raw_body);
-            res.status(500).send({ 
+            // console.log(resp.error);
+            // console.log(resp.raw_body);
+            return res.status(500).send({ 
                 success: false, register: false, message: 'User Record not Found' 
             });
         }
-        console.log(resp.raw_body);
+        // console.log(resp.raw_body);
         // var response = JSON.parse(resp.raw_body);
         // response.pin = null;
-        res.send(resp.raw_body);
+        return res.send(resp.raw_body);
     });
 };
+
+
+exports.postMemberInfo = async(req, res) => {
+    var request_body = req.body;
+    const access = getkey(request_body.Merchant);
+    if(!access) 
+    {
+        return res.status(404).send({
+            success: false, message: `No Merchant was found with code ${request_body.Merchant ? request_body.Merchant : '' }`
+        })
+    }
+
+    if(!request_body.Mobile)
+    {
+        return res.status(422).send({
+            success: false, message: `The mobile field is required`
+        })
+    }
+    var api_endpoint = diaspora_base_url + 'Integration/MemberInfo/';
+    let member = {
+        "AppId": access.code,
+        "AppKey": access.key,
+        "Mobile": helpers.formatPhoneNumber(request_body.Mobile)
+    }
+    var request = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(member))
+    .end(async (resp) => {
+        if (resp.error) {
+            // console.log(member)
+            return res.status(404).send({ 
+                success: false, register: false, message: 'Member Not Found' 
+            });
+        }
+        // var response = JSON.parse(resp.raw_body);
+        // response.pin = null;
+        return res.send(resp.body);
+    });
+};
+
+exports.CreateMember = async(req, res) => {
+    
+    var request_body = req.body;
+    let rules = {
+        FirstName: 'required',
+        LastName: 'required',
+        Email: 'required|email',
+        Mobile: 'required',
+        Gender: 'required|max:8',
+        IdType: 'required',
+        IdNumber: 'required',
+        Merchant: "required",
+        DateOfBirth: "date",
+        Source: "required"
+      };
+      
+      let validation = new Validator(request_body, rules);
+
+      if(validation.fails())
+      {          
+        const errorList = validation.errors.all();
+
+        return res.status(412).send({
+            success: false, 
+            message: `Validation errors`,
+            errors: errorList
+        })
+      }
+
+        const access = getkey(request_body.Merchant);
+        if(!access) 
+        {
+            return res.status(404).send({
+                success: false, message: `No Merchant was found with code ${request_body.Merchant ? request_body.Merchant : '' }`
+            })
+        }
+    
+    var api_endpoint = diaspora_base_url + 'Integration/CreateMember/';
+    let member = {
+        "AppId": access.code,
+        "AppKey": access.key,
+        "FirstName": request_body.FirstName,
+        "LastName": request_body.LastName,
+        "Email": request_body.Email,
+        "Mobile": helpers.formatPhoneNumber(request_body.Mobile),
+        "Gender": request_body.Gender,
+        "IdType": request_body.IdType,
+        "IdNumber": request_body.IdNumber,
+        "DateOfBirth": request_body.DateOfBirth,
+        "Source": request_body.Source,
+    }
+    // console.log(member)
+    var request = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(member))
+    .end(async (resp) => {
+        if (resp.error) {
+            return res.status(404).send({ 
+                success: false, register: false, message: 'Member could not be created' 
+            });
+        }
+        // var response = JSON.parse(resp.raw_body);
+        // response.pin = null;
+        return res.send(resp.body);
+    });
+
+}
+
+//card payment
+exports.CardPayment = async(req, res) => {
+    var request_body = req.body;
+    let rules = {
+        Account: 'required',
+        Method: 'required',
+        Network: 'required|max:20',
+        Mobile: 'required|max:20',
+        Frequency: 'required',
+        TranId: 'required',
+        Transaction_no: "required",
+        Source: "required",
+        Status: "required",
+        Amount: "required",
+        Email: "required|email",
+        Merchant: "required"
+      };
+      
+      let validation = new Validator(request_body, rules);
+
+      if(validation.fails())
+      {          
+        const errorList = validation.errors.all();
+
+        return res.status(412).send({
+            success: false, 
+            message: `Validation errors`,
+            errors: errorList
+        })
+      }
+      
+      const access = getkey(request_body.Merchant);
+        if(!access) 
+        {
+            return res.status(404).send({
+                success: false, message: `No Merchant was found with code ${request_body.Merchant ? request_body.Merchant : '' }`
+            })
+        }
+    
+    var api_endpoint = diaspora_base_url + `Integration/Integration/Deposit/Card/${access.code}/${access.key}`;
+    let payment = {
+        "Account": request_body.Account ,
+        "IcareId": request_body.IcareId,
+        "Method": request_body.Method,
+        "Network":  request_body.Network ,
+        "Mobile": helpers.formatPhoneNumber(request_body.Mobile),
+        "Frequency": request_body.Frequency,
+        "TranId": request_body.TranId,
+        "Transaction_no": request_body.Transaction_no,
+        "Source": request_body.Source,
+        "Status": request_body.Status,
+        "Amount": request_body.Amount,
+        "Reference": request_body.Reference,
+        "Email": request_body.Email
+    }
+    var request = unirest('POST', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(payment))
+    .end(async (resp) => {
+        if (resp.error) {
+            return res.status(400).send({ 
+                success: false, message: 'Payment could not be created' 
+            });
+        }
+        // var response = JSON.parse(resp.raw_body);
+        // response.pin = null;
+        return res.send(resp.body);
+    });
+}
 
 // Post Payment
 exports.Deposit = (req, res) => {
@@ -278,20 +457,15 @@ exports.Deposit = (req, res) => {
         .send(JSON.stringify(val))
         .end( async(resp)=> { 
             if (resp.error) { 
-                console.log(resp.raw_body);
                 var respon = JSON.parse(resp.raw_body);
                 // if (response.error) throw new Error(response.error);
                 return res.status(500).send({
-                    message: respon.message || "Unable to proccess Payment at the moment"
+                    message: respon.message || "Unable to process Payment"
                 });
             }
-            // if (res.error) throw new Error(res.error);
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            // await callback(response);
-            res.send({ output: 'Success', message: response.message });
+            return res.send({ output: 'Success', message: response.message });
         });
-        // res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
     } else {
         
         var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
@@ -318,10 +492,9 @@ exports.Deposit = (req, res) => {
                 });
             }
             // if (res.error) throw new Error(res.error);
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             // await callback(response);
-            res.send({ output: 'Payment Request Sent', message: response.message });
+            return res.send({ output: 'Payment Request Sent', message: response.message });
         });
     }
 };
@@ -337,14 +510,12 @@ exports.stopAutoDebit = async(req, res) => {
     .send(JSON.stringify(value))
     .end((resp)=> { 
         if (resp.error) {
-            res.status(404).send({
+            return res.status(404).send({
                 message: resp.error
             }); 
         }
-        // console.log(res.raw_body);
-        console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        res.send(response);
+        return res.send(response);
     });
 };
 
@@ -354,14 +525,13 @@ exports.getOccupations = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            res.status(500).send({ 
+            return res.status(500).send({ 
                 success: false, message: resp.error || 'Unable to Fetch Regions' 
             });
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
-        res.send(response.result);
+        return res.send(response.result);
     });
 };
 
@@ -371,31 +541,28 @@ exports.getRegions = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            res.status(500).send({ 
+            return res.status(500).send({ 
                 success: false, message: resp.error || 'Unable to Fetch Regions' 
             });
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
-        res.send(response.result);
+        return res.send(response.result);
     });
 };
 
 exports.getIdType = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllIdTypes?AppId=' + chanel.code + '&AppKey=' + chanel.key;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            res.status(500).send({ 
+            return res.status(500).send({ 
                 success: false, message: resp.error || 'Unable to Fetch Regions' 
             });
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        res.send(response.result);
+        return res.send(response.result);
     });
 };
 
@@ -450,7 +617,6 @@ async function getInfo(val, callback) {
         .end(async (resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
                 // return res;
                 return await callback(resp);
             }
