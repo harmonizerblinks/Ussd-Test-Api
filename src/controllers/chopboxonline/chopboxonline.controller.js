@@ -1,7 +1,7 @@
 const UssdMenu = require('ussd-builder');
 const unirest = require('unirest');
 const generator = require('generate-serial-number')
-let menu = new UssdMenu();
+let menu = new UssdMenu({ provider: 'emergent' });
 let sessions = {};
 const appKey = '21410742'; const appId = '6854841673';
 const apiUrl = "https://api.paynowafrica.com";
@@ -40,13 +40,13 @@ menu.sessionConfig({
 
 menu.startState({
     run: async() => {
-        menu.con(`Welcome to ChopBox Online 
-            1. Quick Buy
-            2. Birthday
-            3. Chopbox Cares
-            4. Chopbox Cash
-            5. Contact Us
-        `)        
+        menu.con('Welcome to ChopBox Online \n' +
+            '1. Quick Buy\n' +
+            '2. Birthday\n' +
+            '3. Chopbox Cares\n' +
+            '4. Chopbox Cash\n' +
+            '5. Contact Us'
+        )        
     },
     next: {
         '1': 'Buy',
@@ -59,13 +59,13 @@ menu.startState({
 
 menu.state('Start',{
     run: async() => {
-        menu.con(`Welcome to ChopBox Online 
-            1. Quick Buy
-            2. Birthday
-            3. Chopbox Cares
-            4. Chopbox Cash
-            5. Contact Us
-        `)        
+        menu.con('Welcome to ChopBox Online \n' +
+            '1. Quick Buy\n' +
+            '2. Birthday\n' +
+            '3. Chopbox Cares\n' +
+            '4. Chopbox Cash\n' +
+            '5. Contact Us'
+        )        
     },
     next: {
         '1': 'Buy',
