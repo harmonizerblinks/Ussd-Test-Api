@@ -3,7 +3,7 @@ const unirest = require('unirest');
 const generator = require('generate-serial-number')
 let menu = new UssdMenu({ provider: 'emergent' });
 let sessions = {};
-const appKey = '21410742'; const appId = '6854841673';
+const appKey = 'CHOP100'; const appId = '985684734';
 const apiUrl = "https://api.paynowafrica.com";
 
 let package = [null, 'Love pack - GHS 100', '']
