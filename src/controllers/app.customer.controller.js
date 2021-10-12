@@ -429,15 +429,14 @@ exports.getStatement = async (req, res) => {
 
 // Post Payment
 exports.Deposit = async (req, res) => {
-
     const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
-    // var method = "";
     var value = {
         account: val.account,
         type: 'Deposit',
         network: val.network,
-        mobile: mobile,
+        mobile: req.user.mobile,
         amount: val.amount,
         method: val.method,
         source: "Customer",
@@ -445,7 +444,7 @@ exports.Deposit = async (req, res) => {
         reference: 'Deposit to Account Number ' + val.account
     };
 
-    var api_endpoint = apiurl + 'App/Agent/Deposit/' + access.code + '/' + access.key;
+    var api_endpoint = apiurl + 'Ussd/Deposit/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -455,16 +454,55 @@ exports.Deposit = async (req, res) => {
         .end(async (resp) => {
             if (resp.error) {
                 console.log(resp.raw_body);
-                var respon = JSON.parse(resp.raw_body);
-                // if (response.error) throw new Error(response.error);
+                var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
-                    message: respon.message || "Unable to proccess Payment at the moment"
+                    message: respon.response || "Unable to proccess Payment at the moment"
                 });
             }
             // if (res.error) throw new Error(res.error);
             console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            // await callback(response);
+            res.send({
+                output: 'Payment Request Sent',
+                message: response.message
+            });
+        });
+};
+
+exports.Withdraw = async (req, res) => {
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    var val = req.body;
+    var value = {
+        account: val.account,
+        type: 'Withdrawal',
+        network: val.network,
+        mobile: req.user.mobile,
+        amount: val.amount,
+        method: val.method,
+        source: "Customer",
+        withdrawal: true,
+        reference: 'Withdrawal from Account Number ' + val.account
+    };
+
+    var api_endpoint = apiurl + 'Ussd/Withdrawal/' + access.code + '/' + access.key;
+    console.log(api_endpoint);
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(value))
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.raw_body);
+                var response = JSON.parse(resp.raw_body);
+                return res.status(500).send({
+                    message: respon.response || "Unable to proccess Payment at the moment"
+                });
+            }
+            // if (res.error) throw new Error(res.error);
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
             res.send({
                 output: 'Payment Request Sent',
                 message: response.message
