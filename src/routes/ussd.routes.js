@@ -33,6 +33,11 @@ module.exports = function(app) {
     var pptpromo = require('../controllers/ppt/ppt.promo.controller.js');
     var ppttier2 = require('../controllers/ppt/ppt.tier2.ussd.controller.js');
 
+    //PPT new
+    var pptnew = require('../controllers/pptnew/ppt.ussd.controller.js');
+    var pptnewtier2 = require('../controllers/pptnew/ppt.tier2.ussd.controller');
+    var pptnewpromo = require('../controllers/pptnew/ppt.promo.controller');
+
     // School Billing
     var schoolbilling = require('../controllers/schoolbilling/schoolbilling.ussd.controller.js');
 
@@ -91,6 +96,11 @@ module.exports = function(app) {
     app.post('/api/ppt/icare', ppticare.ussdApp);
     app.post('/api/ppt/promo', pptpromo.ussdApp);
     app.post('/api/ppt/tier2', ppttier2.ussdApp);
+
+    //PPTNew Collection
+    app.post('/api/pptnew', pptnew.ussdApp);
+    app.post('/api/pptnew/tier2', pptnewtier2.ussdApp);
+    app.post('/api/pptnew/promo', pptnewpromo.ussdApp);
 
     // SCHOOL BILLING
     app.post('/api/schoolbilling', schoolbilling.ussdApp);

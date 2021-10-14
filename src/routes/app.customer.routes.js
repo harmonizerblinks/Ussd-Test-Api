@@ -23,4 +23,5 @@ module.exports = function(app) {
     app.get('/customer/getAccounts', verify.verifyToken, apps.getAccounts);
     app.post('/customer/create-customer', verify.verifyToken, apps.createCustomer);
     app.post('/customer/deposit',verify.verifyToken, apps.Deposit);
+    app.post('/customer/withdraw',verify.verifyToken, apps.Withdraw);
 }

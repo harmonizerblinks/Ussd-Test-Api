@@ -46,7 +46,6 @@ menu.sessionConfig({
 
 menu.on('error', (err) => {
     // handle errors
-    console.log('Error', err);
     menu.end('error ' + err);
 });
 
@@ -59,6 +58,8 @@ menu.startState({
         await AirtelService.fetchCustomer(apiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             (response) => {
                 if (response.pin) {
+                    menu.session.set('pin', response.pin);
+                    menu.session.set('account', response.accounts[0]);
                     menu.con(WelcomeNewUser)
                 }
                 else {
@@ -244,15 +245,26 @@ menu.state('Personal.Savings.ChooseOption', {
 })
 
 menu.state('Personal.Savings.Amount', {
-    run: () => {
-        menu.con(
-            `Dear customer,\n` +
-            `Confirm payment of GHS ${menu.val} to\n` +
-            `Daakye Susu for account number` +
-            '\n1. Confirm' +
-            '\n2. Go back' +
-            '\n3. Cancel'
-        )
+    run: async () => {        
+        var mobile = menu.args.phoneNumber;
+        await AirtelService.getCustomerAccount(apiurl, merchant, access.key, helpers.formatPhoneNumber(mobile), 1,
+            (response) => {
+                let account = response;
+                menu.session.set('account', account);       
+                menu.session.set('amount', menu.val);                
+                menu.con(
+                    `Dear customer,\n` +
+                    `Confirm payment of GHS ${menu.val} to\n` +
+                    `Daakye Susu for account number ${account.code}` +
+                    '\n1. Confirm' +
+                    '\n2. Go back' +
+                    '\n3. Cancel'
+                )
+            },
+            (error) => {
+                menu.end("Sorry could not retrieve account details");
+            })
+        
     },
     next: {
         '1': 'Personal.Savings.Amount.Confirm',
@@ -262,14 +274,32 @@ menu.state('Personal.Savings.Amount', {
 })
 
 menu.state('Personal.Savings.Amount.Confirm', {
-    run: () => {
-        menu.go('Exit')
+    run: async () => {
+
+        let account = await menu.session.get('account');
+        let amount = await menu.session.get('amount');
+        let customer = {
+            "Account": `${account.code}`,
+            "Method": "Momo",
+            "Source": "Ussd",
+            "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+            "Amount": amount
+        }
+        await AirtelService.Deposit(apiurl, customer, merchant, access,
+            (response) => {
+                menu.end(
+                    'You should receive a payment prompt, please approve it to complete the transaction'
+                )
+            },
+            (error) => {
+                menu.end("Sorry could not process transaction");
+            })
     },
 })
 
 menu.state('Personal.Withdrawal', {
     run: () => {
-        menu.con('Enter withdrawal Amount')
+        menu.con('Enter withdrawal amount')
     },
     next: {
         '*\\d+': 'Personal.Withdrawal.Amount',
@@ -277,9 +307,12 @@ menu.state('Personal.Withdrawal', {
 })
 
 menu.state('Personal.Withdrawal.Amount', {
-    run: () => {
+    run: async () => {
+        menu.session.set('withdrawal_amount', menu.val);
+
+        let account = await menu.session.get('account');
         menu.con(
-            `Confirm Withdrawal of  GHS ${menu.val} from your Daakye Susu Account, Account Number` +
+            `Confirm Withdrawal of GHS ${menu.val} from your Daakye Susu Account, Account Number ${account.code}` +
             '\n1. Confirm' +
             '\n2. Go back' +
             '\n3. Cancel'
@@ -289,7 +322,8 @@ menu.state('Personal.Withdrawal.Amount', {
         '1': 'Personal.Withdrawal.Amount.Confirm',
         '2': 'Personal.Withdrawal',
         '3': 'Exit'
-    }
+    },
+    defaultNext: 'InvalidInput'
 })
 
 menu.state('Personal.Withdrawal.Amount.Confirm', {
@@ -304,8 +338,42 @@ menu.state('Personal.Withdrawal.Amount.Confirm', {
 })
 
 menu.state('Personal.Withdrawal.Amount.Confirm.Pin', {
-    run: () => {
-        menu.go('Exit')
+    run: async () => {
+        let pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid)
+        {
+            let account = await menu.session.get('account');
+            let amount = await menu.session.get('amount');
+            let customer = {
+                "Account": `${account.code}`,
+                "Method": "Momo",
+                "Source": "Ussd",
+                "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+                "Amount": amount
+            }
+            
+            await AirtelService.Withdrawal(apiurl, customer, merchant, access,
+                (response) => {
+                    menu.end(
+                        'Transaction successfully completed '
+                    )
+                },
+                (error) => {
+                    if(error.message)
+                    {
+                        menu.end(error.message);
+                    }
+                    else
+                    {
+                        menu.end("Sorry could not process transaction");
+                    }
+                })
+        }
+        else{
+
+            menu.end("Invalid pin, please try again later")
+        }
     },
 })
 
@@ -328,7 +396,6 @@ menu.state('Personal.MyAccount', {
 menu.state('Personal.MyAccount.CheckBalance', {
     run: () => {
         menu.con(
-            `Check Balance\n` +
             `Enter ATM Pin\n`
         )
     },
@@ -339,10 +406,27 @@ menu.state('Personal.MyAccount.CheckBalance', {
 
 
 menu.state('Personal.MyAccount.CheckBalance.Pin', {
-    run: () => {
-        menu.end(
-            `Your current balance is GHS ***\n`
-        )
+    run: async () => {
+        let pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid)
+        {
+            let account = await menu.session.get('account');            
+            if(account.balance || account.balance == 0)
+            {
+                menu.end(
+                    `Your current balance is GHS ${account.balance}\n`
+                )    
+            }
+            else
+            {
+                menu.end("Sorry could not retrieve account balance");
+            }               
+        }
+        else{
+            menu.end("Invalid pin, please try again later")
+        }
+        
     }
 })
 
@@ -358,13 +442,45 @@ menu.state('Personal.MyAccount.MiniStatement', {
 })
 
 menu.state('Personal.MyAccount.MiniStatement.Pin', {
-    run: () => {
-        menu.end(
-            `Your last 3 transactions are:\n` +
-            `1. ***\n` +
-            `2. ***\n` +
-            `3. ***\n`
-        )
+    run: async () => {
+
+        let pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid)
+        {
+            await AirtelService.getAccountTransaction(apiurl, merchant, access,
+                (response) => {
+                    if(response.length > 0)
+                    {
+                        let message = `Your last 3 transactions are:\n`
+
+                        response.forEach((element, index) => {
+                            message += `${(index + 1)}. ${ helpers.trimDate(element.Date)} - ${ element.Amount}\n`;
+                        });
+
+                        menu.end(message ) 
+                    }
+                    else
+                    {
+                        menu.end("No recent transactions to display")
+                    }
+                    
+                },
+                (error) => {
+                    if(error.message)
+                    {
+                        menu.end(error.message);
+                    }
+                    else
+                    {
+                        menu.end("Sorry could not retrieve mini statement");
+                    }
+                })             
+                      
+        }
+        else{
+            menu.end("Invalid pin, please try again later")
+        }        
     }
 })
 
@@ -380,15 +496,27 @@ menu.state('Personal.MyAccount.ChangePin', {
 })
 
 menu.state('Personal.MyAccount.ChangePin.CurrentPin', {
-    run: () => {
-        menu.session.set('current_pin', menu.val);
-        menu.con(
-            `Enter new pin\n`
-        )
+    run: async () => {
+        
+        let pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid)
+        {
+            let hashedOldPin = bcrypt.hashSync(menu.val, 10)
+            menu.session.set('old_pin',  hashedOldPin);
+            menu.con(
+                `Enter new pin\n`
+            )              
+        }
+        else{
+            menu.end("Invalid pin, please try again later")
+        }
+        
     },
     next: {
         '*[0-9]+': 'Personal.MyAccount.ChangePin.NewPin',
-    }
+    },
+    defaultNext: 'InvalidInput'
 })
 
 menu.state('Personal.MyAccount.ChangePin.NewPin', {
@@ -403,14 +531,26 @@ menu.state('Personal.MyAccount.ChangePin.NewPin', {
     next: {
         '*\\d+': 'Personal.MyAccount.ChangePin.NewPin.Confirm'
     },
+    defaultNext: 'InvalidInput'
 })
 
 menu.state('Personal.MyAccount.ChangePin.NewPin.Confirm', {
     run: async () => {
         var pin_new = await menu.session.get('new_pin');
+        var old_pin = await menu.session.get('old_pin');
 
-        if (menu.val == pin_new) {
-            menu.end('Pin successfully changed');
+        if (menu.val == pin_new) {            
+            const hashedPin = bcrypt.hashSync(menu.val, 10);
+            var mobile = menu.args.phoneNumber;
+            
+            var customer = { "Type": "Customer", "Mobile": helpers.formatPhoneNumber(mobile), "Pin": old_pin, "NewPin": hashedPin, "ConfirmPin": hashedPin };
+            await AirtelService.postChangePin(apiurl, customer, merchant, access, (data) => {
+                // menu.session.set('pin', newpin);
+                menu.end("Pin successfully changed");
+            },(err) => { 
+                menu.end("Sorry pin could not be changed"); 
+            });
+            
         } else {
             menu.end('Sorry, pin confirmation does not match');
         }
@@ -454,16 +594,13 @@ menu.state('User.verifypin', {
         if (menu.val === pin) {
             // var newpin = Number(menu.val);
             const newpin = bcrypt.hashSync(menu.val, 10);
-            // console.log(newpin)
             var mobile = menu.args.phoneNumber;
             
             var customer = { "Type": "Customer", "Mobile": helpers.formatPhoneNumber(mobile), "Pin": newpin, "NewPin": newpin, "ConfirmPin": newpin };
-            console.log(customer)
             await AirtelService.postChangePin(apiurl, customer, merchant, access, (data) => {
                 // menu.session.set('pin', newpin);
                 menu.end("Pin successfully changed");
             },(err) => { 
-                console.log(err)
                 menu.end("Sorry pin could not be changed"); 
             });
         } else {
@@ -919,8 +1056,15 @@ menu.state('Group.Approval.SelectGroup.Transactions.Decline.Pin', {
         )
     },
 })
+
+
 //////////////////////////////////////////////////////////////////////////////////////
 
+menu.state('InvalidInput', {
+    run: () => {
+        menu.end('Sorry you selected the wrong option');
+    },
+});
 
 //////////////////////////////////////////////////////////////////////////////////////
 

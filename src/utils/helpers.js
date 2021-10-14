@@ -11,5 +11,9 @@ module.exports = {
     isValidDate(dateObject)
     {
         return new Date(dateObject).toString() !== 'Invalid Date';
+    },
+    trimDate(the_date)
+    {
+        return new Date(the_date).toLocaleDateString();
     }
 };
