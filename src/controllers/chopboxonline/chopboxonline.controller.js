@@ -295,7 +295,7 @@ menu.state('Buy.confirm',{
             mobile: menu.args.phoneNumber,
             network: menu.args.operator,
             service: "Pay Merchant",
-            reference: 'Payment for '+package.name +' to userid '+student,
+            reference: 'Payment for '+pack.name +' to userid '+student,
             order_id: generator.generate(7)
         }
     
