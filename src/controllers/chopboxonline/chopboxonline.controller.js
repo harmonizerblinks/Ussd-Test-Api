@@ -85,7 +85,7 @@ menu.state('Buy',{
     run: () => {
         menu.con('Choose Package:'+ 
         '\n1. UNI pack'+
-        '2. SHS pack')
+        '\n2. SHS pack')
     },
     next: {
         '1': 'Uni',
