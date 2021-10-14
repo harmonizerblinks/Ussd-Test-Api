@@ -298,12 +298,14 @@ menu.state('Buy.confirm',{
             reference: 'Payment for '+pack.name +' to userid '+student,
             order_id: generator.generate(7)
         }
-    
-        await payment(data, (data) => {
-            if(data)
+        console.log(data);
+        await payment(data, (dat) => {
+            if(dat){
+                console.log(dat);
                 menu.end('You will receive a prompt to complete the payment process.')
-            else
+            }else{
                 menu.end('Server Error............')
+            }
         });
         menu.end('You will receive a prompt to complete the payment process.')
     }
