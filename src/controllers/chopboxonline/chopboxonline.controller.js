@@ -256,7 +256,7 @@ menu.state('Buy.schoolid',{
     },
     next: {
         '0': 'Start',
-        '1': 'Buy.confirm.confirm',
+        '*\\d+': 'Buy.confirm.confirm',
     }
 });
 
