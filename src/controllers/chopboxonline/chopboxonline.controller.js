@@ -83,15 +83,15 @@ menu.state('Start',{
 
 menu.state('Buy',{
     run: () => {
-        menu.con(`Choose Package: 
-        1. UNI pack
-        2. SHS pack
-        `)
+        menu.con('Choose Package:'+ 
+        '\n1. UNI pack'+
+        '2. SHS pack')
     },
     next: {
         '1': 'Uni',
         '2': 'Shs'
-    }
+    },
+    defaultNext: '__start__'
 })
 
 ///////////////--------------BUY > UNI STARTS--------------////////////////
@@ -119,7 +119,7 @@ menu.state('Uni.package',{
         }
     },
     next: {
-        '^[a-zA-Z0-9_]*$': 'Buy.schoolid'
+        '^[0-9]*$': 'Buy.schoolid'
     }
 })
 
