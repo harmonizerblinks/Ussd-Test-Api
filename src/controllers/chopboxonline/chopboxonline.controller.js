@@ -119,7 +119,7 @@ menu.state('Uni.package',{
         }
     },
     next: {
-        '^[0-9]*$': 'Buy.schoolid'
+        '*\\d+': 'Buy.schoolid'
     }
 })
 
@@ -150,7 +150,7 @@ menu.state('Shs.package',{
         }
     },
     next: {
-        '[0-9]': 'Buy.schoolid'
+        '*\\d+': 'Buy.schoolid'
     }
 })
 
@@ -184,7 +184,7 @@ menu.state('Birthday.package',{
         // menu.con(`Enter Student ID`)
     },
     next: {
-        '^[a-zA-Z0-9_]*$': 'Buy.schoolid'
+        '*\\d+': 'Buy.schoolid'
     }
 })
 
