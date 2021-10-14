@@ -3,11 +3,12 @@ const unirest = require('unirest');
 const generator = require('generate-serial-number')
 let menu = new UssdMenu({ provider: 'emergent' });
 let sessions = {};
-const appKey = 'CHOP100'; const appId = '985684734';
-const apiUrl = "https://api.paynowafrica.com";
+const appKey = '985684734'; const appId = 'CHOP100';
+// const apiUrl = "https://api.paynowafrica.com";
+const apiUrl = "https://app.alias-solutions.net:5001/";
 
 let package = [null, {name: 'Love Pack', amount: 100},{name: 'Special pack', amount: 200},{name: 'Surprise pack', amount: 300},null]
-let birthdays = [null, {name: 'Love Pack', amount: 100},{name: 'Special pack', amount: 200},{name: 'Surprise pack', amount: 300},null]
+let birthdays = [null, {name: 'Xtravaganza', amount: 1000 },{name: 'Birthday bash', amount: 800 },{name: 'Party time', amount: 500},{name: 'Fun time', amount: 300},{name: 'Friends', amount: 100},null]
 let unipackArray = ['', '']
 
 
@@ -108,8 +109,14 @@ menu.state('Uni',{
 })
 
 menu.state('Uni.package',{
-    run: () => {
-        menu.con(`Enter Student ID`)
+    run: async() => {
+        var pack = package[menu.val];
+        if(pack){
+            menu.session.set('package', pack);
+            menu.con(`Enter Student ID`);
+        } else {
+            menu.end(`Invalid Package Selected, Please try again.`);
+        }
     },
     next: {
         '^[a-zA-Z0-9_]*$': 'Buy.schoolid'
@@ -133,7 +140,14 @@ menu.state('Shs',{
 
 menu.state('Shs.package',{
     run: () => {
-        menu.con(`Enter Student ID`)
+        var pack = package[menu.val];
+        if(pack){
+            menu.session.set('package', pack);
+            menu.session.set('amount', pack.amount);
+            menu.con(`Enter Student ID`);
+        } else {
+            menu.end(`Invalid Package Selected, Please try again.`);
+        }
     },
     next: {
         '^[a-zA-Z0-9_]*$': 'Buy.schoolid'
@@ -159,7 +173,15 @@ menu.state('Birthday',{
 
 menu.state('Birthday.package',{
     run: () => {
-        menu.con(`Enter Student ID`)
+        var pack = birthdays[menu.val];
+        if(pack){
+            menu.session.set('package', pack);
+            menu.session.set('amount', pack.amount);
+            menu.con(`Enter Student ID`);
+        } else {
+            menu.end(`Invalid Package Selected, Please try again.`);
+        }
+        // menu.con(`Enter Student ID`)
     },
     next: {
         '^[a-zA-Z0-9_]*$': 'Buy.schoolid'
@@ -226,12 +248,14 @@ menu.state('Exit',{
 
 menu.state('Buy.schoolid',{
     run: async() => {
+        let student = menu.val;
+        menu.session.set('student', menu.val);
         let amount = menu.session.get('amount');
         let package = menu.session.get('package');
-        let studentinfo = menu.session.get('studentinfo');
+        // let studentinfo = menu.session.get('studentinfo');
         menu.con(`Confirm Payment of GHS
-        ${amount}, ${package}
-        for ${studentinfo} 
+        ${amount}, ${package.name}
+        for ${student} 
         1. Confirm
         0. Back`)
     },
@@ -243,15 +267,16 @@ menu.state('Buy.schoolid',{
 
 menu.state('Buy.confirm',{
     run: async() => {
+        const pack = await menu.session.get('package');
+        const student = await menu.session.get('package');
         let data = {
-            code: "303",
-            type: "Contribution",
+            code: appId,
+            type: "Payment",
             amount: await menu.session.get('amount'),
             mobile: menu.args.phoneNumber,
-            network: "string",
-            token: "string",
-            service: "GPRTU USSD",
-            reference: "string",
+            network: menu.args.operator,
+            service: "Pay Merchant",
+            reference: 'Payment for '+package.name +' to userid '+student,
             order_id: generator.generate(7)
         }
     
@@ -260,7 +285,8 @@ menu.state('Buy.confirm',{
                 menu.end('You will receive a prompt to complete the payment process.')
             else
                 menu.end('Server Error............')
-        })
+        });
+        menu.end('You will receive a prompt to complete the payment process.')
     }
 })
 

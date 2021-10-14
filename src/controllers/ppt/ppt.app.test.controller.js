@@ -9,8 +9,8 @@ let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
-// let apiurl = "http://localhost:5000/Ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiurl = "http://localhost:5000/Ussd/";
+// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
 let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 let access = { code: "446785909", key: "164383692" };
@@ -164,12 +164,15 @@ exports.addBeneficiary = async(req, res) => {
     .send(JSON.stringify(value))
     .end(function (resp) { 
         if (resp.error) {
-            res.status(404).send({
-                message: resp.error
-            }); 
+            console.log(resp.error);
+            console.log(resp.body);
+            return res.status(404).send(resp.body.error); 
+            // return res.status(404).send({
+            //     message: resp.body.error
+            // }); 
         }
         // console.log(res.raw_body);
-        res.send(res.raw_body);
+        return res.send(res.raw_body);
     });
 };
 
@@ -284,7 +287,8 @@ exports.setPassword = async(req, res) => {
             message: "Mobile Number and Pin is Required"
         });; 
     }
-    var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    // var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    var value =req.body; value.pin =newpin; value.newpin=newpin;
     console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
     console.log(api_endpoint)
@@ -332,13 +336,13 @@ exports.getMember = async(req, res) => {
                 success: false, register: false, message: 'Provide the following details to Signup', error: resp.body 
             });
         }
-        console.log(resp.raw_body);
+        console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
-        if (response.active && response.pin != null) {
+        if (response.active && response.pin != null && response.pin != '') {
             res.send({
                 success: true, register: true, pin: true
             });
-        } else if (response.active && response.pin == null) {
+        } else if (response.active && (response.pin == null || response.pin == '')) {
             res.send({
                 success: true, register: true, pin: false
             });
@@ -381,6 +385,28 @@ exports.getMemberPersonal = async(req, res) => {
                 success: false, register: false, data: response
             });
         }
+    });
+};
+
+exports.joinScheme = (req, res) => {
+    console.log('joinscheme');
+    const value = req.body
+    var api_endpoint = apiurl + 'joinscheme/' + access.code + '/' + access.key;
+    console.log(api_endpoint);
+    var req = unirest('GET', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end(function (resp) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(resp.raw_body);
     });
 };
 
