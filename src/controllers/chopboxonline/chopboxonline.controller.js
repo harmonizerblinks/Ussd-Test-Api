@@ -270,6 +270,8 @@ menu.state('Buy.schoolid.confirm',{
             let package = menu.session.get('package');
             // let studentinfo = menu.session.get('studentinfo');
             menu.con(`Confirm Payment of GHS ${amount}, ${package.name} for ${student} \n1. Confirm \n0. Main Menu`);
+        } else {
+            menu.end('Chopbox unique code do not match');
         }
     },
     next: {
