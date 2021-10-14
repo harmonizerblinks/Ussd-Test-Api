@@ -29,6 +29,7 @@ module.exports = function(app) {
     // Ppt
     var ppt = require('../controllers/ppt/ppt.ussd.controller.js');
     var ppticare = require('../controllers/ppt/ppt.icare.ussd.controller.js');
+    var pptdmtca = require('../controllers/ppt/ppt.dmtca.ussd.controller.js');
     var pptofficer = require('../controllers/ppt/ppt.officer.ussd.controller.js');
     var pptpromo = require('../controllers/ppt/ppt.promo.controller.js');
     var ppttier2 = require('../controllers/ppt/ppt.tier2.ussd.controller.js');
@@ -92,6 +93,7 @@ module.exports = function(app) {
 
     // PPT Collection
     app.post('/api/ppt', ppt.ussdApp);
+    app.post('/api/ppt/dmtca', pptdmtca.ussdApp);
     app.post('/api/ppt/officer', pptofficer.ussdApp);
     app.post('/api/ppt/icare', ppticare.ussdApp);
     app.post('/api/ppt/promo', pptpromo.ussdApp);

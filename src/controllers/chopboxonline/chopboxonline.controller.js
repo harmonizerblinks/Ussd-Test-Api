@@ -113,7 +113,7 @@ menu.state('Uni.package',{
         var pack = package[menu.val];
         if(pack){
             menu.session.set('package', pack);
-            menu.con(`Enter Student ID`);
+            menu.con(`Enter Your Chopbox unique Code(your registered code on chopboxonline.com)`);
         } else {
             menu.end(`Invalid Package Selected, Please try again.`);
         }
@@ -144,13 +144,13 @@ menu.state('Shs.package',{
         if(pack){
             menu.session.set('package', pack);
             menu.session.set('amount', pack.amount);
-            menu.con(`Enter Student ID`);
+            menu.con(`Enter Your Chopbox unique Code(your registered code on chopboxonline.com)`);
         } else {
             menu.end(`Invalid Package Selected, Please try again.`);
         }
     },
     next: {
-        '^[a-zA-Z0-9_]*$': 'Buy.schoolid'
+        '[0-9]': 'Buy.schoolid'
     }
 })
 
@@ -177,7 +177,7 @@ menu.state('Birthday.package',{
         if(pack){
             menu.session.set('package', pack);
             menu.session.set('amount', pack.amount);
-            menu.con(`Enter Student ID`);
+            menu.con(`Enter Your Chopbox unique Code(your registered code on chopboxonline.com)`);
         } else {
             menu.end(`Invalid Package Selected, Please try again.`);
         }
@@ -203,9 +203,7 @@ menu.state('Cares.amount',{
     run: () => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        menu.con(`You are about to pay GHS ${amount} to ChopBox Online. Kindly confirm
-        1. Confirm
-        2. Cancel`)
+        menu.con(`You are about to pay GHS ${amount} to ChopBox Online. Kindly confirm \n1. Confirm \n2. Cancel`)
     },
     next: {
         '1': 'Buy.confirm',
@@ -228,9 +226,7 @@ menu.state('Cash.amount',{
     run: () => {
         let amount = menu.val;
         menu.session.set('amount', amount);
-        menu.con(`You are about to pay GHS ${amount} to ChopBox Online. Kindly confirm
-        1. Confirm
-        2. Cancel`)
+        menu.con(`You are about to pay GHS ${amount} to ChopBox Online. Kindly confirm \n1. Confirm \n2. Cancel`)
     },
     next: {
         '1': 'Buy.confirm',
@@ -249,15 +245,33 @@ menu.state('Exit',{
 menu.state('Buy.schoolid',{
     run: async() => {
         let student = menu.val;
-        menu.session.set('student', menu.val);
+        menu.session.set('student', student);
         let amount = menu.session.get('amount');
         let package = menu.session.get('package');
         // let studentinfo = menu.session.get('studentinfo');
-        menu.con(`Confirm Payment of GHS
-        ${amount}, ${package.name}
-        for ${student} 
-        1. Confirm
-        0. Back`)
+        menu.con(`Enter Chopbox unique code`);
+        // menu.con(`Confirm Payment of GHS ${amount}, ${package.name} for ${student} 
+        // \n1. Confirm
+        // \n0. Back`)
+    },
+    next: {
+        '0': 'Start',
+        '1': 'Buy.confirm.confirm',
+    }
+});
+
+menu.state('Buy.schoolid.confirm',{
+    run: async() => {
+        // let student = menu.val;
+        let student = menu.session.get('student');
+        if(student == menu.val) {
+            menu.session.set('student', menu.val);
+            let amount = menu.session.get('amount');
+            let package = menu.session.get('package');
+            // let studentinfo = menu.session.get('studentinfo');
+            menu.con(`Confirm Payment of GHS
+            ${amount}, ${package.name} for ${student} \n1. Confirm 0. Main Menu`);
+        }
     },
     next: {
         '0': 'Start',
@@ -315,9 +329,9 @@ module.exports.ussdApp = async(req, res) => {
     });
 }
 
-async function fetchaccount (val, callback) {
+async function fetchaccount(val, callback) {
     var url = 'https://chopboxonline.com/wp-json/wp/v2/users?id='+val;
-    var request = unirest('POST', `${url}`)
+    var request = unirest('GET', `${url}`)
         .headers({
             'Content-Type': ['application/json', 'application/json']
         })
