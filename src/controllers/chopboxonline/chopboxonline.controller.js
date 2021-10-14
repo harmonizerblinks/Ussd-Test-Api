@@ -4,8 +4,8 @@ const generator = require('generate-serial-number')
 let menu = new UssdMenu({ provider: 'emergent' });
 let sessions = {};
 const appKey = '985684734'; const appId = 'CHOP100';
-// const apiUrl = "https://api.paynowafrica.com";
-const apiUrl = "https://app.alias-solutions.net:5001/";
+const apiUrl = "https://api.paynowafrica.com";
+// const apiUrl = "https://app.alias-solutions.net:5001/";
 
 let package = [null, {name: 'Love Pack', amount: 100},{name: 'Special pack', amount: 200},{name: 'Surprise pack', amount: 300},null]
 let birthdays = [null, {name: 'Xtravaganza', amount: 1000 },{name: 'Birthday bash', amount: 800 },{name: 'Party time', amount: 500},{name: 'Fun time', amount: 300},{name: 'Friends', amount: 100},null]
@@ -316,12 +316,12 @@ module.exports.ussdApp = async(req, res) => {
 }
 
 async function fetchaccount (val, callback) {
-    
-    var request = unirest('POST', `${apiUrl}/accountInfo`)
+    var url = 'https://chopboxonline.com/wp-json/wp/v2/users?id='+val;
+    var request = unirest('POST', `${url}`)
         .headers({
             'Content-Type': ['application/json', 'application/json']
         })
-        .send(JSON.stringify(data))
+        // .send(JSON.stringify(data))
         .then(async (response) => {
                 // menu.session.set('accountinfo', response.body);
                 // console.log(response.body)
@@ -330,7 +330,6 @@ async function fetchaccount (val, callback) {
 }
 
 async function payment(data, callback) {
-
     var request = unirest('POST', `${apiUrl}/PayNow/Merchant`)
         .headers({
             'Content-Type': ['application/json']

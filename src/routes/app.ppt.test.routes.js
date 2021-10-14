@@ -38,6 +38,7 @@ module.exports = function(app) {
     // app.get('/app/getSchemeinfo/:scheme', verify.verifyToken, apps.getSchemeinfo);
     app.get('/test/getSchemeinfo/:scheme', apps.getSchemeinfo);
     app.get('/test/getMiniStatement/:scheme', verify.verifyToken, apps.getMemberinfo);
+    app.post('/test/JoinScheme', verify.verifyToken, apps.joinScheme);
     app.post('/test/Statements', verify.verifyToken, apps.getStatement);
     app.post('/test/Statement', verify.verifyToken, apps.Statement);
     // Retrieve user Detail

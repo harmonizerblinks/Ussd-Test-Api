@@ -160,12 +160,15 @@ exports.addBeneficiary = async(req, res) => {
     .send(JSON.stringify(value))
     .end(function (resp) { 
         if (resp.error) {
-            res.status(404).send({
-                message: resp.error
-            }); 
+            console.log(resp.error);
+            console.log(resp.body);
+            return res.status(404).send(resp.body.error); 
+            // return res.status(404).send({
+            //     message: resp.body.error
+            // }); 
         }
         // console.log(res.raw_body);
-        res.send(res.raw_body);
+        return res.send(res.raw_body);
     });
 };
 
@@ -242,7 +245,7 @@ exports.sendOtp = async(req, res) => {
             console.log(resp.error);
             res.status(500).send({ success: false, message: 'Unable to sent Otp' });
         }
-        // console.log(resp.body);
+        console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
         res.send({
             success: true, message: response.message
@@ -280,7 +283,8 @@ exports.setPassword = async(req, res) => {
             message: "Mobile Number and Pin is Required"
         });; 
     }
-    var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    // var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    var value =req.body; value.pin =newpin; value.newpin=newpin;
     console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
     console.log(api_endpoint)
@@ -327,21 +331,20 @@ exports.getMember = async(req, res) => {
             res.status(200).send({ 
                 success: false, register: false, message: 'Provide the following details to Signup', error: resp.body 
             });
-            // success: false, register: false, message: 'Provide the following details to Signup', error: resp 
         }
-        console.log(resp.raw_body);
+        console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
-        if (response.active && response.pin != null) {
+        if (response.active && response.pin != null && response.pin != '') {
             res.send({
-                success: true, register: true, pin: true, message: 'Provide the following details to Signup',
+                success: true, register: true, pin: true
             });
-        } else if (response.active && response.pin == null) {
+        } else if (response.active && (response.pin == null || response.pin == '')) {
             res.send({
-                success: true, register: true, pin: false, //message: 'Provide the following details to Signup',
+                success: true, register: true, pin: false
             });
         } else {
             res.send({
-                success: false, register: false, pin: false, message: 'Provide the following details to Signup',
+                success: false, register: false, pin: false
             });
         }
     });
@@ -378,6 +381,28 @@ exports.getMemberPersonal = async(req, res) => {
                 success: false, register: false, data: response
             });
         }
+    });
+};
+
+exports.joinScheme = (req, res) => {
+    console.log('joinscheme');
+    const value = req.body
+    var api_endpoint = apiurl + 'joinscheme/' + access.code + '/' + access.key;
+    console.log(api_endpoint);
+    var req = unirest('GET', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    .send(JSON.stringify(value))
+    .end(function (resp) { 
+        if (resp.error) {
+            res.status(500).send({
+                message: resp.error
+            });
+            // throw new Error(res.error); 
+        }
+        // console.log(res.raw_body);
+        res.send(resp.raw_body);
     });
 };
 
@@ -472,7 +497,8 @@ exports.getMemberinfos = async(req, res) => {
 
 // Login user
 exports.login = (req, res) => {
-    var val = req.body.mobile;
+    var val = req.body;
+    console.log(req.body);
     // if (val && val.startsWith('+233')) {
     //     // Remove Bearer from string
     //     val = val.replace('+233', '0');
@@ -481,7 +507,7 @@ exports.login = (req, res) => {
     //     val = val.replace('233', '0');
     // }
     // if (val && val.startsWith('+')){ val = val.replace('+', ''); }
-    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val.mobile;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
@@ -491,14 +517,16 @@ exports.login = (req, res) => {
                 success: false, register: false, message: 'Password is not correct' 
             });
         }
-        console.log(resp.raw_body);
-        var data = JSON.parse(resp.raw_body);
+        console.log(resp.raw_body, resp.body);
+        // var data = JSON.parse(resp.raw_body);
+        var data = resp.body;
         if (data.active && data.pin == null) {
             res.send({
                 success: true, register: true, pin: false
             });
         }
-        var passwordIsValid = bcrypt.compareSync(req.body.pin, data.pin);
+        console.log(data.pin, req.body.pin);
+        var passwordIsValid = bcrypt.compareSync(val.pin.toString(), data.pin);
         if (passwordIsValid) {
             const token = jwt.sign({
                 type: 'user',
@@ -830,7 +858,6 @@ async function postCustomer(val, callback) {
         .end(async(resp) => {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
-                console.log(resp.error);
                 // return res;
                 return await callback(resp);
             }
@@ -907,7 +934,6 @@ async function fetchIcareCustomer(val, callback) {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
                 return await callback(resp);
@@ -941,7 +967,6 @@ async function fetchCustomer(val, callback) {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 // var response = JSON.parse(res);
                 // return res;
                 return await callback(resp);
@@ -972,7 +997,6 @@ async function fetchBalance(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
             return await callback(resp);
         }
         // console.log(resp.raw_body);
@@ -996,7 +1020,6 @@ async function postAutoDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
             // await postDeposit(val);
             return await callback(resp);
         }
@@ -1017,7 +1040,6 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         // console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
             // await postDeposit(val);
             return await callback(resp);
         }
@@ -1053,7 +1075,6 @@ async function postChangePin(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         // if (resp.error) throw new Error(resp.error); 
-        console.log(resp.raw_body);      
         var response = JSON.parse(resp.raw_body);
         return await callback(response);
     });
