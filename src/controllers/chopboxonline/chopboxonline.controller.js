@@ -246,8 +246,8 @@ menu.state('Buy.schoolid',{
     run: async() => {
         let student = menu.val;
         menu.session.set('student', student);
-        let amount = menu.session.get('amount');
-        let package = menu.session.get('package');
+        // let amount = menu.session.get('amount');
+        // let package = menu.session.get('package');
         // let studentinfo = menu.session.get('studentinfo');
         menu.con(`Enter Chopbox unique code`);
         // menu.con(`Confirm Payment of GHS ${amount}, ${package.name} for ${student} 
@@ -269,8 +269,7 @@ menu.state('Buy.schoolid.confirm',{
             let amount = menu.session.get('amount');
             let package = menu.session.get('package');
             // let studentinfo = menu.session.get('studentinfo');
-            menu.con(`Confirm Payment of GHS
-            ${amount}, ${package.name} for ${student} \n1. Confirm 0. Main Menu`);
+            menu.con(`Confirm Payment of GHS ${amount}, ${package.name} for ${student} \n1. Confirm \n0. Main Menu`);
         }
     },
     next: {
@@ -282,7 +281,7 @@ menu.state('Buy.schoolid.confirm',{
 menu.state('Buy.confirm',{
     run: async() => {
         const pack = await menu.session.get('package');
-        const student = await menu.session.get('package');
+        const student = await menu.session.get('student');
         let data = {
             code: appId,
             type: "Payment",
