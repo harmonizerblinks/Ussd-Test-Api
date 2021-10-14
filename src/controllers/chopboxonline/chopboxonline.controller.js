@@ -113,6 +113,7 @@ menu.state('Uni.package',{
         var pack = package[menu.val];
         if(pack){
             menu.session.set('package', pack);
+            menu.session.set('amount', pack.amount);
             menu.con(`Enter Your Chopbox unique Code(your registered code on chopboxonline.com)`);
         } else {
             menu.end(`Invalid Package Selected, Please try again.`);
@@ -122,7 +123,6 @@ menu.state('Uni.package',{
         '*\\d+': 'Buy.schoolid'
     }
 })
-
 
 ///////////////--------------BUY > UNI STARTS--------------////////////////
 
@@ -256,20 +256,24 @@ menu.state('Buy.schoolid',{
     },
     next: {
         '0': 'Start',
-        '*\\d+': 'Buy.confirm.confirm',
+        '*\\d+': 'Buy.schoolid.confirm',
     }
 });
 
 menu.state('Buy.schoolid.confirm',{
     run: async() => {
         // let student = menu.val;
-        let student = menu.session.get('student');
-        if(student == menu.val) {
+        let student = await menu.session.get('student');
+        if(student === menu.val) {
             menu.session.set('student', menu.val);
-            let amount = menu.session.get('amount');
-            let package = menu.session.get('package');
-            // let studentinfo = menu.session.get('studentinfo');
-            menu.con(`Confirm Payment of GHS ${amount}, ${package.name} for ${student} \n1. Confirm \n0. Main Menu`);
+            let amount = await menu.session.get('amount');
+            let package = await menu.session.get('package');
+            console.log(package);
+            if(package){
+                menu.con(`Confirm Payment of GHS ${amount || package.amount}, ${package.name} for ${student} \n1. Confirm \n0. Main Menu`);
+            } else{
+                menu.con(`Confirm Payment of GHS ${amount} for ${student} \n1. Confirm \n0. Main Menu`);
+            }
         } else {
             menu.end('Chopbox unique code do not match');
         }
