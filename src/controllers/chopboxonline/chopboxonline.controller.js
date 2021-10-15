@@ -4,10 +4,10 @@ const generator = require('generate-serial-number')
 let menu = new UssdMenu({ provider: 'emergent' });
 let sessions = {};
 const appKey = '985684734'; const appId = 'CHOP100';
-const apiUrl = "https://api.paynowafrica.com";
-// const apiUrl = "https://app.alias-solutions.net:5001/";
+// const apiUrl = "https://api.paynowafrica.com";
+const apiUrl = "https://app.alias-solutions.net:5001/";
 
-let package = [null, {name: 'Love Pack', amount: 100},{name: 'Special pack', amount: 200},{name: 'Surprise pack', amount: 300},null]
+let package = [null, {name: 'Love Pack', amount: 100 },{name: 'Special pack', amount: 200},{name: 'Surprise pack', amount: 300},null]
 let birthdays = [null, {name: 'Xtravaganza', amount: 1000 },{name: 'Birthday bash', amount: 800 },{name: 'Party time', amount: 500},{name: 'Fun time', amount: 300},{name: 'Friends', amount: 100},null]
 let unipackArray = ['', '']
 
@@ -302,9 +302,9 @@ menu.state('Buy.confirm',{
         await payment(data, (dat) => {
             if(dat){
                 console.log(dat);
-                menu.end('You will receive a prompt to complete the payment process.')
+                // menu.end('You will receive a prompt to complete the payment process.')
             }else{
-                menu.end('Server Error............')
+                // menu.end('Server Error............')
             }
         });
         menu.end('You will receive a prompt to complete the payment process.')
@@ -357,6 +357,7 @@ async function payment(data, callback) {
         })
         .send(JSON.stringify(data))
         .then(async (response) => {
-            return await callback(response);
+            console.log(response.body)
+            return await callback(response.body);
         });
 }
