@@ -14,19 +14,19 @@ const axios = require('axios').default;
 let accesses = [{
     code: "PPT",
     key: "178116723",
-    apiurl: ""
+    apiurl: "https://app.alias-solutions.net:5003/"
 }, {
     code: "ACU001",
     key: "1029398",
-    apiurl: ""
+    apiurl: "https://app.alias-solutions.net:5003/"
 }, {
     code: "500",
     key: "1029398",
-    apiurl: ""
+    apiurl: "https://app.alias-solutions.net:5003/"
 }];
 //const apiUrl = "https://app.alias-solutions.net:5003/";
-const apiurl = "http://localhost:5000/";
-//const apiurl = "https://app.alias-solutions.net:5003/";
+// const apiurl = "http://localhost:5000/";
+const apiurl = "https://app.alias-solutions.net:5003/";
 
 
 exports.validateCustomer = (req, res) => {
@@ -83,15 +83,11 @@ exports.getCustomer = async (req, res) => {
                     message: 'Invalid Mobile Number'
                 });
             }
-            var response = JSON.parse(resp.raw_body);
-            if (response.officerid == 0) {
-                res.status(500).send({
-                    success: false,
-                    message: 'Invalid Mobile Number'
-                })
-            } else {
-                res.send(response);
-            }
+            // var response = JSON.parse(resp.raw_body);
+            res.status(200).send({
+                success: false,
+                message: resp.body
+            });
         })
 }
 
@@ -355,11 +351,11 @@ exports.getCustomers = async (req, res) => {
         });
 };
 
-exports.getCustomer = async (req, res) => {
-    var val = req.params.code;
+exports.getTransactions = async (req, res) => {
+    var val = req.params.account;
     const access = await getkey(req.user.merchant);
-    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${val.merchant}` })
-    var api_endpoint = apiurl + 'Ussd/getCustomer/' + access.code + '/' + access.key + '/' + val;
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
+    var api_endpoint = apiurl + 'Ussd/getAccountTransaction/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -373,10 +369,11 @@ exports.getCustomer = async (req, res) => {
                 });
             }
             // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
+            // var response = JSON.parse(resp.raw_body);
             res.send(response);
         });
 };
+
 
 exports.getAccounts = async (req, res) => {
     const { merchant, mobile } = req.user
@@ -511,7 +508,7 @@ exports.Withdraw = async (req, res) => {
 };
 
 exports.createCustomer = async (req, res) => {
-    const access = await getkey(req.user.merchant);
+    const access = await getkey(req.body.merchant);
     var val = req.body;
     var api_endpoint = apiurl + 'Ussd/CreateCustomer/' + access.code + '/' + access.key;
     console.log(api_endpoint);
