@@ -9,8 +9,8 @@ let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
-let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+// let apiurl = "http://localhost:5000/Ussd/";
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
 let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 let access = { code: "446785909", key: "164383692" };
@@ -714,12 +714,13 @@ exports.Deposit = (req, res) => {
         var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
 
         var api_endpoint = apiurl;
-        if(val.frequency != "OneTime" && val.network ==="MTN") {
+        if(val.frequency != "ONETIME" && val.network ==="MTN") {
             api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
         } else {
             api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
         }
         console.log(api_endpoint);
+        console.log(value);
         var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -736,9 +737,12 @@ exports.Deposit = (req, res) => {
             }
             // if (res.error) throw new Error(res.error);
             console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
+            // var response = JSON.parse(resp.raw_body);
             // await callback(response);
-            res.send({ output: 'Payment Request Sent', message: response.message });
+            if(resp.body.code != 1) return res.status(500).send({
+                message: resp.body.message
+            })
+            res.send({ output: 'Payment Request Sent', message: resp.body.message, ...response });
         });
     }
 };
