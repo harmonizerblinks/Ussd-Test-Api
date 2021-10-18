@@ -34,14 +34,17 @@ exports.Register = async(req, res) => {
     .send(JSON.stringify(value))
     .end((resp)=> { 
         if (resp.error) {
-            console.log(resp.error)
-            console.log(resp.raw_body)
-            res.status(500).send({
-                message: resp.error
+            console.log(resp.error);
+            console.log(resp.body);
+            return res.status(500).send({
+                message: resp.body.message || resp.error
             }); 
         }
-        console.log(res.raw_body);
-        res.send(res.raw_body);
+        console.log(resp.body);
+        if(resp.body.code != 1){
+            return res.status(500).send(resp.body);
+        }
+        return res.send(resp.body);
     });
 };
 
@@ -884,82 +887,6 @@ async function postCustomer(val, callback) {
     return true
 }
 
-async function getInfo(val, callback) {
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }else if(val && val.startsWith('233')) {
-        // Remove Bearer from string
-        val = val.replace('233', '0');
-    }    
-
-    var api_endpoint = apiurl + 'getInfo/' + access.code + '/' + access.key + '/' + val;
-    var req = unirest('GET', api_endpoint)
-        .headers({
-            'Content-Type': 'application/json'
-        })
-        .end(async (resp) => {
-            // if (res.error) throw new Error(res.error); 
-            if (resp.error) {
-                console.log(resp.error);
-                // return res;
-                return await callback(resp);
-            }
-            // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            return await callback(response);
-        });
-    return true
-}
-
-async function postIcareCustomer(val, callback) {
-    var api_endpoint = apiurl + 'CreateIcare/' + access.code + '/' + access.key;
-    var req = unirest('POST', api_endpoint)
-        .headers({
-            'Content-Type': 'application/json'
-        })
-        .send(JSON.stringify(val))
-        .end(async (resp) => {
-            // if (res.error) throw new Error(res.error); 
-            if (resp.error) {
-                // return res;
-                return await callback(resp);
-            }
-            // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            return await callback(response);
-        });
-    return true
-}
-
-async function fetchIcareCustomer(val, callback) { 
-    if (val && val.startsWith('+233')) {
-        // Remove Bearer from string
-        val = val.replace('+233', '0');
-    }
-    var api_endpoint = apiurl + 'getIcare/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
-    var request = unirest('GET', api_endpoint)
-        .end(async (resp) => {
-            if (resp.error) {
-                // var response = JSON.parse(res);
-                // return res;
-                return await callback(resp);
-            }
-            // console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
-            if (response.active) {
-                // menu.session.set('name', response.fullname);
-                // menu.session.set('mobile', val);
-                // menu.session.set('accounts', response.accounts);
-                // menu.session.set('cust', response);
-                // menu.session.set('pin', response.pin);
-                // menu.session.set('limit', response.result.limit);
-            }
-
-            return await callback(response);
-        });
-}
 
 async function fetchCustomer(val, callback) {
     // try {
@@ -998,97 +925,6 @@ async function fetchCustomer(val, callback) {
     //     return err;
     // }
 }
-
-async function fetchBalance(val, callback) {
-    var api_endpoint = apiurl + 'getBalance/' + access.code + '/' + access.key + '/' + val;
-    // console.log(api_endpoint);
-    var request = unirest('GET', api_endpoint)
-    .end(async(resp)=> { 
-        if (resp.error) { 
-            return await callback(resp);
-        }
-        // console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        if(response.balance)
-        {
-            menu.session.set('balance', response.balance);
-        }
-        
-        return await callback(response);
-    });
-}
-
-async function postAutoDeposit(val, callback) {
-    var api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
-    var req = unirest('POST', api_endpoint)
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify(val))
-    .end( async(resp)=> { 
-        // console.log(JSON.stringify(val));
-        if (resp.error) { 
-            // await postDeposit(val);
-            return await callback(resp);
-        }
-        // if (res.error) throw new Error(res.error); 
-        var response = JSON.parse(resp.raw_body);
-        return await callback(response);
-    });
-    return true
-}
-
-async function postDeposit(val, callback) {
-    var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
-    var req = unirest('POST', api_endpoint)
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify(val))
-    .end( async(resp)=> { 
-        // console.log(JSON.stringify(val));
-        if (resp.error) { 
-            // await postDeposit(val);
-            return await callback(resp);
-        }
-        // if (res.error) throw new Error(res.error); 
-        var response = JSON.parse(resp.raw_body);
-        return await callback(response);
-    });
-    return true
-}
-
-async function postWithdrawal(val, callback) {
-    var api_endpoint = apiurl + 'Withdrawal/' + access.code+'/'+access.key;
-    var req = unirest('POST', api_endpoint)
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify(val))
-    .end( async(resp)=> { 
-        // if (res.error) throw new Error(res.error); 
-        // console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        return await callback(response);
-    });
-    return true
-}
-
-async function postChangePin(val, callback) {
-    var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
-    var req = unirest('POST', api_endpoint)
-    .headers({
-        'Content-Type': 'application/json'
-    })
-    .send(JSON.stringify(val))
-    .end( async(resp)=> { 
-        // if (resp.error) throw new Error(resp.error); 
-        var response = JSON.parse(resp.raw_body);
-        return await callback(response);
-    });
-    return true
-}
-
 
 async function getCharge(val, callback) {
     var amount = value 

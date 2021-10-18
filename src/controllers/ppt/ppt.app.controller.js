@@ -31,13 +31,16 @@ exports.Register = async(req, res) => {
     .end((resp)=> { 
         if (resp.error) {
             console.log(resp.error)
-            console.log(resp.raw_body)
-            res.status(500).send({
-                message: resp.error
+            console.log(resp.body)
+            return res.status(500).send({
+                message: resp.body.message || resp.error
             }); 
         }
-        console.log(res.raw_body);
-        res.send(res.raw_body);
+        console.log(resp.body);
+        if(resp.body.code != 1){
+            return res.status(500).send(resp.body);
+        }
+        return res.send(resp.body);
     });
 };
 
