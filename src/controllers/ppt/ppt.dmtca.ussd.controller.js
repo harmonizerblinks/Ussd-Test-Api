@@ -15,8 +15,7 @@ const regex = /^[a-zA-Z]*$/;
 
 //Live Credentials
 let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-let apiSchemeInfo = "https://app.alias-solutions.net:5009/";
-let access = { code: "PPT", key: "178116723" };
+let access = { code: "PPT-DMTCA", key: "3456789762" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
