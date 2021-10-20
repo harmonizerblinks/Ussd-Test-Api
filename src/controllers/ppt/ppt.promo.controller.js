@@ -245,13 +245,12 @@ menu.state('Pay.send', {
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code, officerid: officer.officerid};
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
-            menu.end('Request submitted successfully. You will receive a payment prompt shortly')
         },
         async(error)=> {
-            // console.log(error)
-            menu.end('Sorry could not process transaction, please retry later')
-        }
-        ); 
+            console.log(error)
+            // menu.end('Sorry could not process transaction, please retry later')
+        });
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
 });
 
@@ -291,10 +290,13 @@ menu.state('Pay.view.AutoDebit', {
         var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
 
         await postAutoDeposit(data, async(data) => {
-            menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+            console.log(error);
+            // menu.end('Request submitted successfully. You will receive a payment prompt shortly')
         },async(error) => {
-            menu.end('Sorry could not process transaction, please retry later')
+            console.log(error);
+            // menu.end('Sorry could not process transaction, please retry later')
         });
+        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
     }
 });
 
