@@ -364,7 +364,11 @@ menu.state('Pay.Option.Complete', {
         await postAutoDeposit(data, async(data) => {
 
         });
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+        let message = 'Request submitted successfully. You will receive a payment prompt shortly';
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message)
     }
 })
 
@@ -390,13 +394,17 @@ menu.state('Pay.send', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
         await postDeposit(data, async(result)=> { 
-            console.log(JSON.stringify(result)); 
-            menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+            // console.log(JSON.stringify(result)); 
+            // menu.end('Request submitted successfully. You will receive a payment prompt shortly')
         }, 
         async (error) => {
             menu.end('Sorry request could not be processed')
         }); 
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+        let message = 'Request submitted successfully. You will receive a payment prompt shortly';
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 });
 
@@ -686,11 +694,15 @@ menu.state('Deposit.send', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
         await postDeposit(data, async(result)=> { 
-            menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+            // menu.end('Request submitted successfully. You will receive a payment prompt shortly');
         }, async (error) => {
             // console.log('Sorry request could not be processed ' + error)
         });
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+        let message = 'Request submitted successfully. You will receive a payment prompt shortly';
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 });
 

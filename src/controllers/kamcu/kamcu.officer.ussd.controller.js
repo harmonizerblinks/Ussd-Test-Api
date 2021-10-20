@@ -134,7 +134,11 @@ menu.state('Deposit.send', {
             console.log(result.message) 
             // menu.end(JSON.stringify(result)); 
         });
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+        let message = 'Request submitted successfully. You will receive a payment prompt shortly'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 });
 

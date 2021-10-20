@@ -64,7 +64,7 @@ menu.startState({
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
 
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to HM Plus Micro Finance.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -76,9 +76,9 @@ menu.startState({
                 menu.session.set('cust', data);
                 // menu.session.set('pin', data.pin);
 
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to HM Plus Micro Finance. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
-                menu.end('Mobile Number not Registered, kindly Open an Account with Ahantaman Rural Bank.');
+                menu.end('Mobile Number not Registered, kindly Open an Account with HM Plus Micro Finance.');
             }
         }).catch((err)=>{ menu.end(err); });
     },
@@ -102,7 +102,7 @@ menu.state('Start', {
                 menu.session.set('cust', data);
                 // menu.session.set('mobile', data.mobile);
                 menu.session.set('pin', data.pin);
-                menu.con('Welcome to Ahantaman Rural Bank.' + 
+                menu.con('Welcome to HM Plus Micro Finance.' + 
                 '\nSelect an Option.' + 
                 '\n1. Deposit' +
                 '\n2. Withdrawal' +
@@ -111,7 +111,7 @@ menu.state('Start', {
                 '\n5. Contact');
             } else if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.session.set('cust', data);
-                menu.con('Welcome to Ahantaman Rural Bank. Please create a PIN before continuing' + '\nEnter 4 digits.')
+                menu.con('Welcome to HM Plus Micro Finance. Please create a PIN before continuing' + '\nEnter 4 digits.')
             } else {
                 menu.con('Mobile Number not Registered');
             }
@@ -156,8 +156,6 @@ menu.state('User.pin',{
     },
     defaultNext: 'Start'
 });
-
-
 
 menu.state('User.newpin',{
     run: () => {
@@ -230,11 +228,6 @@ menu.state('Deposit',{
 menu.state('Deposit.amount',{
     run: async() => {
         var index = Number(menu.val);
-        // var cust = await menu.session.get('accounts');
-        // // console.log(accounts);
-        // var account = cust.accounts[index-1]
-        // menu.session.set('account', account);
-        // menu.con('How much would you like to pay to ' +account.type+ ' account number '+account.code+'?');
         var val = {mobile: menu.args.phoneNumber, index: index};
         await fetchCustomerAccount(val, (account)=> { 
             // console.log(account);
@@ -299,9 +292,13 @@ menu.state('Deposit.confirm', {
         console.log('posting Payment');
         await postDeposit(data, async(result)=> { 
             console.log(result) 
-            menu.end(result.message); 
+            // menu.end(result.message); 
         });
-        // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        let message = 'Payment request of amount GHC ' + amount + ' sent to your phone.';
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     },
     next: {
         '0': 'Start'
@@ -311,7 +308,7 @@ menu.state('Deposit.confirm', {
 menu.state('Deposit.cancel', {
     run: () => {
         // Cancel Deposit request
-        menu.end('Thank you for using Ahantaman Rural Bank.');
+        menu.end('Thank you for using HM Plus Micro Finance.');
     }
 });
 
@@ -330,14 +327,6 @@ menu.state('Withdrawal.account',{
         // var custpin = Number(menu.val);
         console.info(pin, menu.val);
         if(menu.val === pin) {
-            // var accts = ''; var count = 1;
-            // var accounts = await menu.session.get('accounts');
-            // accounts.forEach(val => {
-            //     // console.log(val);
-            //     accts += '\n'+count+'. '+val.code;
-            //     count +=1;
-            // });
-            // menu.con('Please Select an Account' + accts)
             await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
                 if(accounts.length > 0) {
                     var accts = ''; var count = 1;
@@ -391,18 +380,6 @@ menu.state('Withdrawal.amount',{
                 menu.end('Unable to Fetch Selected Account, please try again');
             }
         });
-        // await fetchBalance(account.code, async(result)=> { 
-        //     console.log(result) 
-        //     if(result.balance > 0 && result.balance != null) {
-        //         account.balance = result.balance;
-        //         menu.session.set('account', account);
-        //         menu.session.set('balance', result.balance);
-        //         menu.con('How much would you like to withdraw from account number '+account.code+'?');
-        //     } else {
-        //         menu.end('Error Retrieving current Account Balance, please try again');
-        //     }
-        // });
-        // menu.con('How much would you like to withdraw from account number '+account.code+'?');
     },
     next: {
         '*\\d+': 'Withdrawal.view',
@@ -434,10 +411,6 @@ menu.state('Withdrawal.view',{
                     menu.end('An error occur, kindly try again');
                 }
             });
-            // menu.con(cust.fullname +', you are making a withdrawal of GHS ' +(amount+charge) +' from your '+account.type+' account' +
-            // '\n1. Confirm' +
-            // '\n2. Cancel' +
-            // '\n#. Main Menu');
         } else {
             menu.end('Insufficent Account Balance.');
         }
@@ -463,10 +436,9 @@ menu.state('Withdrawal.confirm', {
         if (val && val.startsWith('+233')) {
             // Remove Bearer from string
             val = val.replace('+233','0');
-            
-            if (val != mobile) menu.end("Unable to proccess Withdrawal at the moment. Please try again");
+            // if (val != mobile) menu.end("Unable to proccess Withdrawal at the moment. Please try again");
         }
-        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:val,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+mobile,merchantid:account.merchantid };
+        var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:val,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+val,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
             console.log(result);
             // menu.end(JSON.stringify(result)); 
@@ -501,14 +473,6 @@ menu.state('CheckBalance.account',{
         // var custpin = Number(menu.val);
         console.log(pin);
         if(menu.val === pin) {
-            // var accts = ''; var count = 1;
-            // var accounts = await menu.session.get('accounts');
-            // accounts.forEach(val => {
-            //     // console.log(val);
-            //     accts += '\n'+count+'. '+val.code;
-            //     count +=1;
-            // });
-            // menu.con('Please Select an Account' + accts)
             await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
                 if(accounts.length > 0) {
                     var accts = ''; var count = 1;
@@ -523,6 +487,8 @@ menu.state('CheckBalance.account',{
                 } else {
                     menu.end('Unable to Fetch Bank Accounts, please try again');
                 }
+            }).catch((err)=>{
+                menu.end(err)
             });
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
@@ -554,6 +520,8 @@ menu.state('CheckBalance.balance',{
             } else {
                 menu.end('Unable to Fetch Selected Account, please try again');
             }
+        }).catch((err)=>{
+            menu.end(err)
         });
     },
     next: {
@@ -575,7 +543,7 @@ menu.state('Other',{
 
 menu.state('Account',{
     run: () => {
-        menu.con('Please contact Ahantaman Rural Bank on +233(0)312091033 for assistance with account opening. Thank you' +	
+        menu.con('Please contact HM Plus Micro Finance on +233(0)312091033 for assistance with account opening. Thank you' +	
         '\n\n0.	Return to Main Menu')
     },
     next: {
@@ -599,14 +567,23 @@ menu.state('Statement.account',{
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
         if(menu.val === pin) {
-            var accts = ''; var count = 1;
-            var accounts = await menu.session.get('accounts');
-            accounts.forEach(val => {
-                // console.log(val);
-                accts += '\n'+count+'. '+val.code;
-                count +=1;
+            await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
+                if(accounts.length > 0) {
+                    var accts = ''; var count = 1;
+                    menu.session.set('accounts',accounts);
+                    // var accounts = await menu.session.get('accounts');
+                    accounts.forEach(val => {
+                        // console.log(val);
+                        accts += '\n'+count+'. '+val.code;
+                        count +=1;
+                    });
+                    menu.con('Please Select an Account' + accts);
+                } else {
+                    menu.end('Unable to Fetch Bank Accounts, please try again');
+                }
+            }).catch((err)=>{
+                menu.end(err)
             });
-            menu.con('Please Select an Account' + accts)
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
         }
@@ -672,7 +649,7 @@ menu.state('AutoDebit', {
 menu.state('Contact.name', {
     run: () => {
         // Cancel Savings request
-        menu.end('Ahantaman Rural Bank Limited.');
+        menu.end('HM Plus Micro Finance Limited.');
     }
 });
 
@@ -735,7 +712,6 @@ async function fetchCustomer(val, callback) {
         val = val.replace('+233','0');
     }
     var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
@@ -806,8 +782,8 @@ async function fetchBalance(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
-            return await callback(resp);
+            // console.log(resp.error);
+            return await callback(resp.error);
         }
         // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
@@ -826,6 +802,7 @@ async function fetchStatement(val, callback) {
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
+            console.log(resp.error);
             return await callback(resp);
         }
         // console.log(resp.raw_body);
@@ -849,14 +826,13 @@ async function postDeposit(val, callback) {
     .end( async(resp)=> { 
         console.log(JSON.stringify(val));
         if (resp.error) { 
-            console.log(resp.error);
+            // console.log(resp.error);
             // await postDeposit(val);
-            // await callback(resp);
+            return await callback(resp);
         }
         // if (res.error) throw new Error(res.error); 
-        console.log(resp.raw_body);
+        // console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        console.log(response);
         return await callback(response);
     });
     return true
@@ -875,7 +851,8 @@ async function postWithdrawal(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         if (resp.error) { 
-            return await callback(resp);
+            // console.log(resp.error);
+            return await callback(resp.error);
         }
         // if (res.error) throw new Error(res.error); 
         // console.log(resp.raw_body);
@@ -903,6 +880,7 @@ async function postChangePin(val, callback) {
             return await callback(resp);
         }
         // if (resp.error) throw new Error(resp.error); 
+        console.log(resp.raw_body);      
         var response = JSON.parse(resp.raw_body);
         return await callback(response);
     });

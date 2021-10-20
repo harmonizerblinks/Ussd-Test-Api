@@ -373,7 +373,11 @@ menu.state('Deposit.confirm', {
         await postDeposit(data, async (result) => {
             // menu.end(JSON.stringify(result)); 
         });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        let message = 'Payment request of amount GHC ' + amount + ' sent to your phone.';
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 });
 

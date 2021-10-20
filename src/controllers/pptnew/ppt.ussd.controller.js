@@ -151,10 +151,12 @@ menu.state('Register.DailyPlan.PlanSelected', {
 
 menu.state('Register.DailyPlan.PlanSelected.Proceed', {
     run: () => {
-        menu.end(
-            'Request submitted successfully you will ' +
-            'receive a payment prompt shortly' 
-            )
+        var network = menu.args.operator;
+        let message = 'Request submitted successfully you will receive a payment prompt shortly';
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message)
     },
 });
 
@@ -188,10 +190,12 @@ menu.state('Register.DailyPlan.Amount.Confirm', {
 
 menu.state('Register.DailyPlan.Amount.Confirm.Done', {
     run: () => {
-        menu.end(
-            'Request submitted successfully you will receive a payment ' +
-            'Contribution prompt shortly'
-            )
+        var network = menu.args.operator;
+        let message = 'Request submitted successfully you will receive a payment Contribution prompt shortly'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 });
 
@@ -233,10 +237,12 @@ menu.state('Register.WeeklyPlan.PlanSelected', {
 
 menu.state('Register.WeeklyPlan.PlanSelected.Proceed', {
     run: () => {
-        menu.end(
-            'Request submitted successfully you will ' +
-            'receive a payment prompt shortly' 
-            )
+        var network = menu.args.operator;
+        let message = 'Request submitted successfully you will receive a payment prompt shortly'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     },
 });
 
@@ -269,10 +275,12 @@ menu.state('Register.WeeklyPlan.Amount.Confirm', {
 
 menu.state('Register.WeeklyPlan.Amount.Confirm.Done', {
     run: () => {
-        menu.end(
-            'Request submitted successfully you will receive a payment ' +
-            'Contribution prompt shortly'
-            )
+        var network = menu.args.operator;
+        let message = 'Request submitted successfully you will receive a payment Contribution prompt shortly';
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 });
 
@@ -352,10 +360,12 @@ menu.state('Register.MonthlyPlan.Amount.Confirm', {
 
 menu.state('Register.MonthlyPlan.Amount.Confirm.Done', {
     run: () => {
-        menu.end(
-            'Request submitted successfully you will receive a payment ' +
-            'Contribution prompt shortly'
-            )
+        var network = menu.args.operator;
+        let message = 'Request submitted successfully you will receive a payment Contribution prompt shortly'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 });
 /** End monthly plan */
