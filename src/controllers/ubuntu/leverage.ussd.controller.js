@@ -54,7 +54,6 @@ menu.on('error', (err) => {
 menu.startState({
     run: async() => {
         // Fetch Customer information
-        console.log(menu.args,'Argument');
         
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
@@ -301,7 +300,11 @@ menu.state('Deposit.confirm', {
             console.log(result) 
             // menu.end(result.message); 
         });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        let message = 'Payment request of amount GHC ' + amount + ' sent to your phone.'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     },
     next: {
         '0': 'Start'

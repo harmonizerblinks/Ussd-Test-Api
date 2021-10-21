@@ -158,7 +158,12 @@ menu.state('Payment.confirm', {
         //     console.log(result) 
         //     // menu.end(JSON.stringify(result)); 
         // });
-        menu.end('Kindly Confirm Payment request of amount GHC GHS 285.00 sent to your phone.');
+        var network = menu.args.operator;
+        let message = 'Kindly Confirm Payment request of amount GHC GHS 285.00 sent to your phone.'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 });
 

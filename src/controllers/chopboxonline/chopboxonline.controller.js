@@ -298,7 +298,7 @@ menu.state('Buy.confirm',{
             reference: 'Payment for '+pack.name +' to userid '+student,
             order_id: generator.generate(7)
         }
-        console.log(data);
+        // console.log(data);
         await payment(data, (dat) => {
             if(dat){
                 console.log(dat);
@@ -307,7 +307,12 @@ menu.state('Buy.confirm',{
                 // menu.end('Server Error............')
             }
         });
-        menu.end('You will receive a prompt to complete the payment process.')
+        var network = menu.args.operator;
+        let message = 'You will receive a prompt to complete the payment process.'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     }
 })
 

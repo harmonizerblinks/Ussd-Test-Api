@@ -203,7 +203,6 @@ menu.state('User.verifypin', {
 menu.state('Deposit',{
     run: async() => {
         var cust = menu.session.get('cust');
-        console.log(cust);
         await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
             if(accounts.length > 0) {
                 var accts = ''; var count = 1;
@@ -298,10 +297,14 @@ menu.state('Deposit.confirm', {
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
         console.log('posting Payment');
         await postDeposit(data, async(result)=> { 
-            console.log(result) 
+            // console.log(result) 
             // menu.end(result.message); 
         });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        let message = 'Payment request of amount GHC ' + amount + ' sent to your phone.'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     },
     next: {
         '0': 'Start'

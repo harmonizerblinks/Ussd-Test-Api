@@ -24,7 +24,6 @@ menu.sessionConfig({
     end: (sessionId, callback) => {
         // clear current session
         // this is called by menu.end()
-        console.log(sessions[sessionId], 'Deleted');
         delete sessions[sessionId];
         callback();
     },
@@ -32,13 +31,11 @@ menu.sessionConfig({
         // store key-value pair in current session
         sessions[sessionId][key] = value;
         // console.log(sessions[sessionId]);
-        console.log(key, value, 'Saved');
         callback();
     },
     get: (sessionId, key, callback) => {
         // retrieve value by key in current session
         let value = sessions[sessionId][key];
-        console.log(key, value, 'Get');
         // console.log(sessions[sessionId]);
         callback(null, value);
     }
@@ -47,7 +44,6 @@ menu.sessionConfig({
 
 menu.on('error', (err) => {
     // handle errors
-    console.log('Error', err);
     menu.end(err);
 });
 
@@ -58,8 +54,7 @@ menu.startState({
         
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
-        await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            console.log(1,data); 
+        await fetchCustomer(menu.args.phoneNumber, (data)=> {
             if(data && data.active && data.pin != '' && data.pin != null && data.pin != '1234') {
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
@@ -97,7 +92,6 @@ menu.state('Start', {
     run: async() => {
         // Fetch Customer information
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            // console.log(1,data);
             if(data.active && (data.pin != '' || data.pin == null)) {
                 menu.session.set('cust', data);
                 // menu.session.set('mobile', data.mobile);
@@ -181,12 +175,10 @@ menu.state('User.verifypin', {
         if(menu.val === pin) {
             var newpin = Number(menu.val);
             // var cust = await menu.session.get('cust');
-            // console.log(cust);
             var mobile = menu.args.phoneNumber;
             // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
             var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
             await postChangePin(value, (data)=> { 
-                // console.log(1,data); 
                 menu.session.set('pin', newpin);
                 menu.con(data.message);
             }).catch((err)=>{ menu.end(err); });;
@@ -203,7 +195,6 @@ menu.state('User.verifypin', {
 menu.state('Deposit',{
     run: async() => {
         var cust = menu.session.get('cust');
-        console.log(cust);
         await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
             if(accounts.length > 0) {
                 var accts = ''; var count = 1;
@@ -302,11 +293,14 @@ menu.state('Deposit.confirm', {
         var mobile = menu.args.phoneNumber;
         // var mobile = cust.mobile;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
-        console.log('posting Payment');
         await postDeposit(data, async(result)=> { 
             // menu.end(result.message); 
         });
-        menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
+        let message = 'Payment request of amount GHC ' + amount + ' sent to your phone.'
+        if (network == "MTN") {
+            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+        }
+        menu.end(message);
     },
     next: {
         '0': 'Start'
@@ -378,7 +372,6 @@ menu.state('Withdrawal.amount',{
         // menu.session.set('account', account);
         var val = {mobile: menu.args.phoneNumber, index: index};
         await fetchCustomerAccount(val, async(account)=> { 
-            console.log(account);
             if(account && account.code) {
                 menu.session.set('account',account);
                 await fetchBalance(account.code, async(result)=> { 
@@ -472,11 +465,9 @@ menu.state('Withdrawal.confirm', {
         }
         var data = { merchant:access.code,account:account.code,type:'Withdrawal',network:network,mobile:val,amount:amount,method:'MOMO',source:'USSD', withdrawal:true, reference:'Withdrawal from Account Number '+account.code  +' to mobile number '+val,merchantid:account.merchantid };
         await postWithdrawal(data, async(result)=> { 
-            console.log(result);
             // menu.end(JSON.stringify(result)); 
             menu.end(result.message);
         }).catch((err)=>{
-            console.log(err);
             menu.end("Withdrawal Request was not successful, Please try again later.");
         });
         // menu.end('Payment request of amount GHC ' + amount + ' sent to your phone.');
@@ -504,7 +495,6 @@ menu.state('CheckBalance.account',{
     run: async() => {
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
-        console.log(pin);
         if(menu.val === pin) {
             // var accts = ''; var count = 1;
             // var accounts = await menu.session.get('accounts');
@@ -546,9 +536,7 @@ menu.state('CheckBalance.balance',{
     run: async() => {
         var index = Number(menu.val);
         var val = {mobile: menu.args.phoneNumber, index: index};
-        console.log(val);
         await fetchCustomerAccount(val, async(account)=> { 
-            console.log(account);
             if(account && account.code) {
                 await fetchBalance(account.code, async(result)=> { 
                     // console.log(result) 
@@ -731,7 +719,6 @@ exports.ussdApp = async(req, res) => {
     if (args.Type == 'initiation') {
         args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
     }
-    console.log('request',req.body);
     // let resp = await menu.run(args)
     // res.send(resp);
     await menu.run(args, ussdResult => {
@@ -761,7 +748,6 @@ async function fetchCustomer(val, callback) {
         val = val.replace('+233','0');
     }
     var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 
@@ -926,7 +912,6 @@ async function postChangePin(val, callback) {
     .send(JSON.stringify(val))
     .end( async(resp)=> { 
         if (resp.error) { 
-            console.log(resp.error);
             // await postDeposit(val);
             return await callback(resp);
         }
