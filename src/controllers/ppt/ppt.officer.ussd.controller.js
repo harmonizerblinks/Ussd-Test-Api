@@ -10,7 +10,8 @@ let sessions = {};
 
 // Live Credentials
 let apiurl = "https://app.alias-solutions.net:5009/ussd/";
-let access = { code: "PPT", key: "178116723" };
+// let access = { code: "PPT", key: "178116723" };
+let access = { code: "PPT-OFF", key: "1U7845678G" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
