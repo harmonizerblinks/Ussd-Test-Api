@@ -81,9 +81,9 @@ app.use(xss());
 require('./routes/app.ppt.routes.js')(app);
 require('./routes/app.ppt.test.routes.js')(app);
 require('./routes/ussd.routes.js')(app);
-require('./routes/app.officer.routes')(app);
-require('./routes/app.diaspora.routes')(app);
-require('./routes/app.customer.routes')(app);
+require('./routes/app.officer.routes.js')(app);
+require('./routes/app.diaspora.routes.js')(app);
+require('./routes/app.customer.routes.js')(app);
 // Handler for 404 - Resource Not Found
 app.use((req, res, next) => {
     res.status(404).send({ message: 'We think you are lost!' });

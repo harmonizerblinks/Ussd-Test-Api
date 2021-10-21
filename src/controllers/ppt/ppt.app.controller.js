@@ -32,9 +32,15 @@ exports.Register = async(req, res) => {
         if (resp.error) {
             console.log(resp.error)
             console.log(resp.body)
-            return res.status(500).send({
-                message: resp.body.message || resp.error
-            }); 
+            if(resp.body && resp.body.message){
+                return res.status(500).send({
+                    message: resp.body.message
+                }); 
+            } else {
+                return res.status(500).send({
+                    message: resp.error
+                }); 
+            }
         }
         console.log(resp.body);
         if(resp.body.code != 1){

@@ -242,7 +242,7 @@ menu.state('Pay.send', {
         var officer = await menu.session.get('officer');
         var network = await menu.session.get('network');
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.code, officerid: officer.officerid};
+        var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'REFERER', withdrawal:false, reference:'Deposit to Scheme Number '+account.code, officerid: officer.officerid};
         await postDeposit(data, async(result)=> { 
             // menu.end(JSON.stringify(result)); 
         },
@@ -284,10 +284,11 @@ menu.state('Pay.view.AutoDebit', {
     run: async() => {        
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
+        var officer = await menu.session.get('officer');
         var paymentoption = await menu.session.get('paymentoption');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
+        var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'REFERER-'+officer.code, withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,};
 
         await postAutoDeposit(data, async(data) => {
             console.log(error);

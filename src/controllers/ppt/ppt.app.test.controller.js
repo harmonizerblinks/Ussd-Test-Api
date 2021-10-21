@@ -9,17 +9,17 @@ let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
-// let apiurl = "http://localhost:5000/Ussd/";
-let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+let apiurl = "http://localhost:5000/Ussd/";
+// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
 let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 let access = { code: "446785909", key: "164383692" };
 let chanel = { code: "446785909", key: "164383692" };
 
 // let apiurl = "https://app.alias-solutions.net:5009/ussd/";
+// let access = { code: "PPT", key: "178116723" };
 // let apiurlpms = "https://api.alias-solutions.net:8442/api/services/app/Channels/";
 // let apiurl1 = "https://app.alias-solutions.net:5009/otp/";
-// let access = { code: "PPT", key: "178116723" };
 // let chanel = { code: "766098501", key: "178116723" };
 
 // POST a User
@@ -42,7 +42,9 @@ exports.Register = async(req, res) => {
         }
         console.log(resp.body);
         if(resp.body.code != 1){
-            return res.status(500).send(resp.body);
+            const response = resp.body;
+            response.message = resp.body.status_message;
+            return res.status(500).send(response);
         }
         return res.send(resp.body);
     });
