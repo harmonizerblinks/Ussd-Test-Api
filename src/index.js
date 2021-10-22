@@ -11,11 +11,13 @@ const cors = require('cors');
 const path = require('path');
 
 // Configuring the database
-// const Config = require('./config/mongodb.config.js');
+const Config = require('./config/mongodb.config.js');
+const { config } = require('process');
 
 // initialize the app
 const app = express();
 global.appRoot = path.resolve(__dirname);
+global.config = config;
 
 const PORT = process.env.PORT || 5006;
 

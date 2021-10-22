@@ -65,12 +65,9 @@ module.exports = function(app) {
     app.post('/leader', baafopatest.ussdApp);
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
     app.post('/', daakyeSusu.ussdApp);
-
     app.post('/benin', benin.ussdApp);
-
     // Ecg Ussd *
     app.post('/api/ecg', ecg.ussdApp);
-
     // Ahantaman collections 
     app.post('/api/ahantaman', ahantaman.ussdApp);
     app.post('/api/ahantaman/officer', ahantamanofficer.ussdApp);
@@ -115,10 +112,8 @@ module.exports = function(app) {
     
     // WESTOM INSURANCE
     app.post('/api/baafopaplus', baafopaplus.ussdApp);
-
-    //AIRTELTIGO
+    // AIRTELTIGO
     app.post('/api/airteltigo', daakyeSusu.ussdApp);
-    
     // CHOPBOXONLINE
     app.post('/api/chopboxonline', chopboxonline.ussdApp);
 

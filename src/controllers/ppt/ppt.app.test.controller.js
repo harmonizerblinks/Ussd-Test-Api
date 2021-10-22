@@ -9,8 +9,8 @@ let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
-let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://app.alias-solutions.net:5008/ussd/";
+// let apiurl = "http://localhost:5000/Ussd/";
+let apiurl = "https://app.alias-solutions.net:5008/ussd/";
 let apiurlpms = "https://api.alias-solutions.net:8446/api/services/app/Channels/";
 let apiurl1 = "https://app.alias-solutions.net:5008/otp/";
 let access = { code: "446785909", key: "164383692" };
@@ -523,13 +523,17 @@ exports.login = (req, res) => {
         if (resp.error) {
             console.log(resp.error);
             res.status(500).send({ 
-                success: false, register: false, message: 'Password is not correct' 
+                success: false, register: false, message: 'Mobile Number is not valid' 
             });
         }
         console.log(resp.raw_body, resp.body);
         // var data = JSON.parse(resp.raw_body);
         var data = resp.body;
-        if (data.active && data.pin == null) {
+        if (data == null) {
+            res.send({
+                success: true, register: false, pin: false, message: 'Mobile number do not exist',
+            });
+        }else if (data.active && data.pin == null) {
             res.send({
                 success: true, register: true, pin: false
             });

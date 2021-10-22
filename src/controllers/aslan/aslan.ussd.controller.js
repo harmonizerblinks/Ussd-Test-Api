@@ -6,12 +6,15 @@ let sessions = {};
 // let maritalArray = ["", "Single", "Married", "Private", "Divorced", "Widow", "Widower", "Private"];
 let genderArray = ["", "Male", "Female"]
 
+// TEST CREDENTIALS
 // let apiurl = "http://localhost:5000/Ussd/";
-// let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5003/ussd/";
-
+// let apiurl = "https://app.alias-solutions.net:5003/ussd/";
 // let access = { code: "ARB", key: "10198553" };
-let access = { code: "ACU001", key: "1029398" };
+// let access = { code: "ACU001", key: "1029398" };
+
+// LIVE CREDENTIALS
+let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+let access = { code: "ACU100", key: "34567896" };
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
@@ -37,7 +40,6 @@ menu.sessionConfig({
         callback(null, value);
     }
 });
-
 
 menu.on('error', (err) => {
     // handle errors
