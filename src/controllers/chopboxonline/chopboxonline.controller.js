@@ -272,7 +272,7 @@ menu.state('Buy.schoolid.confirm',{
             if(package){
                 menu.con(`Confirm Payment of GHS ${amount || package.amount}, ${package.name} for ${student} \n1. Confirm \n0. Main Menu`);
             } else{
-                menu.con(`Confirm Payment of GHS ${amount} for ${student} \n1. Confirm \n0. Main Menu`);
+                menu.con(`Confirm Payment of GHS ${amount} for ${student || ''} \n1. Confirm \n0. Main Menu`);
             }
         } else {
             menu.end('Chopbox unique code do not match');
@@ -287,7 +287,7 @@ menu.state('Buy.schoolid.confirm',{
 menu.state('Buy.confirm',{
     run: async() => {
         const pack = await menu.session.get('package');
-        const student = await menu.session.get('student');
+        const student = await menu.session.get('student') || '';
         let data = {
             code: appId,
             type: "Payment",
