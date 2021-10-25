@@ -96,6 +96,7 @@ menu.state('Register', {
         menu.session.set('mobile', mobile);
 
         await getInfo(mobile, async (data) => {
+            console.log(data);
             if (data && data.firstname && data.lastname) {
                 var firstname = data.firstname;
                 var lastname = data.lastname;
@@ -1032,7 +1033,7 @@ async function getInfo(val, callback) {
             // if (res.error) throw new Error(res.error); 
             if (resp.error) {
                 // return res;
-                return await callback(resp);
+                return await callback(resp.body || resp.error);
             }
             var response = JSON.parse(resp.raw_body);
             return await callback(response);
