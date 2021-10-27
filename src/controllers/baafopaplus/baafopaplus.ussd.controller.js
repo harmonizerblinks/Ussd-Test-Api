@@ -241,7 +241,7 @@ menu.state('Register.Policy.Complete', {
             fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: null,
         };
         await postCustomer(data, (data) => {
-            menu.end('Your policy has been registered successfully.')
+            menu.end('Your policy has been registered successfully. Kindly confirm payment request sent to your phone.')
         }, (error) => {
             menu.end(error.message || 'Registration not Successful')
         })
