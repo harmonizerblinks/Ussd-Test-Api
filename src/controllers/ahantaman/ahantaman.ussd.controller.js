@@ -762,7 +762,6 @@ async function fetchCustomer(val, callback) {
         // {
         //     menu.session.set('limit', response.result.limit);
         // }
-        
         return await callback(response);
     });
 }

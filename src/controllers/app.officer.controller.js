@@ -54,7 +54,7 @@ exports.validateOfficer = (req, res) => {
                 res.status(500).send({
                     success: false,
                     register: false,
-                    message: 'Provide the following details to Signup',
+                    message: 'You are not a Validate Field Officer',
                     error: resp
                 });
             }

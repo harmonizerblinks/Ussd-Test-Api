@@ -186,7 +186,7 @@ menu.state('Birthday.package',{
     next: {
         '*\\d+': 'Buy.schoolid'
     }
-})
+});
 
 ///////////////--------------CHOPBOX CARES STARTS--------------////////////////
 
@@ -197,7 +197,7 @@ menu.state('Cares',{
     next: {
         '*\\d+': 'Cares.amount'
     }
-})
+});
 
 menu.state('Cares.amount',{
     run: () => {
@@ -209,7 +209,7 @@ menu.state('Cares.amount',{
         '1': 'Buy.confirm',
         '2': 'Exit'
     }
-})
+});
 
 ///////////////--------------CHOPBOX CASH STARTS--------------////////////////
 
@@ -220,7 +220,7 @@ menu.state('Cash',{
     next: {
         '*\\d+': 'Cash.amount'
     }
-})
+});
 
 menu.state('Cash.amount',{
     run: () => {
@@ -232,7 +232,7 @@ menu.state('Cash.amount',{
         '1': 'Buy.confirm',
         '2': 'Exit'
     }
-})
+});
 
 
 ///////////////--------------BUY > FINAL STEPS STARTS--------------////////////////
@@ -240,7 +240,7 @@ menu.state('Exit',{
     run: () => {
         menu.end('')
     }
-})
+});
 
 menu.state('Buy.schoolid',{
     run: async() => {

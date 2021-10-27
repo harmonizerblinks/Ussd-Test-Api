@@ -153,6 +153,8 @@ menu.state('Register.Policy', {
         }).catch((err) => { menu.end(err); });
     },
     next: {
+        '0': 'Register.Gender',
+        '#': '__start__',
         '*\\d+': 'Register.Policy.Selected',
     },
     defaultNext: '__start__'
@@ -176,28 +178,43 @@ menu.state('Register.Policy.Selected', {
                     menu.end('Unable to Fetch Selected Policy, please try again');
                 }
             });
-            // menu.con('Select Payment Plan:' +
-            //     '\n1. Daily' +
-            //     '\n2. Weekly' +
-            //     '\n3. Monthly')
         }
     },
     next: {
-        '0': '__start__',
+        '0': 'Register.Policy',
+        '#': '__start__',
         '1': 'Register.Policy.Confirm',
         '2': 'Exit',
-        '*\\d+': 'Register.Policy.Option',
     },
     defaultNext: '__start__'
 });
 
+menu.state('Register.Dateofbirth', {
+    run: () => {
+        if (menu.val > 3) {
+            menu.end('Invalid option. Press (0) zero to try again.')
+        } else {
+            menu.con('Please enter Your Date of Birth: \n Example: yyyy-mm-dd')
+        }
+    },
+    next: {
+        '0': 'Register.Policy.Selected',
+        '#': '__start__',
+        '*\\d+': 'Register.Policy',
+    }
+});
+
 menu.state('Register.Policy.Confirm', {
     run: async () => {
+        // var d = Date.parse(menu.val);
+        // if (isNaN(d)) {
+        //     menu.end('Invalid Date Of Birth. Please try again.')
+        // } else {
+            // let dob = new Date(d);
+            // menu.session.set('dob', dob)
         if (menu.val > 3) {
-            menu.con('Invalid option. Press (0) zero to try again.')
+            menu.end('Invalid option. Press (0) zero to try again.')
         } else {
-            // let paymentplan = paymentplanArray[Number(menu.val)]
-            // menu.session.set('paymentplan', paymentplan)
             let policy = await menu.session.get('policy');
             var firstname = await menu.session.get('firstname');
             var lastname = await menu.session.get('lastname');
@@ -226,6 +243,7 @@ menu.state('Register.Policy.Complete', {
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
         var policy = await menu.session.get('policy');
+        var dob = await menu.session.get('dob') || null;
         // if (mobile && mobile.startsWith('+233')) {
         //     // Remove Bearer from string
         //     mobile = mobile.replace('+233', '0');
@@ -236,7 +254,7 @@ menu.state('Register.Policy.Complete', {
 
         var data = {
             code: access.code, key: access.key,
-            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: null,
+            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: dob || null,
         };
         await postCustomer(data, (data) => {
             menu.end('Your policy has been registered successfully.')
@@ -491,7 +509,7 @@ menu.state('Agent', {
         '1': 'Registers',
         '2': 'Pay'
     }
-})
+});
 
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -600,7 +618,7 @@ menu.state('Others.Beneficiary.DOB', {
         '2': 'Exit'
     },
     defaultNext: 'WrongOption'
-})
+});
 
 menu.state('Others.Beneficiary.DOB.Confirm', {
     run: async () => {
@@ -643,8 +661,7 @@ menu.state('Others.Relatives', {
     next: {
         '*[a-zA-Z]+': 'Others.Relatives.FirstName'
     }
-})
-
+});
 
 menu.state('Others.Relatives.FirstName', {
     run: () => {

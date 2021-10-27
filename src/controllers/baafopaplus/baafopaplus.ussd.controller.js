@@ -814,7 +814,6 @@ menu.state('IncorrectInput', {
 });
 
 
-
 // Pension USSD
 exports.ussdApp = async (req, res) => {
     // Create a 
@@ -834,6 +833,7 @@ function buyAirtime(phone, val) {
 }
 
 async function postCustomer(val, callback, errorCallback) {
+    console.log(val);
     var api_endpoint = apiurl + 'CreatePolicyHolder/';
     var req = unirest('POST', api_endpoint)
         .headers({

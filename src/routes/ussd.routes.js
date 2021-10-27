@@ -111,6 +111,7 @@ module.exports = function(app) {
     app.post('/api/kamcu', kamcu.ussdApp);
     
     // WESTOM INSURANCE
+    // app.post('/api/baafopaplus', baafopatest.ussdApp);
     app.post('/api/baafopaplus', baafopaplus.ussdApp);
     // AIRTELTIGO
     app.post('/api/airteltigo', daakyeSusu.ussdApp);
