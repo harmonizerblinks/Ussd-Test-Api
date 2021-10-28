@@ -295,7 +295,7 @@ menu.state('Buy.confirm',{
             mobile: menu.args.phoneNumber,
             network: menu.args.operator,
             service: "Pay Merchant",
-            reference: 'Payment for '+pack.name +' to userid '+student,
+            reference: pack != null ? 'Payment for '+pack.name || '' +' to userid '+student : 'Payment for ChopBox Cash from Mobile Number '+menu.args.phoneNumber,
             order_id: generator.generate(7)
         }
         // console.log(data);

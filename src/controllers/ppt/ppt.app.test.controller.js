@@ -381,6 +381,7 @@ exports.getMemberPersonal = async(req, res) => {
         }
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
+        response.pin = null;
         if (response.active) {
             res.send({
                 success: true, register: true, data: response
