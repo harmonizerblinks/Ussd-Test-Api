@@ -5,7 +5,7 @@ module.exports = function(app) {
 
     // App user Login
     app.post('/customer/login', apps.login);
-    app.post('/customer/register', apps.createCustomer);
+    app.post('/customer/create-customer', verify.verifyToken, apps.createCustomer);
     // Logout
     app.get('/customer/logout', verify.verifyToken, apps.logout);
     app.get('/customer/profile', verify.verifyToken, apps.profile);
@@ -23,7 +23,7 @@ module.exports = function(app) {
     app.post('/customer/getCustomer', verify.verifyToken, apps.getCustomer);
     app.get('/customer/getAccounts', verify.verifyToken, apps.getAccounts);
     app.post('/customer/deposit',verify.verifyToken, apps.Deposit);
-    app.post('/customer/withdraw',verify.verifyToken, apps.Withdraw);
+    app.post('/customer/withdrawal',verify.verifyToken, apps.Withdraw);
     app.get('/customer/transactions/:account',verify.verifyToken, apps.getTransactions);
     app.post('/customer/transfer', verify.verifyToken, apps.transfer);
     app.get('/customer/verifyMobile/:mobile', verify.verifyToken, apps.getInfo);

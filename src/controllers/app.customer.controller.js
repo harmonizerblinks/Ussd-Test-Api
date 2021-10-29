@@ -430,13 +430,13 @@ exports.Deposit = async (req, res) => {
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
     var value = {
-        account: val.account,
+        Account: val.account,
         type: 'Deposit',
         network: val.network,
         mobile: val.mobile,
         amount: val.amount,
         method: val.method,
-        source: "Customer",
+        source: val.source,
         withdrawal: false,
         reference: 'Deposit to Account Number ' + val.account
     };
@@ -453,7 +453,7 @@ exports.Deposit = async (req, res) => {
                 console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
-                    message: respon.response || "Unable to proccess Payment at the moment"
+                    message: response || "Unable to proccess Payment at the moment"
                 });
             }
             // if (res.error) throw new Error(res.error);
@@ -474,10 +474,10 @@ exports.Withdraw = async (req, res) => {
         account: val.account,
         type: 'Withdrawal',
         network: val.network,
-        mobile: req.user.mobile,
+        mobile: val.mobile,
         amount: val.amount,
         method: val.method,
-        source: "Customer",
+        source: val.source,
         withdrawal: true,
         reference: 'Withdrawal from Account Number ' + val.account
     };
@@ -494,7 +494,7 @@ exports.Withdraw = async (req, res) => {
                 console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
-                    message: respon.response || "Unable to proccess Payment at the moment"
+                    message: response || "Unable to proccess Payment at the moment"
                 });
             }
             // if (res.error) throw new Error(res.error);
@@ -508,7 +508,8 @@ exports.Withdraw = async (req, res) => {
 };
 
 exports.createCustomer = async (req, res) => {
-    const access = await getkey(req.body.merchant);
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
     var api_endpoint = apiurl + 'Ussd/CreateCustomer/' + access.code + '/' + access.key;
     console.log(api_endpoint);
@@ -565,14 +566,15 @@ exports.transfer = async (req, res) =>{
     const val = req.body;
     var payload = {
         account: val.account,
-        network: val.network,
+        toAccount: val.toAccount,
+        toAccountName: val.toAccountName,
         mobile: val.mobile,
         amount: val.amount,
-        method: val.method,
-        source: "Customer"
+        source: val.source,
+        reference: `Transfer from Account Number ${val.account} to Account Number ${val.toAccount}`
     };
     
-    const api_endpoint = apiurl + 'Ussd/Transfer/' + access.code + '/' + access.key;
+    const api_endpoint = apiurl + 'Ussd/TranferToAccount/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -580,19 +582,18 @@ exports.transfer = async (req, res) =>{
         })
         .send(JSON.stringify(payload))
         .end(async (resp) => {
+            console.log(resp.raw_body);
             if (resp.error) {
                 console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
-                    message: resp.response || "Unable to proccess Transfer at the moment"
+                    message: response || "Unable to proccess Transfer at the moment"
                 });
             }
-
             console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
+            //var response = JSON.parse(resp.raw_body);
             res.send({
-                output: 'Transfer Successful',
-                message: response.message
+                message: 'Transfer Successful'
             });
         });
 }
