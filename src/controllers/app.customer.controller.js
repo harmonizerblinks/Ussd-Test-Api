@@ -368,8 +368,8 @@ exports.getTransactions = async (req, res) => {
                     error: resp
                 });
             }
-            // console.log(resp.raw_body);
-            // var response = JSON.parse(resp.raw_body);
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
             res.send(response);
         });
 };
@@ -433,7 +433,7 @@ exports.Deposit = async (req, res) => {
         account: val.account,
         type: 'Deposit',
         network: val.network,
-        mobile: req.user.mobile,
+        mobile: val.mobile,
         amount: val.amount,
         method: val.method,
         source: "Customer",
@@ -557,6 +557,90 @@ exports.uploadProfilePhoto = async (req, res) => {
         } catch (err) { res.status(500).send({ success: false, err }); }
     })
     return;
+};
+
+exports.transfer = async (req, res) =>{
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    const val = req.body;
+    var payload = {
+        account: val.account,
+        network: val.network,
+        mobile: val.mobile,
+        amount: val.amount,
+        method: val.method,
+        source: "Customer"
+    };
+    
+    const api_endpoint = apiurl + 'Ussd/Transfer/' + access.code + '/' + access.key;
+    console.log(api_endpoint);
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(payload))
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.raw_body);
+                var response = JSON.parse(resp.raw_body);
+                return res.status(500).send({
+                    message: resp.response || "Unable to proccess Transfer at the moment"
+                });
+            }
+
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            res.send({
+                output: 'Transfer Successful',
+                message: response.message
+            });
+        });
+}
+
+exports.getInfo = async (req, res) => {
+    var val = req.params.mobile;
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
+    var api_endpoint = apiurl + 'Ussd/getInfo/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.error);
+                res.status(500).send({
+                    success: false,
+                    register: false,
+                    message: 'Error getting info',
+                    error: resp
+                });
+            }
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            res.send(response);
+        });
+};
+
+exports.validateAccountNumber = async (req, res) => {
+    var val = req.params.account;
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
+    var api_endpoint = apiurl + 'Ussd/getAccount/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.error);
+                res.status(500).send({
+                    success: false,
+                    register: false,
+                    message: 'Error getting info',
+                    error: resp
+                });
+            }
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            res.send(response);
+        });
 };
 
 async function asyncForEach(array, callback) {

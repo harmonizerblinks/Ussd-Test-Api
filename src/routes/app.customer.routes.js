@@ -24,5 +24,8 @@ module.exports = function(app) {
     app.get('/customer/getAccounts', verify.verifyToken, apps.getAccounts);
     app.post('/customer/deposit',verify.verifyToken, apps.Deposit);
     app.post('/customer/withdraw',verify.verifyToken, apps.Withdraw);
-    app.post('/customer/transactions/:account',verify.verifyToken, apps.getTransactions);
+    app.get('/customer/transactions/:account',verify.verifyToken, apps.getTransactions);
+    app.post('/customer/transfer', verify.verifyToken, apps.transfer);
+    app.get('/customer/verifyMobile/:mobile', verify.verifyToken, apps.getInfo);
+    app.get('/customer/validate-account/:account', verify.verifyToken, apps.validateAccountNumber);
 }
