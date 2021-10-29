@@ -44,9 +44,9 @@ exports.Register = async(req, res) => {
             }
         }
         console.log(resp.body);
-        if(resp.body.code != 1){
-            return res.status(500).send(resp.body);
-        }
+        // if(resp.body.code != 1){
+        //     return res.status(500).send(resp.body);
+        // }
         return res.send(resp.body);
     });
 };
