@@ -41,11 +41,11 @@ exports.Register = async(req, res) => {
             }); 
         }
         console.log(resp.body);
-        if(resp.body.code != 1){
-            const response = resp.body;
-            response.message = resp.body.status_message;
-            return res.status(500).send(response);
-        }
+        // if(resp.body.code != 1){
+        //     const response = resp.body;
+        //     response.message = resp.body.status_message;
+        //     return res.status(500).send(response);
+        // }
         return res.send(resp.body);
     });
 };

@@ -31,21 +31,17 @@ exports.Register = async(req, res) => {
     .send(JSON.stringify(value))
     .end((resp)=> { 
         if (resp.error) {
-            console.log(resp.error)
-            console.log(resp.body)
-            if(resp.body && resp.body.message){
-                return res.status(500).send({
-                    message: resp.body.message
-                }); 
-            } else {
-                return res.status(500).send({
-                    message: resp.error
-                }); 
-            }
+            console.log(resp.error);
+            console.log(resp.body);
+            return res.status(500).send({
+                message: resp.body.message || resp.error
+            }); 
         }
         console.log(resp.body);
         // if(resp.body.code != 1){
-        //     return res.status(500).send(resp.body);
+        //     const response = resp.body;
+        //     response.message = resp.body.status_message;
+        //     return res.status(500).send(response);
         // }
         return res.send(resp.body);
     });
@@ -246,6 +242,7 @@ exports.agentPayment = (req, res) => {
 
 exports.sendOtp = async(req, res) => {
     var val = req.body;
+       
     var api_endpoint = apiurl1 + val.type + '?mobile='+ val.mobile +'&id=' + val.source;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -264,6 +261,7 @@ exports.sendOtp = async(req, res) => {
 
 exports.verifyOtp = async(req, res) => {
     var val = req.body;
+       
     var api_endpoint = apiurl1 + 'verify/' + val.otp + '?mobile='+ val.mobile +'&id=' + val.source;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -380,6 +378,7 @@ exports.getMemberPersonal = async(req, res) => {
         }
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
+        response.pin = null;
         if (response.active) {
             res.send({
                 success: true, register: true, data: response
@@ -522,13 +521,17 @@ exports.login = (req, res) => {
         if (resp.error) {
             console.log(resp.error);
             res.status(500).send({ 
-                success: false, register: false, message: 'Password is not correct' 
+                success: false, register: false, message: 'Mobile Number is not valid' 
             });
         }
         console.log(resp.raw_body, resp.body);
         // var data = JSON.parse(resp.raw_body);
         var data = resp.body;
-        if (data.active && data.pin == null) {
+        if (data == null) {
+            res.send({
+                success: true, register: false, pin: false, message: 'Mobile number do not exist',
+            });
+        }else if (data.active && data.pin == null) {
             res.send({
                 success: true, register: true, pin: false
             });
@@ -718,12 +721,13 @@ exports.Deposit = (req, res) => {
         var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
 
         var api_endpoint = apiurl;
-        if(val.frequency != "OneTime" && val.network ==="MTN") {
+        if(val.frequency != "ONETIME" && val.network ==="MTN") {
             api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
         } else {
             api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
         }
         console.log(api_endpoint);
+        console.log(value);
         var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -740,9 +744,12 @@ exports.Deposit = (req, res) => {
             }
             // if (res.error) throw new Error(res.error);
             console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
+            // var response = JSON.parse(resp.raw_body);
             // await callback(response);
-            res.send({ output: 'Payment Request Sent', message: response.message });
+            if(resp.body.code != 1) return res.status(500).send({
+                message: resp.body.message
+            })
+            res.send({ output: 'Payment Request Sent', message: resp.body.message, ...response });
         });
     }
 };
@@ -849,6 +856,10 @@ exports.getIdType = async(req, res) => {
         res.send(response.result);
     });
 };
+
+function buyAirtime(phone, val) {
+    return true
+}
 
 function buyAirtime(phone, val) {
     return true
