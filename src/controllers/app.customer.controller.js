@@ -368,8 +368,8 @@ exports.getTransactions = async (req, res) => {
                     error: resp
                 });
             }
-            // console.log(resp.raw_body);
-            // var response = JSON.parse(resp.raw_body);
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
             res.send(response);
         });
 };
@@ -430,13 +430,13 @@ exports.Deposit = async (req, res) => {
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
     var value = {
-        account: val.account,
+        Account: val.account,
         type: 'Deposit',
         network: val.network,
-        mobile: req.user.mobile,
+        mobile: val.mobile,
         amount: val.amount,
         method: val.method,
-        source: "Customer",
+        source: val.source,
         withdrawal: false,
         reference: 'Deposit to Account Number ' + val.account
     };
@@ -453,7 +453,7 @@ exports.Deposit = async (req, res) => {
                 console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
-                    message: respon.response || "Unable to proccess Payment at the moment"
+                    message: response || "Unable to proccess Payment at the moment"
                 });
             }
             // if (res.error) throw new Error(res.error);
@@ -474,10 +474,10 @@ exports.Withdraw = async (req, res) => {
         account: val.account,
         type: 'Withdrawal',
         network: val.network,
-        mobile: req.user.mobile,
+        mobile: val.mobile,
         amount: val.amount,
         method: val.method,
-        source: "Customer",
+        source: val.source,
         withdrawal: true,
         reference: 'Withdrawal from Account Number ' + val.account
     };
@@ -494,7 +494,7 @@ exports.Withdraw = async (req, res) => {
                 console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
-                    message: respon.response || "Unable to proccess Payment at the moment"
+                    message: response || "Unable to proccess Payment at the moment"
                 });
             }
             // if (res.error) throw new Error(res.error);
@@ -508,7 +508,8 @@ exports.Withdraw = async (req, res) => {
 };
 
 exports.createCustomer = async (req, res) => {
-    const access = await getkey(req.body.merchant);
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
     var api_endpoint = apiurl + 'Ussd/CreateCustomer/' + access.code + '/' + access.key;
     console.log(api_endpoint);
@@ -557,6 +558,90 @@ exports.uploadProfilePhoto = async (req, res) => {
         } catch (err) { res.status(500).send({ success: false, err }); }
     })
     return;
+};
+
+exports.transfer = async (req, res) =>{
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    const val = req.body;
+    var payload = {
+        account: val.account,
+        toAccount: val.toAccount,
+        toAccountName: val.toAccountName,
+        mobile: val.mobile,
+        amount: val.amount,
+        source: val.source,
+        reference: `Transfer from Account Number ${val.account} to Account Number ${val.toAccount}`
+    };
+    
+    const api_endpoint = apiurl + 'Ussd/TranferToAccount/' + access.code + '/' + access.key;
+    console.log(api_endpoint);
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(payload))
+        .end(async (resp) => {
+            console.log(resp.raw_body);
+            if (resp.error) {
+                console.log(resp.raw_body);
+                var response = JSON.parse(resp.raw_body);
+                return res.status(500).send({
+                    message: response || "Unable to proccess Transfer at the moment"
+                });
+            }
+            console.log(resp.raw_body);
+            //var response = JSON.parse(resp.raw_body);
+            res.send({
+                message: 'Transfer Successful'
+            });
+        });
+}
+
+exports.getInfo = async (req, res) => {
+    var val = req.params.mobile;
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
+    var api_endpoint = apiurl + 'Ussd/getInfo/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.error);
+                res.status(500).send({
+                    success: false,
+                    register: false,
+                    message: 'Error getting info',
+                    error: resp
+                });
+            }
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            res.send(response);
+        });
+};
+
+exports.validateAccountNumber = async (req, res) => {
+    var val = req.params.account;
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
+    var api_endpoint = apiurl + 'Ussd/getAccount/' + access.code + '/' + access.key + '/' + val;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.error);
+                res.status(500).send({
+                    success: false,
+                    register: false,
+                    message: 'Error getting info',
+                    error: resp
+                });
+            }
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            res.send(response);
+        });
 };
 
 async function asyncForEach(array, callback) {
