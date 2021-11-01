@@ -5,7 +5,7 @@ module.exports = function(app) {
 
     // App user Login
     app.post('/customer/login', apps.login);
-    app.post('/customer/create-customer', verify.verifyToken, apps.createCustomer);
+    app.post('/customer/create-customer', apps.createCustomer);
     // Logout
     app.get('/customer/logout', verify.verifyToken, apps.logout);
     app.get('/customer/profile', verify.verifyToken, apps.profile);
