@@ -721,7 +721,7 @@ exports.Deposit = (req, res) => {
         // res.send({ output: 'Not allowed', message: 'Card Payment still Under Development' });
     } else {
         
-        var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
+        var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.account, frequency: val.frequency };
 
         var api_endpoint = apiurl;
         if(val.frequency != "ONETIME" && val.network ==="MTN") {
@@ -749,7 +749,7 @@ exports.Deposit = (req, res) => {
             console.log(resp.raw_body);
             // var response = JSON.parse(resp.raw_body);
             // await callback(response);
-            if(resp.body.code != 1) return res.status(500).send({
+            if(resp.body.code != 1 && resp.body.code != 0) return res.status(500).send({
                 message: resp.body.message
             })
             res.send({ output: 'Payment Request Sent', message: resp.body.message, ...response });
