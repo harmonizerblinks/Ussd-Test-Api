@@ -33,7 +33,7 @@ exports.validateCustomer = (req, res) => {
     const { merchant, mobile } = req.params;
     const access = getkey(merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
-    var api_endpoint = apiurl + 'ussd/getCustomer/' + merchant + '/' + access.key + '/' + mobile;
+    var api_endpoint = access.apiurl || apiurl + 'ussd/getCustomer/' + merchant + '/' + access.key + '/' + mobile;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -73,7 +73,7 @@ exports.getCustomer = async (req, res) => {
     const val = req.user;
     const access = getkey(val.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${val.merchant}` })
-    var api_endpoint = apiurl + `ussd/getCustomer/${val.merchant}/` + access.key + '/' + access.code + '/';
+    var api_endpoint = access.apiurl || apiurl + `ussd/getCustomer/${val.merchant}/` + access.key + '/' + access.code + '/';
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -93,7 +93,7 @@ exports.getCustomer = async (req, res) => {
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
-    var api_endpoint = apiurl + 'otp/' + val.mobile + '/' + val.merchant + '?id=CUSTOMER';
+    var api_endpoint = access.apiurl || apiurl + 'otp/' + val.mobile + '/' + val.merchant + '?id=CUSTOMER';
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -116,7 +116,7 @@ exports.sendOtp = async (req, res) => {
 exports.verifyOtp = async (req, res) => {
     var val = req.body;
     // var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
-    var api_endpoint = apiurl + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=CUSTOMER';
+    var api_endpoint = access.apiurl || apiurl + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=CUSTOMER';
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -144,8 +144,8 @@ exports.setPassword = async (req, res) => {
             message: "Mobile Number and Pin is Required"
         });
     }
-    const merchant = req.body.merchant;
-    const access = getkey(merchant);
+    // const merchant = req.body.merchant;
+    const access = getkey(req.body.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
     var mobile = req.body.mobile;
     const newpin = bcrypt.hashSync(req.body.newpin, 10);
@@ -157,7 +157,7 @@ exports.setPassword = async (req, res) => {
         confirmpin: newpin
     };
     console.log(JSON.stringify(value));
-    var api_endpoint = apiurl + 'Ussd/Change/' + access.code + '/' + access.key;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd/Change/' + access.code + '/' + access.key;
     console.log(api_endpoint)
     var request = unirest('POST', api_endpoint)
         .headers({
@@ -192,7 +192,7 @@ exports.login = (req, res) => {
     var val = req.body;
     const access = getkey(val.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${val.merchant}` })
-    var api_endpoint = apiurl + 'ussd/getCustomer/' + val.merchant + '/' + access.key + '/' + val.mobile;
+    var api_endpoint = access.apiurl || apiurl + 'ussd/getCustomer/' + val.merchant + '/' + access.key + '/' + val.mobile;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             console.log(resp)
@@ -271,7 +271,7 @@ exports.changePassword = async (req, res) => {
     const val = req.user;
     const access = await getkey(req.user.merchant);
     const { newpin: newp, pin } = req.body;
-    var api_endpoint = apiurl + 'Ussd/getCustomer/' + access.code + '/' + access.key + '/' + val.mobile;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd/getCustomer/' + access.code + '/' + access.key + '/' + val.mobile;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -330,7 +330,7 @@ exports.getCustomers = async (req, res) => {
     // var val = req.user.mobile;
     const { page, limit, search } = req.query
     const access = await getkey(req.user.merchant);
-    var api_endpoint = apiurl + `App/getCustomers/${access.code}/${access.key}?search=${search}&page=${page}&limit=${limit}`;
+    var api_endpoint = access.apiurl || apiurl + `App/getCustomers/${access.code}/${access.key}?search=${search}&page=${page}&limit=${limit}`;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -355,7 +355,7 @@ exports.getTransactions = async (req, res) => {
     var val = req.params.account;
     const access = await getkey(req.user.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
-    var api_endpoint = apiurl + 'Ussd/getAccountTransaction/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd/getAccountTransaction/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -374,12 +374,11 @@ exports.getTransactions = async (req, res) => {
         });
 };
 
-
 exports.getAccounts = async (req, res) => {
     const { merchant, mobile } = req.user
     const access = getkey(merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
-    var api_endpoint = apiurl + `Ussd/getCustomerAccounts/${merchant}/` + access.key + '/' + mobile;
+    var api_endpoint = access.apiurl || apiurl + `Ussd/getCustomerAccounts/${merchant}/` + access.key + '/' + mobile;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -404,7 +403,7 @@ exports.getAccounts = async (req, res) => {
 exports.getStatement = async (req, res) => {
     var val = req.body;
     console.log(val);
-    var api_endpoint = apiurl + 'Ussd?AppId=' + chanel.code + '&AppKey=' + chanel.key + '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd?AppId=' + chanel.code + '&AppKey=' + chanel.key + '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .headers({
@@ -441,7 +440,7 @@ exports.Deposit = async (req, res) => {
         reference: 'Deposit to Account Number ' + val.account
     };
 
-    var api_endpoint = apiurl + 'Ussd/Deposit/' + access.code + '/' + access.key;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd/Deposit/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -482,7 +481,7 @@ exports.Withdraw = async (req, res) => {
         reference: 'Withdrawal from Account Number ' + val.account
     };
 
-    var api_endpoint = apiurl + 'Ussd/Withdrawal/' + access.code + '/' + access.key;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd/Withdrawal/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -511,7 +510,7 @@ exports.createCustomer = async (req, res) => {
     const access = await getkey(req.body.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
-    var api_endpoint = apiurl + 'Ussd/CreateCustomer/' + access.code + '/' + access.key;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd/CreateCustomer/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -574,7 +573,7 @@ exports.transfer = async (req, res) =>{
         reference: `Transfer from Account Number ${val.account} to Account Number ${val.toAccount}`
     };
     
-    const api_endpoint = apiurl + 'Ussd/TranferToAccount/' + access.code + '/' + access.key;
+    const api_endpoint = access.apiurl || apiurl + 'Ussd/TranferToAccount/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -602,7 +601,7 @@ exports.getInfo = async (req, res) => {
     var val = req.params.mobile;
     const access = await getkey(req.user.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
-    var api_endpoint = apiurl + 'Ussd/getInfo/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd/getInfo/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -625,7 +624,7 @@ exports.validateAccountNumber = async (req, res) => {
     var val = req.params.account;
     const access = await getkey(req.user.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
-    var api_endpoint = apiurl + 'Ussd/getAccount/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = access.apiurl || apiurl + 'Ussd/getAccount/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
