@@ -45,7 +45,8 @@ exports.validateCustomer = (req, res) => {
                     error: resp
                 });
             }
-            var response = JSON.parse(resp.raw_body);
+            // var response = JSON.parse(resp.raw_body);
+            var response = resp.body;
             if (response.active && response.pin != null && response.pin != "1234" && response.pin.length != 4) {
                 res.send({
                     success: true,
@@ -98,6 +99,7 @@ exports.sendOtp = async (req, res) => {
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
+            console.log(resp.body);
             if (resp.error) {
                 console.log(resp.error);
                 res.status(500).send({
