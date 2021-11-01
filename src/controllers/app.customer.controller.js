@@ -508,7 +508,7 @@ exports.Withdraw = async (req, res) => {
 };
 
 exports.createCustomer = async (req, res) => {
-    const access = await getkey(req.user.merchant);
+    const access = await getkey(req.body.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
     var api_endpoint = apiurl + 'Ussd/CreateCustomer/' + access.code + '/' + access.key;
