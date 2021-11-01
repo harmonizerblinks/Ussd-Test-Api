@@ -144,6 +144,11 @@ exports.setPassword = async (req, res) => {
             message: "Mobile Number and Pin is Required"
         });
     }
+    if (req.body.merchant) {
+        return res.status(500).send({
+            message: "App Code is Required"
+        });
+    }
     // const merchant = req.body.merchant;
     const access = getkey(req.body.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
@@ -168,6 +173,7 @@ exports.setPassword = async (req, res) => {
             if (resp.error) {
                 console.log(resp.body);
                 return res.status(500).send({
+                    success: false,
                     message: resp.body.message || "Error updating Customer Pin "
                 });;
             }
