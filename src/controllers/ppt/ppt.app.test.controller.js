@@ -131,8 +131,9 @@ exports.getMemberbyNumber = (req, res) => {
             // throw new Error(res.error); 
         }
         console.log(resp.raw_body);
-        var response = JSON.parse(resp.raw_body);
-        res.send(response.result);
+        // var response = JSON.parse(resp.raw_body);
+        if(resp.body && resp.body.result) res.send(resp.body.result);
+        res.send(resp.body.result);
     });
 };
 
@@ -286,14 +287,14 @@ exports.setPassword = async(req, res) => {
     console.log(mobile);
     // if (mobile && mobile.startsWith('+')){ mobile = mobile.replace('+', ''); } 
     console.log(mobile);
-    const newpin = bcrypt.hashSync(req.body.newpin, 10);
     if (mobile == null || req.body.newpin == null) {
         return res.status(500).send({
             message: "Mobile Number and Pin is Required"
         });; 
     }
-    // var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
-    var value =req.body; value.pin =newpin; value.newpin=newpin;
+    const newpin = bcrypt.hashSync(req.body.newpin, 10);
+    var value = { type: "Customer", mobile: mobile, pin: newpin, newpin: newpin, confirmpin: newpin };
+    // var value =req.body; value.pin =newpin; value.newpin=newpin;
     console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'Change/'+access.code+'/'+access.key;
     console.log(api_endpoint)

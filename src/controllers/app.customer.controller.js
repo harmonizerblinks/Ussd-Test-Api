@@ -148,11 +148,12 @@ exports.setPassword = async (req, res) => {
             message: "Mobile Number and Pin is Required"
         });
     }
-    if (req.body.merchant) {
+    if (req.body && req.body.merchant) {
         return res.status(500).send({
             message: "App Code is Required"
         });
     }
+    console.log(JSON.stringify(req.body));
     // const merchant = req.body.merchant;
     const access = getkey(req.body.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
