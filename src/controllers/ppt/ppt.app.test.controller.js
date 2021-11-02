@@ -125,15 +125,15 @@ exports.getMemberbyNumber = (req, res) => {
     })
     .end((resp)=> { 
         if (resp.error) {
-            res.status(500).send({
+            return res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
         console.log(resp.raw_body);
         // var response = JSON.parse(resp.raw_body);
-        if(resp.body && resp.body.result) res.send(resp.body.result);
-        res.send(resp.body.result);
+        if(resp.body && resp.body.result) return res.send(resp.body.result);
+        return res.send(resp.body.result);
     });
 };
 
@@ -148,14 +148,14 @@ exports.updateMember = async(req, res) => {
     .send(JSON.stringify(value))
     .end((resp)=> { 
         if (resp.error) {
-            res.status(404).send({
+            return res.status(404).send({
                 message: resp.error
             }); 
         }
         // console.log(res.raw_body);
         console.log(resp.raw_body);
         var response = JSON.parse(resp.raw_body);
-        res.send(response.result);
+        return res.send(response.result);
     });
 };
 
@@ -193,13 +193,13 @@ exports.getinfo = (req, res) => {
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber }))
     .end(function (resp) { 
         if (resp.error) {
-            res.status(500).send({
+            return res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(resp.raw_body);
+        return res.send(resp.raw_body);
     });
 };
 
@@ -214,13 +214,13 @@ exports.agentinfo = (req, res) => {
     // .send(JSON.stringify({"appId":appId,"appKey":appKey,"mobile":req.body.schemenumber}))
     .end(function (resp) { 
         if (resp.error) {
-            res.status(500).send({
+            return res.status(500).send({
                 message: resp.error
             });
             // throw new Error(res.error); 
         }
         // console.log(res.raw_body);
-        res.send(resp.raw_body);
+        return res.send(resp.raw_body);
     });
 };
 

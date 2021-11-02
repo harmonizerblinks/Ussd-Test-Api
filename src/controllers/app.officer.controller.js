@@ -137,6 +137,7 @@ exports.getOfficerDashBoard = async (req, res) => {
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
+    const access = getkey(val.merchant);
     var api_endpoint = (access.apiurl || apiurl) + 'otp/' + val.mobile + '/' + val.merchant + '?id=OFFICER';
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -159,7 +160,7 @@ exports.sendOtp = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
     var val = req.body;
-
+    const access = getkey(val.merchant);
     // var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
     var api_endpoint = (access.apiurl || apiurl) + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=OFFICER';
     console.log(api_endpoint);
