@@ -148,7 +148,7 @@ exports.setPassword = async (req, res) => {
             message: "Mobile Number and Pin is Required"
         });
     }
-    if (req.body && req.body.merchant) {
+    if (req.body && req.body.merchant == null) {
         return res.status(500).send({
             message: "App Code is Required"
         });
