@@ -142,7 +142,7 @@ exports.verifyOtp = async (req, res) => {
 }
 
 exports.setPassword = async (req, res) => {
-
+    console.log(JSON.stringify(req.body));
     if (req.body.mobile == null || req.body.newpin == null) {
         return res.status(500).send({
             message: "Mobile Number and Pin is Required"
@@ -153,7 +153,6 @@ exports.setPassword = async (req, res) => {
             message: "App Code is Required"
         });
     }
-    console.log(JSON.stringify(req.body));
     // const merchant = req.body.merchant;
     const access = getkey(req.body.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
