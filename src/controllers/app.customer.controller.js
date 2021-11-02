@@ -202,7 +202,7 @@ exports.login = (req, res) => {
     var val = req.body;
     const access = getkey(val.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${val.merchant}` })
-    var api_endpoint = a(access.apiurl || apiurl) + 'ussd/getCustomer/' + val.merchant + '/' + access.key + '/' + val.mobile;
+    var api_endpoint = (access.apiurl || apiurl) + 'ussd/getCustomer/' + val.merchant + '/' + access.key + '/' + val.mobile;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             console.log(resp)

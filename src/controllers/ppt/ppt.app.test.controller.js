@@ -826,6 +826,23 @@ exports.getOccupations = async(req, res) => {
     });
 };
 
+exports.getCountry = async(req, res) => {  
+    var api_endpoint = apiurlpms + 'GetAllCountry?AppId=' + chanel.code + '&AppKey=' + chanel.key;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+    .end(async (resp) => {
+        if (resp.error) {
+            console.log(resp.error);
+            res.status(500).send({ 
+                success: false, message: resp.error || 'Unable to Fetch Regions' 
+            });
+        }
+        // console.log(resp.body);
+        var response = JSON.parse(resp.raw_body);
+        res.send(response.result);
+    });
+};
+
 exports.getRegions = async(req, res) => {  
     var api_endpoint = apiurlpms + 'GetAllRegions?AppId=' + chanel.code + '&AppKey=' + chanel.key;
     console.log(api_endpoint);

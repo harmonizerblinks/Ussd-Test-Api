@@ -45,7 +45,7 @@ exports.validateOfficer = (req, res) => {
     const access = getkey(req.params.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
     const val = req.params.mobile;
-    var api_endpoint = access.apiurl || apiurl + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = (access.apiurl || apiurl) + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -87,7 +87,7 @@ exports.getOfficer = async (req, res) => {
     const val = req.body;
     const access = getkey(val.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = access.apiurl || apiurl + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
+    var api_endpoint = (access.apiurl || apiurl) + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -113,7 +113,7 @@ exports.getOfficerDashBoard = async (req, res) => {
     const val = req.user;
     const access = getkey(val.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = access.apiurl || apiurl + 'app/getOfficerOverview/' + access.code + '/' + access.key + '/' + val.mobile;
+    var api_endpoint = (access.apiurl || apiurl) + 'app/getOfficerOverview/' + access.code + '/' + access.key + '/' + val.mobile;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -137,7 +137,7 @@ exports.getOfficerDashBoard = async (req, res) => {
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
-    var api_endpoint = access.apiurl || apiurl + 'otp/' + val.mobile + '/' + val.merchant + '?id=OFFICER';
+    var api_endpoint = (access.apiurl || apiurl) + 'otp/' + val.mobile + '/' + val.merchant + '?id=OFFICER';
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -161,7 +161,7 @@ exports.verifyOtp = async (req, res) => {
     var val = req.body;
 
     // var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
-    var api_endpoint = access.apiurl || apiurl + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=OFFICER';
+    var api_endpoint = (access.apiurl || apiurl) + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=OFFICER';
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -200,7 +200,7 @@ exports.setPassword = async (req, res) => {
     };
     console.log(JSON.stringify(value));
     const access = getkey(req.body.merchant);
-    var api_endpoint = access.apiurl || apiurl + 'Ussd/Change/' + access.code + '/' + access.key;
+    var api_endpoint = (access.apiurl || apiurl) + 'Ussd/Change/' + access.code + '/' + access.key;
     console.log(api_endpoint)
     var request = unirest('POST', api_endpoint)
         .headers({
@@ -235,7 +235,7 @@ exports.login = (req, res) => {
     var val = req.body;
     const access = getkey(val.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = access.apiurl || apiurl + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
+    var api_endpoint = (access.apiurl || apiurl) + 'ussd/getOfficer/' + access.code + '/' + access.key + '/' + val.mobile;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -318,7 +318,7 @@ exports.changePassword = async (req, res) => {
     // const pin = req.body.pin;
     var val = req.user.mobile;
     const access = await getkey(req.user.merchant);
-    var api_endpoint = access.apiurl || apiurl + 'getOfficer/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = (access.apiurl || apiurl) + 'getOfficer/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -379,7 +379,7 @@ exports.getCustomers = async (req, res) => {
     // var val = req.user.mobile;
     const { page, limit, search } =  req.query
     const access = await getkey(req.user.merchant);
-    var api_endpoint = access.apiurl || apiurl + `App/getCustomers/${access.code}/${access.key}?search=${search}&page=${page}&limit=${limit}`;
+    var api_endpoint = (access.apiurl || apiurl) + `App/getCustomers/${access.code}/${access.key}?search=${search}&page=${page}&limit=${limit}`;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -404,7 +404,7 @@ exports.getCustomer = async (req, res) => {
     var val = req.params.code;
     const access = await getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = access.apiurl || apiurl + 'Ussd/getCustomer/' + access.code + '/' + access.key + '/' + val;
+    var api_endpoint = (access.apiurl || apiurl) + 'Ussd/getCustomer/' + access.code + '/' + access.key + '/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -429,7 +429,7 @@ exports.getAccounts = async (req, res) => {
     const access =  getkey(req.user.merchant);
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`});
     const { limit, page,search } =  val;
-    var api_endpoint = access.apiurl || apiurl + 'App/GetAccounts/' + access.code + '/' + access.key + `/?page=${page}&limit=${limit}&search=${search == undefined? '': search}`;
+    var api_endpoint = (access.apiurl || apiurl) + 'App/GetAccounts/' + access.code + '/' + access.key + `/?page=${page}&limit=${limit}&search=${search == undefined? '': search}`;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -456,7 +456,7 @@ exports.getGroups = async (req, res) => {
     const access = await getkey(req.user.merchant);
     const { page,limit,search } =  req.query;
     if(!access) res.status(500).send({success: false, message: `No merchant was found with code ${val.merchant}`})
-    var api_endpoint = access.apiurl || apiurl + `App/Get/Groups/${access.code}/${access.key}?page=${page}&limit=${limit}&search=${search}`;
+    var api_endpoint = (access.apiurl || apiurl) + `App/Get/Groups/${access.code}/${access.key}?page=${page}&limit=${limit}&search=${search}`;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -479,7 +479,7 @@ exports.getGroups = async (req, res) => {
 exports.getGroup = async (req, res) => {
     // var val = req.params.scheme;
     const access = await getkey(req.user.merchant);
-    var api_endpoint = access.apiurl || apiurl + 'App/getGroup/' + val;
+    var api_endpoint = (access.apiurl || apiurl) + 'App/getGroup/' + val;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
@@ -502,7 +502,7 @@ exports.getStatement = async (req, res) => {
     var val = req.body;
     console.log(val);
     console.log('getstatement');
-    var api_endpoint = access.apiurl || apiurl + 'Ussd?AppId=' + chanel.code + '&AppKey=' + chanel.key + '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
+    var api_endpoint = (access.apiurl || apiurl) + 'Ussd?AppId=' + chanel.code + '&AppKey=' + chanel.key + '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .headers({
@@ -543,7 +543,7 @@ exports.Deposit = async (req, res) => {
     if(req.user.officerid) { value.officerid = req.user.officerid; }
     if(req.user.agentid) { value.agentid = req.user.agentid; }
 
-    var api_endpoint = access.apiurl || apiurl + 'App/Agent/Deposit/' + access.code + '/' + access.key;
+    var api_endpoint =(access.apiurl || apiurl) + 'App/Agent/Deposit/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
