@@ -583,7 +583,7 @@ exports.transfer = async (req, res) =>{
         reference: `Transfer from Account Number ${val.account} to Account Number ${val.toAccount}`
     };
     
-    const api_endpoint = (access.apiurl || apiurl) + 'Ussd/TranferToAccount/' + access.code + '/' + access.key;
+    const api_endpoint = (access.apiurl || apiurl) + 'Ussd/Tranfer/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -601,11 +601,52 @@ exports.transfer = async (req, res) =>{
             }
             console.log(resp.raw_body);
             //var response = JSON.parse(resp.raw_body);
-            res.send({
+            return res.send({
                 message: 'Transfer Successful'
             });
         });
 }
+
+exports.transferToMomo = async (req, res) => {
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    var val = req.body;
+    var value = {
+        account: val.account,
+        type: 'Withdrawal',
+        network: val.network,
+        mobile: val.mobile,
+        amount: val.amount,
+        method: val.method,
+        source: val.source,
+        withdrawal: true,
+        reference: 'Withdrawal from Account Number ' + val.account
+    };
+
+    var api_endpoint = (access.apiurl || apiurl) + 'Ussd/TransfertoMomo/' + access.code + '/' + access.key;
+    console.log(api_endpoint);
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(value))
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.raw_body);
+                var response = JSON.parse(resp.raw_body);
+                return res.status(500).send({
+                    message: response || "Unable to proccess Payment at the moment"
+                });
+            }
+            // if (res.error) throw new Error(res.error);
+            console.log(resp.raw_body);
+            var response = JSON.parse(resp.raw_body);
+            res.send({
+                output: 'Payment Request Sent',
+                message: response.message
+            });
+        });
+};
 
 exports.getInfo = async (req, res) => {
     var val = req.params.mobile;
@@ -617,7 +658,7 @@ exports.getInfo = async (req, res) => {
         .end(async (resp) => {
             if (resp.error) {
                 console.log(resp.error);
-                res.status(500).send({
+                return res.status(500).send({
                     success: false,
                     register: false,
                     message: 'Error getting info',
@@ -626,7 +667,7 @@ exports.getInfo = async (req, res) => {
             }
             console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            res.send(response);
+            return res.send(response);
         });
 };
 
@@ -640,7 +681,7 @@ exports.validateAccountNumber = async (req, res) => {
         .end(async (resp) => {
             if (resp.error) {
                 console.log(resp.error);
-                res.status(500).send({
+                return res.status(500).send({
                     success: false,
                     register: false,
                     message: 'Error getting info',
@@ -649,7 +690,7 @@ exports.validateAccountNumber = async (req, res) => {
             }
             console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            res.send(response);
+            return res.send(resp.raw_body);
         });
 };
 
