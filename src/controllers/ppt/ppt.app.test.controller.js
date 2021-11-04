@@ -750,9 +750,11 @@ exports.Deposit = (req, res) => {
             console.log(resp.raw_body);
             // var response = JSON.parse(resp.raw_body);
             // await callback(response);
-            if(resp.body.code != 1 && resp.body.code != 0) return res.status(500).send({
-                message: resp.body.message
-            })
+            if(resp.body.code != 1 && resp.body.code != 0) {
+                return res.status(500).send({
+                    message: resp.body.message
+                })
+            }
             return res.send({ output: 'Payment Request Sent', message: resp.body.message, ...response });
         });
     }

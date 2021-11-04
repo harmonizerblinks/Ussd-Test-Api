@@ -531,30 +531,31 @@ exports.login = (req, res) => {
             return res.send({
                 success: true, register: false, pin: false, message: 'Mobile number do not exist',
             });
-        }else if (data.active && data.pin == null) {
+        }else if ((data.active && data.pin == null) || data.pin == '') {
             return res.send({
                 success: true, register: true, pin: false
             });
-        }
-        console.log(data.pin, req.body.pin);
-        var passwordIsValid = bcrypt.compareSync(val.pin.toString(), data.pin);
-        if (passwordIsValid) {
-            const token = jwt.sign({
-                type: 'user',
-                data: {
-                    id: data.code,
-                    fullname: data.fullname,
-                    mobile: data.mobile,
-                    email: data.email,
-                    scheme: data.accounts[0].code
-                },
-            }, config.secret, {
-                expiresIn: '3h'
-            });
-            console.log(token);
-            return res.send({ success: true, access_token: token, date: Date.now });
-        } else {
-            return res.status(500).send({ success: false, message: 'Password is not correct' });
+        } else{
+            console.log(data.pin, req.body.pin);
+            var passwordIsValid = bcrypt.compareSync(val.pin, data.pin);
+            if (passwordIsValid) {
+                const token = jwt.sign({
+                    type: 'user',
+                    data: {
+                        id: data.code,
+                        fullname: data.fullname,
+                        mobile: data.mobile,
+                        email: data.email,
+                        scheme: data.accounts[0].code
+                    },
+                }, config.secret, {
+                    expiresIn: '3h'
+                });
+                console.log(token);
+                return res.send({ success: true, access_token: token, date: Date.now });
+            } else {
+                return res.status(500).send({ success: false, message: 'Password is not correct' });
+            }
         }
         // console.log(resp.body);
         // var response = JSON.parse(resp.raw_body);
@@ -721,7 +722,7 @@ exports.Deposit = (req, res) => {
         var value = { account:val.account,type:'Deposit',network:val.network,mobile:mobile,amount:val.amount,method:val.method,source:val.source, withdrawal:false, reference:'Deposit to Scheme Number '+val.code, frequency: val.frequency };
 
         var api_endpoint = apiurl;
-        if(val.frequency != "ONETIME" && val.network ==="MTN") {
+        if((val.frequency.toLowerCase() != "onetime") && val.network ==="MTN") {
             api_endpoint = apiurl + 'AutoDebit/'+access.code+'/'+access.key;
         } else {
             api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
@@ -746,9 +747,11 @@ exports.Deposit = (req, res) => {
             console.log(resp.raw_body);
             // var response = JSON.parse(resp.raw_body);
             // await callback(response);
-            if(resp.body.code != 1) return res.status(500).send({
-                message: resp.body.message
-            })
+            if(resp.body.code != 1 && resp.body.code != 0) {
+                return res.status(500).send({
+                    message: resp.body.message
+                })
+            }
             res.send({ output: 'Payment Request Sent', message: resp.body.message, ...response });
         });
     }
