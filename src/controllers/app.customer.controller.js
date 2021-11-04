@@ -583,7 +583,7 @@ exports.transfer = async (req, res) =>{
         reference: `Transfer from Account Number ${val.account} to Account Number ${val.toAccount}`
     };
     
-    const api_endpoint = (access.apiurl || apiurl) + 'Ussd/Tranfer/' + access.code + '/' + access.key;
+    const api_endpoint = (access.apiurl || apiurl) + 'Ussd/TranferToAccount/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
