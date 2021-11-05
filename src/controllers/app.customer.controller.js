@@ -690,7 +690,7 @@ exports.validateAccountNumber = async (req, res) => {
             }
             console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            return res.send(resp.raw_body);
+            return res.send(response);
         });
 };
 
