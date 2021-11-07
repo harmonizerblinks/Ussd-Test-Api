@@ -25,6 +25,7 @@ let chanel = { code: "446785909", key: "164383692" };
 // POST a User
 exports.Register = async(req, res) => {
     var value = req.body;
+    if(!value.source) { value.source = "APP"; }
     console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
     var reqs = unirest('POST', api_endpoint)
@@ -168,6 +169,29 @@ exports.addBeneficiary = async(req, res) => {
         'Content-Type': 'application/json'
     })
     .send(JSON.stringify(value))
+    .end(function (resp) { 
+        if (resp.error) {
+            console.log(resp.error);
+            console.log(resp.body);
+            return res.status(404).send(resp.body.error); 
+            // return res.status(404).send({
+            //     message: resp.body.error
+            // }); 
+        }
+        // console.log(res.raw_body);
+        return res.send(res.raw_body);
+    });
+};
+
+exports.removeBeneficiary = async(req, res) => {
+    // var value = req.body;
+    // value.appId = chanel.code; value.appKey = chanel.key;
+    var api_endpoint = apiurlpms + `RemoveBeneficiary?Appid=${chanel.code}&AppKey=${chanel.key}&id=${req.params.id}`;
+    var reqs = unirest('DELETE', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    // .send(JSON.stringify(value))
     .end(function (resp) { 
         if (resp.error) {
             console.log(resp.error);
