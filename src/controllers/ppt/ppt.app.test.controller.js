@@ -163,6 +163,7 @@ exports.updateMember = async(req, res) => {
 exports.addBeneficiary = async(req, res) => {
     var value = req.body;
     value.appId = chanel.code; value.appKey = chanel.key;
+    JSON.stringify(value);
     var api_endpoint = apiurlpms + 'AddBeneficiary';
     var reqs = unirest('POST', api_endpoint)
     .headers({
