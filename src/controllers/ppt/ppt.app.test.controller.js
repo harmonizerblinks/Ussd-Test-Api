@@ -277,7 +277,7 @@ exports.sendOtp = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
+            console.log(resp.body,resp.error);
             return res.status(500).send({ success: false, message: 'Unable to sent Otp' });
         }
         console.log(resp.body);
@@ -296,8 +296,8 @@ exports.verifyOtp = async(req, res) => {
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            return res.status(500).send({ success: false, register: false, message: 'Code Not Valid' });
+            console.log(resp.body,resp.error);
+            return res.status(500).send({ success: false, register: false, message: resp.body == null ? 'Code Not Valid': resp.body.message || 'Code Not Valid' });
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
