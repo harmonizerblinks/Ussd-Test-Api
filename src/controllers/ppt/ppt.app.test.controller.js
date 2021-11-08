@@ -38,7 +38,7 @@ exports.Register = async(req, res) => {
             console.log(resp.error);
             console.log(resp.body);
             return res.status(500).send({
-                message: resp.body.message || resp.error
+                message: resp.body.message != null? resp.body.message : "Registeration and payment was not successful please try again"
             }); 
         }
         console.log(resp.body);
