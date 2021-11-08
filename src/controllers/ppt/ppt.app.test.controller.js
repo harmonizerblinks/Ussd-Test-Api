@@ -35,10 +35,10 @@ exports.Register = async(req, res) => {
     .send(JSON.stringify(value))
     .end((resp)=> { 
         if (resp.error) {
-            console.log(resp.error);
-            console.log(resp.body);
+            console.log(resp.body, resp.error);
+            // console.log(resp.body);
             return res.status(500).send({
-                message: resp.body.message != null? resp.body.message : "Registeration and payment was not successful please try again"
+                message: resp.body && resp.body.message != null? resp.body.message : "Registeration and payment was not successful please try again"
             }); 
         }
         console.log(resp.body);
