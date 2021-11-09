@@ -26,6 +26,7 @@ let chanel = { code: "446785909", key: "164383692" };
 exports.Register = async(req, res) => {
     var value = req.body;
     if(!value.source) { value.source = "APP"; }
+    if(!value.referer_code) { value.referer_code = value.ref_code; }
     console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
     var reqs = unirest('POST', api_endpoint)
@@ -38,7 +39,7 @@ exports.Register = async(req, res) => {
             console.log(resp.body, resp.error);
             // console.log(resp.body);
             return res.status(500).send({
-                message: resp.body && resp.body.message != null? resp.body.message : "Registeration and payment was not successful please try again"
+                message: resp.body && resp.body.status_message != null? resp.body.status_message : "Registeration and payment was not successful please try again"
             }); 
         }
         console.log(resp.body);
