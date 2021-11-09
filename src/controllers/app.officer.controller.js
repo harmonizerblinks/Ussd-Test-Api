@@ -137,6 +137,7 @@ exports.getOfficerDashBoard = async (req, res) => {
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
+    const access = getkey(val.merchant);
     var api_endpoint = (access.apiurl || apiurl) + 'otp/' + val.mobile + '/' + val.merchant + '?id=OFFICER';
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
@@ -159,7 +160,7 @@ exports.sendOtp = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
     var val = req.body;
-
+    const access = getkey(val.merchant);
     // var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
     var api_endpoint = (access.apiurl || apiurl) + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=OFFICER';
     console.log(api_endpoint);
@@ -187,8 +188,14 @@ exports.setPassword = async (req, res) => {
             message: "Mobile Number and Pin is Required"
         });;
     }
+    if (req.body.merchant == null) {
+        return res.status(500).send({
+            message: "Merchant Selected is Required"
+        });;
+    }
+    const access = getkey(req.body.merchant);
     var mobile = req.body.mobile;
-    console.log(req.mobile);
+    // console.log(req.mobile);
     const newpin = bcrypt.hashSync(req.body.newpin, 10);
 
     var value = {
@@ -199,7 +206,6 @@ exports.setPassword = async (req, res) => {
         confirmpin: newpin
     };
     console.log(JSON.stringify(value));
-    const access = getkey(req.body.merchant);
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/Change/' + access.code + '/' + access.key;
     console.log(api_endpoint)
     var request = unirest('POST', api_endpoint)

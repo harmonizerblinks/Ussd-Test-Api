@@ -528,11 +528,11 @@ exports.login = (req, res) => {
         // var data = JSON.parse(resp.raw_body);
         var data = resp.body;
         if (data == null) {
-            res.send({
+            return res.send({
                 success: true, register: false, pin: false, message: 'Mobile number do not exist',
             });
         }else if (data.active && data.pin == null) {
-            res.send({
+            return res.send({
                 success: true, register: true, pin: false
             });
         }
@@ -552,9 +552,9 @@ exports.login = (req, res) => {
                 expiresIn: '3h'
             });
             console.log(token);
-            res.send({ success: true, access_token: token, date: Date.now });
+            return res.send({ success: true, access_token: token, date: Date.now });
         } else {
-            res.status(500).send({ success: false, message: 'Password is not correct' });
+            return res.status(500).send({ success: false, message: 'Password is not correct' });
         }
         // console.log(resp.body);
         // var response = JSON.parse(resp.raw_body);

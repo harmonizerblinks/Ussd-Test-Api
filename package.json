@@ -46,6 +46,7 @@
     "nodemailer": "^6.6.5",
     "pm2": "^5.1.1",
     "socket.io": "^3.0.5",
+    "swagger-ui-express": "^4.1.6",
     "unirest": "^0.6.0",
     "ussd-builder": "^1.1.1",
     "validatorjs": "^3.22.1",
