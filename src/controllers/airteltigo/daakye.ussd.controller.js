@@ -55,7 +55,7 @@ menu.on('error', (err) => {
 // Define menu states
 menu.startState({
     run: async () => {
-        let WelcomeNewUser = 'Welcome to Daakye Personal SUSU\nSelect Susu Type\n' +
+        let WelcomeNewUser = 'Welcome to Daakye Personal SUSU\nSelect Susu Type' +
             '\n1. Personal' +
             '\n2. Group';
         await AirtelService.fetchCustomer(apiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
@@ -143,7 +143,7 @@ menu.state('Personal.Register.AcceptDecline', {
     run: async () => {
         
         // await AirtelService.getInfo( "http://localhost:4041/api/", access.code, access.key, menu.args.phoneNumber,
-        await AirtelService.getInfo( apiurl, access.code, access.key, menu.args.phoneNumber,
+        await AirtelService.getInfo( ussdapiurl, access.code, access.key, menu.args.phoneNumber,
             (response) => {
                 if(response.firstname && response.lastname){
                     menu.session.set('firstname', response.firstname)
@@ -766,8 +766,24 @@ menu.state('Group.CreateOrJoin.Create', {
 })
 
 menu.state('Group.CreateOrJoin.Create.Name', {
-    run: () => {
+    run: async () => {
         menu.session.set('group_name', menu.val);
+        await AirtelService.getInfo( ussdapiurl, access.code, access.key, menu.args.phoneNumber,
+            (response) => {
+                if(response.firstname && response.lastname){
+                    menu.session.set('firstname', response.firstname)
+                    menu.session.set('lastname', response.lastname)
+                }
+                else
+                {                
+                    menu.session.set('firstname', "N/A")
+                    menu.session.set('lastname', "")
+                }
+            },
+            (error) => {
+                menu.session.set('firstname', "N/A")
+                menu.session.set('lastname', "")
+            })
         menu.con(
             `Enter Group Description`
         )
@@ -780,13 +796,18 @@ menu.state('Group.CreateOrJoin.Create.Name', {
 menu.state('Group.CreateOrJoin.Create.Name.Description', {
     run: async () => {
         let group_name = await menu.session.get('group_name');
-        menu.con(
-            `You have created group ${group_name} successfully\n` +
-            `You can add new members from the Group Mgt menu\n` +
-            `1. Confirm\n` +
-            `2. Back\n` +
-            `0. Cancel\n`
-        )
+        let firstname = await menu.session.get('firstname');
+        let lastname = await menu.session.get('lastname');
+        var group = { "Type": "Group","Name": group_name, "Mobile": helpers.formatPhoneNumber(mobile), "Group_Leader":  `${lastname} ${firstname}`, "Balance": 0 };
+            await AirtelService.CreateGroup( apiurl , group, merchant, access, (response) => {
+                menu.end(
+                    `You have created group ${group_name} successfully\n` +
+                    `You can add new members from the Group Mgt menu\n`
+                )
+            },(err) => { 
+                menu.end("Sorry, could not create group"); 
+            });
+        
     },
     next: {
         '1': 'Exit',

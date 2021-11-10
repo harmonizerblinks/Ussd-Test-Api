@@ -211,3 +211,22 @@ exports.AddCustomerToGroup = async (apiurl, merchant, key, groupCode, customer ,
 
         });
 }
+
+exports.CreateGroup = async (apiurl, merchant, key, group, callback, errorCallback) => {
+    
+    var api_endpoint = `${apiurl}CreateGroup/${merchant}/${key}`;
+    var request = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(group))
+        .end(async (resp) => {
+            if (resp.error) {
+                return await errorCallback(resp.body);
+            }
+            else {
+                return await callback(resp.body);
+            }
+
+        });
+}
