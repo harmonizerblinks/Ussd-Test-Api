@@ -230,3 +230,19 @@ exports.CreateGroup = async (apiurl, merchant, key, group, callback, errorCallba
 
         });
 }
+
+exports.GetCustomerGroups = async (apiurl, merch, key, mobile, callback, errorCallback) => {
+    var api_endpoint = `${apiurl}GetCustomerGroups/${merch}/${key}/${mobile}`;
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                // return res;
+                return await errorCallback(resp.body);
+            }
+            return await callback(resp.body);
+        });
+}

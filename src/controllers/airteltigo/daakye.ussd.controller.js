@@ -165,8 +165,6 @@ menu.state('Personal.Register.AcceptDecline', {
                 menu.session.set('firstname', "N/A")
                 menu.session.set('lastname', "")
             })
-            
-        
     },
     next: {
         '1': 'Personal.Register.Accept',
@@ -704,7 +702,7 @@ menu.state('User.verifypin', {
             var mobile = menu.args.phoneNumber;
             
             var customer = { "Type": "Customer", "Mobile": helpers.formatPhoneNumber(mobile), "Pin": newpin, "NewPin": newpin, "ConfirmPin": newpin };
-            await AirtelService.postChangePin(apiurl, customer, merchant, access, (data) => {
+            await AirtelService.postChangePin(ussdapiurl, customer, merchant, access, (data) => {
                 // menu.session.set('pin', newpin);
                 menu.end("Pin successfully changed");
             },(err) => { 
@@ -768,6 +766,7 @@ menu.state('Group.CreateOrJoin.Create', {
 menu.state('Group.CreateOrJoin.Create.Name', {
     run: async () => {
         menu.session.set('group_name', menu.val);
+        // await AirtelService.getInfo( "http://localhost:4041/api/", access.code, access.key, menu.args.phoneNumber,
         await AirtelService.getInfo( ussdapiurl, access.code, access.key, menu.args.phoneNumber,
             (response) => {
                 if(response.firstname && response.lastname){
@@ -776,20 +775,20 @@ menu.state('Group.CreateOrJoin.Create.Name', {
                 }
                 else
                 {                
-                    menu.session.set('firstname', "N/A")
-                    menu.session.set('lastname', "")
+                    menu.session.set('firstname', "N")
+                    menu.session.set('lastname', "/A")
                 }
             },
             (error) => {
-                menu.session.set('firstname', "N/A")
-                menu.session.set('lastname', "")
+                menu.session.set('firstname', "N")
+                menu.session.set('lastname', "/A")
             })
         menu.con(
             `Enter Group Description`
         )
     },
     next: {
-        '*[a-zA-Z0-9 _]*$': 'Group.CreateOrJoin.Create.Name.Description'
+        '*[a-zA-Z]+': 'Group.CreateOrJoin.Create.Name.Description'
     }
 })
 
@@ -798,14 +797,16 @@ menu.state('Group.CreateOrJoin.Create.Name.Description', {
         let group_name = await menu.session.get('group_name');
         let firstname = await menu.session.get('firstname');
         let lastname = await menu.session.get('lastname');
+        let mobile = menu.args.phoneNumber
         var group = { "Type": "Group","Name": group_name, "Mobile": helpers.formatPhoneNumber(mobile), "Group_Leader":  `${lastname} ${firstname}`, "Balance": 0 };
-            await AirtelService.CreateGroup( apiurl , group, merchant, access, (response) => {
+            await AirtelService.CreateGroup( apiurl , merchant, access.key, group, (response) => {
                 menu.end(
                     `You have created group ${group_name} successfully\n` +
+                    `Group code is ${response.code}\n` +
                     `You can add new members from the Group Mgt menu\n`
                 )
             },(err) => { 
-                menu.end("Sorry, could not create group"); 
+                menu.end( err.message || "Sorry, could not create group"); 
             });
         
     },
@@ -877,7 +878,7 @@ menu.state('Group.CreateOrJoin.Join.Select.Confirm', {
                     })
             },
             (error) => {
-                menu.end('Please register first'
+                menu.end('Please register as a customer first'
                 )
             })       
         
@@ -1009,68 +1010,133 @@ menu.state('Group.Management.MiniStatement.Pin', {
 
 menu.state('Group.Savings', {
     run: () => {
-        menu.con(
-            `Select group to pay` +
-            `1. Group 1\n` +
-            `2. Group 2\n`
-        )
+        let phone_number = helpers.formatPhoneNumber(menu.args.phoneNumber);
+        AirtelService.GetCustomerGroups(apiurl, merchant, access.key, phone_number, (response) => {
+            if(response && response.length > 0)
+            {
+                menu.session.set('groups', response);
+                let message = `Select group to deposit to\n`;
+                response.forEach((element, index) => {
+                    message += `${(index + 1)}. ${element.groupname}\n`;
+                });
+                menu.con(message)
+            }
+            else
+            {
+                menu.end(
+                    `Sorry, you don't belong to any group`
+                )
+            }
+            
+        }, (err) => {
+            menu.end(
+                `Sorry, could not get customer's groups\n`
+            )
+        })
+        
     },
     next: {
-        '*[1-2]': 'Group.Savings.SelectGroup',
+        '*\\d+': 'Group.Savings.SelectGroup',
     }
 })
 
 menu.state('Group.Savings.SelectGroup', {
-    run: () => {
-        let message = `Choose Option`;
-        optionArray.forEach((element, index) => {
-            message += `${(index + 1)}. ${element}\n`;
-        });
-        menu.con(message)
+    run: async () => {
+        //check if user selected a valid group #
+        let groups = await menu.session.get('groups');
+
+        let group = groups[(Number(menu.val) -1)];
+        if(group)
+        {
+            menu.session.set('selected_group', group);
+            let message = `Choose Option\n`;
+            optionArray.forEach((element, index) => {
+                message += `${(index + 1)}. ${element}\n`;
+            });
+            menu.con(message)
+        }
+        else
+        {
+            menu.go("InvalidInput")
+        }
     },
     next: {
-        '*[1-2]': 'Group.Savings.SelectGroup.Option',
-    }
+        '*[1-4]': 'Group.Savings.SelectGroup.Option',
+    },
+    defaultNext: 'InvalidInput'
 })
 
 menu.state('Group.Savings.SelectGroup.Option', {
     run: () => {
         var option_index = Number(menu.val);
         var option = optionArray[(option_index - 1)];
-        menu.session.set('savings_group_selected', option);
+        if(option)
+        {
+            menu.session.set('savings_option_selected', option);
 
-        menu.con(
-            `Enter savings amount`
-        )
+            menu.con(
+                `Enter savings amount`
+            )
+        }
+        else
+        {
+            menu.go("InvalidInput")
+        }
     },
     next: {
         '*\\d+': 'Group.Savings.SelectGroup.Option.Amount',
-    }
+    },
+    defaultNext: 'InvalidInput'
 })
 
 menu.state('Group.Savings.SelectGroup.Option.Amount', {
-    run: () => {
+    run: async () => {
 
         var savings_amount = Number(menu.val);
+        menu.session.set('amount', savings_amount);
+        let selected_group = await menu.session.get('selected_group');
         menu.con(
             `Dear customer, confirm payment of GHS ${savings_amount}\n` +
-            `to Daakye Susu for group\n` +
-            `1. Confirm` +
+            `to Daakye Susu for group ${selected_group.groupname}\n` +
+            `1. Confirm\n` +
             `0. Cancel`
         )
     },
     next: {
         '1': 'Group.Savings.SelectGroup.Option.Amount.Confirm',
         '0': 'Exit'
-    }
+    },
+    defaultNext: 'InvalidInput'
 })
 
 menu.state('Group.Savings.SelectGroup.Option.Amount.Confirm', {
-    run: () => {
+    run: async () => {
 
-        menu.end(
-            `You will soon receive a prompt to confirm payment\n`
-        )
+        let account_group = await menu.session.get('selected_group');
+        let amount = await menu.session.get('amount');
+        let savings_option = await menu.session.get('savings_option_selected');
+        let customer = {
+            "Account": `${account_group.code}`,
+            "Method": "Momo",
+            "Source": "Ussd",
+            "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+            "Amount": amount,
+            "Frequency": savings_option,
+            "NetWork": menu.args.operator,
+            "GroupId": account_group.groupid
+        }
+        //should hit AutoDebit endpoint, not Deposit endpoint
+        await AirtelService.Deposit(ussdapiurl, customer, merchant, access,
+            (response) => {
+                menu.end(
+                    `You will soon receive a prompt to confirm payment\n`
+                )
+            },
+            (error) => {
+                menu.end("Sorry could not process transaction");
+            })
+
+        
     }
 })
 
