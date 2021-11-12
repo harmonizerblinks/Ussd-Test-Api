@@ -289,7 +289,7 @@ menu.state('Deposit.confirm', {
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
         // var network = await menu.session.get('network');
-        var network = menu.args.operator;
+        var network = menu.args.operator.toUpperCase();
         var mobile = menu.args.phoneNumber;
         // var mobile = cust.mobile;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false, reference:'Deposit to Account Number '+account.code +' from mobile number '+mobile,merchantid:account.merchantid };
@@ -455,7 +455,7 @@ menu.state('Withdrawal.confirm', {
         //var cust = await menu.session.get('cust');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        var network = menu.args.operator;
+        var network = menu.args.operator.toUpperCase();
         // var mobile = await menu.session.get('mobile');
         var val = menu.args.phoneNumber;
         if (val && val.startsWith('+233')) {

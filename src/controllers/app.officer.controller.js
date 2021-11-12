@@ -77,7 +77,7 @@ exports.validateOfficer = (req, res) => {
                     success: false,
                     register: false,
                     pin: false,
-                    message: 'Provide the following details to Signup',
+                    message: 'You are not a Field Officer',
                 });
             }
         });

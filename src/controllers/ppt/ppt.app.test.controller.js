@@ -26,7 +26,7 @@ let chanel = { code: "446785909", key: "164383692" };
 exports.Register = async(req, res) => {
     var value = req.body;
     if(!value.source) { value.source = "APP"; }
-    if(!value.referer_code) { value.referer_code = value.ref_code; }
+    if(!value.referer_code || value.body) { value.referer_code = value.ref_code || null; }
     console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
     var reqs = unirest('POST', api_endpoint)
