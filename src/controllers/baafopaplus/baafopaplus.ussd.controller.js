@@ -96,7 +96,6 @@ menu.state('Register', {
         menu.session.set('mobile', mobile);
 
         await getInfo(mobile, async (data) => {
-            console.log(data);
             if (data && data.firstname && data.lastname) {
                 var firstname = data.firstname;
                 var lastname = data.lastname;
@@ -130,14 +129,28 @@ menu.state('Register.Gender', {
             '\n2. Female')
     },
     next: {
-        '*[1-2]': 'Register.Policy',
+        '*[1-2]': 'Register.Organization',
     }
+});
+
+menu.state('Register.Organization', {
+    run: () => {
+        
+        let gender = genderArray[Number(menu.val)];
+        menu.session.set('gender', gender);
+        
+        menu.con('Please enter your organization')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Register.Policy',
+    },
+    defaultNext: 'IncorrectInput'
 });
 
 menu.state('Register.Policy', {
     run: async () => {
-        let gender = genderArray[Number(menu.val)];
-        menu.session.set('gender', gender);
+
+        menu.session.set('organization', menu.val);
 
         await AvailablePolicyTypes("life", (accounts) => {
             if (accounts.length > 0) {
@@ -157,7 +170,7 @@ menu.state('Register.Policy', {
     next: {
         '*\\d+': 'Register.Policy.Selected',
     },
-    defaultNext: '__start__'
+    defaultNext: 'IncorrectInput'
 });
 
 menu.state('Register.Policy.Selected', {
@@ -228,6 +241,7 @@ menu.state('Register.Policy.Complete', {
         var gender = await menu.session.get('gender');
         var mobile = await menu.session.get('mobile');
         var policy = await menu.session.get('policy');
+        var organization = await menu.session.get('organization');
         // if (mobile && mobile.startsWith('+233')) {
         //     // Remove Bearer from string
         //     mobile = mobile.replace('+233', '0');
@@ -238,7 +252,7 @@ menu.state('Register.Policy.Complete', {
 
         var data = {
             code: access.code, key: access.key,
-            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: null,
+            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: null, purpose: organization
         };
         await postCustomer(data, (data) => {
             menu.end('Your policy has been registered successfully. Kindly confirm payment request sent to your phone.')
@@ -833,7 +847,7 @@ function buyAirtime(phone, val) {
 }
 
 async function postCustomer(val, callback, errorCallback) {
-    console.log(val);
+    // console.log(val);
     var api_endpoint = apiurl + 'CreatePolicyHolder/';
     var req = unirest('POST', api_endpoint)
         .headers({

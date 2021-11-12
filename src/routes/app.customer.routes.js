@@ -30,5 +30,6 @@ module.exports = function(app) {
     app.post('/customer/transfer', verify.verifyToken, apps.transfer);
     app.get('/customer/verifyMobile/:mobile', verify.verifyToken, apps.getInfo);
     app.get('/customer/validate-account/:account', verify.verifyToken, apps.validateAccountNumber);
+    app.post('/customer/transfer-to-local', verify.verifyToken, apps.transferToLocal);
 
 }
