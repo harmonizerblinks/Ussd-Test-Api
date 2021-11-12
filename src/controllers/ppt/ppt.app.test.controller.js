@@ -574,7 +574,7 @@ exports.login = (req, res) => {
             });
         }else if (data.active && data.pin == null) {
             return res.send({
-                success: true, register: true, pin: false
+                success: true, register: true, pin: false, message: 'Account is not Activated for Web or App access',
             });
         }
         console.log(data.pin, req.body.pin);
