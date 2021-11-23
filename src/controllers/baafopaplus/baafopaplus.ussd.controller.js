@@ -129,17 +129,34 @@ menu.state('Register.Gender', {
             '\n2. Female')
     },
     next: {
-        '*[1-2]': 'Register.Organization',
+        '*[1-2]': 'Register.Dateofbirth',
     }
+});
+
+menu.state('Register.Dateofbirth', {
+    run: () => {
+        let gender = genderArray[Number(menu.val)];
+        menu.session.set('gender', gender);
+        
+        menu.con('Please enter Your Date of Birth: \n Format: yyyy-mm-dd , Example: 1994-12-30')
+        
+    },
+    next: {
+        '*[0-9]+': 'Register.Organization',
+    },
+    defaultNext: 'IncorrectInput'
 });
 
 menu.state('Register.Organization', {
     run: () => {
         
-        let gender = genderArray[Number(menu.val)];
-        menu.session.set('gender', gender);
-        
-        menu.con('Please enter your organization')
+        if (helpers.isValidDate(menu.val)) {
+            menu.session.set('dob', menu.val);
+            menu.con('Please enter your organization')
+        }
+        else {
+            menu.end('You entered an invalid date, please try again later')
+        }
     },
     next: {
         '*[a-zA-Z]+': 'Register.Policy',
@@ -242,6 +259,7 @@ menu.state('Register.Policy.Complete', {
         var mobile = await menu.session.get('mobile');
         var policy = await menu.session.get('policy');
         var organization = await menu.session.get('organization');
+        var dob = await menu.session.get('dob');
         // if (mobile && mobile.startsWith('+233')) {
         //     // Remove Bearer from string
         //     mobile = mobile.replace('+233', '0');
@@ -252,13 +270,13 @@ menu.state('Register.Policy.Complete', {
 
         var data = {
             code: access.code, key: access.key,
-            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: null, purpose: organization
+            fullname: firstname + ' ' + lastname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: gender, source: "USSD", accountcode: policy.code, amount: policy.amount, network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: dob, organization: organization
         };
         await postCustomer(data, (data) => {
-            menu.end('Your policy has been registered successfully. Kindly confirm payment request sent to your phone.')
         }, (error) => {
             menu.end(error.message || 'Registration not Successful')
         })
+        menu.end('Your policy has been registered successfully. Kindly confirm payment request sent to your phone.')
     },
     next: {
         '0': '__start__'
