@@ -25,6 +25,8 @@ let chanel = { code: "446785909", key: "164383692" };
 // POST a User
 exports.Register = async(req, res) => {
     var value = req.body;
+    if(!value.source) { value.source = "APP"; }
+    if(!value.referer_code || value.body) { value.referer_code = value.ref_code || null; }
     console.log(JSON.stringify(value));
     var api_endpoint = apiurl + 'CreateCustomer/' + access.code + '/' + access.key;
     var reqs = unirest('POST', api_endpoint)
@@ -34,10 +36,10 @@ exports.Register = async(req, res) => {
     .send(JSON.stringify(value))
     .end((resp)=> { 
         if (resp.error) {
-            console.log(resp.error);
-            console.log(resp.body);
+            console.log(resp.body, resp.error);
+            // console.log(resp.body);
             return res.status(500).send({
-                message: resp.body.message || resp.error
+                message: resp.body && resp.body.status_message != null? resp.body.status_message : "Registeration and payment was not successful please try again"
             }); 
         }
         console.log(resp.body);
@@ -162,12 +164,36 @@ exports.updateMember = async(req, res) => {
 exports.addBeneficiary = async(req, res) => {
     var value = req.body;
     value.appId = chanel.code; value.appKey = chanel.key;
+    console.log(JSON.stringify(value, req.body));
     var api_endpoint = apiurlpms + 'AddBeneficiary';
     var reqs = unirest('POST', api_endpoint)
     .headers({
         'Content-Type': 'application/json'
     })
     .send(JSON.stringify(value))
+    .end(function (resp) { 
+        if (resp.error) {
+            console.log(resp.error);
+            console.log(resp.body);
+            return res.status(404).send(resp.body.error); 
+            // return res.status(404).send({
+            //     message: resp.body.error
+            // }); 
+        }
+        // console.log(res.raw_body);
+        return res.send(res.raw_body);
+    });
+};
+
+exports.removeBeneficiary = async(req, res) => {
+    // var value = req.body;
+    // value.appId = chanel.code; value.appKey = chanel.key;
+    var api_endpoint = apiurlpms + `RemoveBeneficiary?Appid=${chanel.code}&AppKey=${chanel.key}&id=${req.params.id}`;
+    var reqs = unirest('DELETE', api_endpoint)
+    .headers({
+        'Content-Type': 'application/json'
+    })
+    // .send(JSON.stringify(value))
     .end(function (resp) { 
         if (resp.error) {
             console.log(resp.error);
@@ -246,13 +272,19 @@ exports.agentPayment = (req, res) => {
 
 exports.sendOtp = async(req, res) => {
     var val = req.body;
+
+    if(val.mobile == null || val.source == null) {
+        return res.status(500).send({
+            message: "Mobile Number is Required"
+        });; 
+    }
        
     var api_endpoint = apiurl1 + val.type + '?mobile='+ val.mobile +'&id=' + val.source;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
+            console.log(resp.body,resp.error);
             return res.status(500).send({ success: false, message: 'Unable to sent Otp' });
         }
         console.log(resp.body);
@@ -266,13 +298,18 @@ exports.sendOtp = async(req, res) => {
 exports.verifyOtp = async(req, res) => {
     var val = req.body;
        
+    if(val.otp == null || val.mobile == null || val.source == null) {
+        return res.status(500).send({
+            message: "OTP is Required"
+        });; 
+    }
     var api_endpoint = apiurl1 + 'verify/' + val.otp + '?mobile='+ val.mobile +'&id=' + val.source;
     console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async (resp) => {
         if (resp.error) {
-            console.log(resp.error);
-            return res.status(500).send({ success: false, register: false, message: 'Code Not Valid' });
+            console.log(resp.body,resp.error);
+            return res.status(500).send({ success: false, register: false, message: resp.body == null ? 'Code Not Valid': resp.body.message || 'Code Not Valid' });
         }
         // console.log(resp.body);
         var response = JSON.parse(resp.raw_body);
@@ -537,7 +574,7 @@ exports.login = (req, res) => {
             });
         }else if (data.active && data.pin == null) {
             return res.send({
-                success: true, register: true, pin: false
+                success: true, register: true, pin: false, message: 'Account is not Activated for Web or App access',
             });
         }
         console.log(data.pin, req.body.pin);
@@ -750,9 +787,11 @@ exports.Deposit = (req, res) => {
             console.log(resp.raw_body);
             // var response = JSON.parse(resp.raw_body);
             // await callback(response);
-            if(resp.body.code != 1 && resp.body.code != 0) return res.status(500).send({
-                message: resp.body.message
-            })
+            if(resp.body.code != 1 && resp.body.code != 0) {
+                return res.status(500).send({
+                    message: resp.body.message
+                })
+            }
             return res.send({ output: 'Payment Request Sent', message: resp.body.message, ...response });
         });
     }

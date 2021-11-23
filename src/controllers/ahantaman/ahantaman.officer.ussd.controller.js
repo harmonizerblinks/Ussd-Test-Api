@@ -187,7 +187,8 @@ menu.state('Deposit.confirm', {
         var of = await menu.session.get('officer');
         var amount = await menu.session.get('amount');
         var account = await menu.session.get('account');
-        var network = await menu.session.get('network');
+        // var network = await menu.session.get('network');
+        var network = menu.args.operator.toUpperCase();
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Deposit', officerid: of.officerid, merchantid:account.merchantid };
         await postDeposit(data, async(result)=> { 

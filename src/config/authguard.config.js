@@ -21,6 +21,7 @@ module.exports = (passport) => {
     //         });
     //     }
     // ));
+
     let opts = {};
     opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
     opts.secretOrKey = config.secret;
@@ -34,4 +35,5 @@ module.exports = (passport) => {
             return done(null, false);
         })
     }));
+    
 }
