@@ -1142,22 +1142,51 @@ menu.state('Group.Savings.SelectGroup.Option.Amount.Confirm', {
 
 menu.state('Group.Withdrawal', {
     run: () => {
-        menu.con(
-            `Select group to withdraw` +
-            `1. Group 1\n` +
-            `2. Group 2\n`
-        )
+        let phone_number = helpers.formatPhoneNumber(menu.args.phoneNumber);
+        AirtelService.GetCustomerGroups(apiurl, merchant, access.key, phone_number, (response) => {
+            if(response && response.length > 0)
+            {
+                menu.session.set('groups', response);
+                let message = `Select group to withdraw from\n`;
+                response.forEach((element, index) => {
+                    message += `${(index + 1)}. ${element.groupname}\n`;
+                });
+                menu.con(message)
+            }
+            else
+            {
+                menu.end(
+                    `Sorry, you don't belong to any group`
+                )
+            }
+            
+        }, (err) => {
+            menu.end(
+                `Sorry, could not get customer's groups\n`
+            )
+        })
     },
     next: {
-        '*[1-2]': 'Group.Withdrawal.SelectGroup',
+        '*\\d+': 'Group.Withdrawal.SelectGroup',
     }
 })
 
 menu.state('Group.Withdrawal.SelectGroup', {
-    run: () => {
-        menu.con(
-            `Enter withdrawal amount`
-        )
+    run: async () => {
+        let groups = await menu.session.get('groups');
+
+        let group = groups[(Number(menu.val) -1)];
+        if(group)
+        {
+            menu.session.set('selected_group', group);
+            menu.con(
+                `Enter withdrawal amount`
+            )
+        }
+        else
+        {
+            menu.go("InvalidInput")
+        }
     },
     next: {
         '*\\d+': 'Group.Withdrawal.SelectGroup.Amount',
@@ -1165,12 +1194,14 @@ menu.state('Group.Withdrawal.SelectGroup', {
 })
 
 menu.state('Group.Withdrawal.SelectGroup.Amount', {
-    run: () => {
+    run: async () => {
         let withdrawal_amount = Number(menu.val);
+        menu.session.set('amount', withdrawal_amount);
+        let group = await menu.session.get('selected_group')
         menu.con(
-            `Confirm withdrawal of ${withdrawal_amount} from group\n` +
-            `1. Confirm` +
-            `2. Back` +
+            `Confirm withdrawal of GHS ${withdrawal_amount} from group ${group.groupname}\n` +
+            `1. Confirm\n` +
+            `2. Back\n` +
             `0. Cancel`
         )
     },
@@ -1193,10 +1224,43 @@ menu.state('Group.Withdrawal.SelectGroup.Amount.Confirm', {
 })
 
 menu.state('Group.Withdrawal.SelectGroup.Amount.Confirm.Pin', {
-    run: () => {
-        menu.end(
-            `You will receive a prompt to approve withdrawal \n`
-        )
+    run: async () => {
+        let pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid)
+        {
+            let account = await menu.session.get('selected_group');
+            let amount = await menu.session.get('amount');
+            let customer = {
+                "Account": `${account.code}`,
+                "Method": "Momo",
+                "NetWork": menu.args.operator,
+                "GroupId": account.groupid,
+                "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+                "Source": "Ussd",
+                "Amount": amount
+            }
+            await AirtelService.Withdrawal(ussdapiurl, customer, merchant, access,
+                (response) => {
+                    menu.end(
+                        `You will receive a prompt to approve withdrawal \n`
+                    )
+                },
+                (error) => {
+                    if(error.message)
+                    {
+                        menu.end(error.message);
+                    }
+                    else
+                    {
+                        menu.end("Sorry could not process transaction");
+                    }
+                })
+        }
+        else{
+            menu.end("Invalid pin, please try again later")
+        }
+        
     }
 })
 

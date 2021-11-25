@@ -59,6 +59,9 @@ module.exports = function(app) {
     var daakyeSusu = require('../controllers/airteltigo/daakye.ussd.controller.js');
     var chopboxonline = require('../controllers/chopboxonline/chopboxonline.controller.js');
 
+    //VSLA
+    var vsla_member = require('../controllers/vsla/vsla.member.ussd.controller');
+
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
     app.post('/group', hmplus.ussdApp);
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
@@ -117,5 +120,8 @@ module.exports = function(app) {
     app.post('/api/airteltigo', daakyeSusu.ussdApp);
     // CHOPBOXONLINE
     app.post('/api/chopboxonline', chopboxonline.ussdApp);
+
+    //VSLA
+    app.post('/api/vsla/member', vsla_member.ussdApp);
 
 }
