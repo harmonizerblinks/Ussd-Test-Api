@@ -18,15 +18,15 @@ let accesses = [{
 }, {
     code: "ACU001",
     key: "1029398",
-    apiurl: "https://app.alias-solutions.net:5003/"
+    apiurl: "http://localhost:5000/"
 }, {
     code: "500",
     key: "1029398",
     apiurl: "https://app.alias-solutions.net:5003/"
 }];
 //const apiUrl = "https://app.alias-solutions.net:5003/";
-// const apiurl = "http://localhost:5000/";
-const apiurl = "https://app.alias-solutions.net:5003/";
+const apiurl = "http://localhost:5000/";
+// const apiurl = "https://app.alias-solutions.net:5003/";
 
 
 exports.validateCustomer = (req, res) => {
@@ -883,7 +883,7 @@ exports.groupWithdrawal = async (req, res) =>{
         reference: 'Withdrawal from Account Number ' + val.account
     };
 
-    var api_endpoint = (access.apiurl || apiurl) + 'AirtelTigo/Withdrawal/' + access.code + '/' + access.key;
+    var api_endpoint = (access.apiurl || apiurl) + 'AirtelTigo/WithdrawalRequest/' + access.code + '/' + access.key;
     console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
@@ -906,6 +906,56 @@ exports.groupWithdrawal = async (req, res) =>{
                 message: response.message,
                 success: response.status === "FAILED" ? false : true
             });
+        });
+}
+
+exports.getCustomerGroups = async (req, res) =>{
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
+    const { mobile } =  req.params;
+    var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/GetCustomerGroups/${access.code}/${access.key}/${mobile}`;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.raw_body);
+                var response = JSON.parse(resp.raw_body);
+                res.status(500).send({
+                    message: response.message || 'Error occured while getting customer groups',
+                    success: false
+                });
+            }
+            var response = JSON.parse(resp.raw_body);
+            console.log(response);
+            res.send({
+                success: true,
+                data: response
+            })
+        });
+}
+
+exports.getGroupMemberTransactions = async (req, res) =>{
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
+    const { mobile, code } =  req.params;
+    var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/GetCustomerGroupAccount/${access.code}/${access.key}/${mobile}/${code}`;
+    console.log(api_endpoint);
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.raw_body);
+                var response = JSON.parse(resp.raw_body);
+                res.status(500).send({
+                    message: response.message || 'Error occured while getting group member transactions',
+                    success: false
+                });
+            }
+            var response = JSON.parse(resp.raw_body);
+            console.log(response);
+            res.send({
+                success: true,
+                data: response
+            })
         });
 }
 
