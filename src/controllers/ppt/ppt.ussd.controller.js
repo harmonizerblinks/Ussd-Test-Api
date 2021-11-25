@@ -364,9 +364,9 @@ menu.state('Pay.Option.Complete', {
         await postAutoDeposit(data, async(data) => {
 
         });
-        let message = 'Request submitted successfully. You will receive a payment prompt shortly';
+        let message = 'Request submitted. You will receive a payment prompt shortly';
         if (network == "MTN") {
-            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+            message+="\nIf you don't get prompt, kindly dial *170# > My Wallet > My Approvals and Approve payment"
         }
         menu.end(message)
     }
