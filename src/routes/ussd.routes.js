@@ -62,6 +62,9 @@ module.exports = function(app) {
     //VSLA
     var vsla_member = require('../controllers/vsla/vsla.member.ussd.controller');
 
+    //School Insurance
+    var schoolinsurance = require('../controllers/schoolinsurance/insurance.ussd.controller.js');
+
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
     app.post('/group', hmplus.ussdApp);
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
@@ -124,4 +127,6 @@ module.exports = function(app) {
     //VSLA
     app.post('/api/vsla/member', vsla_member.ussdApp);
 
+    //School Insurance
+    app.post('/api/schoolinsurance', schoolinsurance.ussdApp);
 }

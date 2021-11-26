@@ -846,7 +846,7 @@ menu.state('IncorrectInput', {
 });
 
 
-// Pension USSD
+// Boafopa USSD
 exports.ussdApp = async (req, res) => {
     // Create a 
     let args = req.body;
