@@ -55,7 +55,7 @@ menu.startState({
 		'0': 'Register',
 		'1': 'Payment',
 		'2': 'checkpolicy',
-		'3': 'claims'
+		'3': 'Claims'
 	}
 })
 
@@ -516,6 +516,34 @@ menu.state('Policies.Policy', {
 
 ///////////////--------------END POLICIES--------------////////////////
 
+
+
+///////////////--------------START CLAIMS--------------////////////////
+
+menu.state('Claims', {
+	run: async () => {
+		menu.con(
+			`Please select a claim\n` +
+			`1. Death\n` +
+			`2. Redundancy\n` +
+			`3. Critical Illness\n`
+		)
+	},
+	next: {
+		'*[1-3]': 'Claims.Select'
+	},
+})
+
+menu.state('Claims.Select', {
+	run: async () => {
+		menu.end(
+			`Claim request received, our help desk will attend to you shortly\n`
+		)
+	},
+	defaultNext: 'IncorrectInput'
+})
+
+///////////////--------------END CLAIMS--------------////////////////
 
 
 ///////////////--------------INSURANCE STARTS--------------////////////////
