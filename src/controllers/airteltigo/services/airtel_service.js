@@ -246,3 +246,44 @@ exports.GetCustomerGroups = async (apiurl, merch, key, mobile, callback, errorCa
             return await callback(resp.body);
         });
 }
+
+
+exports.AddGroupVice = async (apiurl, merchant, key, masterMobile, groupCode, customer, callback, errorCallback) => {
+    
+    console.log(JSON.stringify(customer));
+    var api_endpoint = `${apiurl}AddGroupVice/${merchant}/${key}/${masterMobile}/${groupCode}`;
+    var request = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(customer))
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.body);
+                return await errorCallback(resp.body);
+            }
+            else {
+                console.log(resp.body);
+                return await callback(resp.body);
+            }
+
+        });
+}
+
+
+exports.GetGroupLeaderGroups = async (apiurl, merch, key, mobile, callback, errorCallback) => {
+    var api_endpoint = `${apiurl}GetGroupLeaderGroups/${merch}/${key}/${mobile}`;
+    console.log(api_endpoint)
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                // return res;
+                return await errorCallback(resp.body);
+            }
+            return await callback(resp.body);
+        });
+}

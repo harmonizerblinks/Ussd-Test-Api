@@ -836,7 +836,7 @@ menu.state('Group.CreateOrJoin.Join', {
 menu.state('Group.CreateOrJoin.Join.Select', {
     run: async () => {
         let group_code = menu.val;
-        AirtelService.getGroup(apiurl, merchant, access.key, group_code, (data) => {
+        await AirtelService.getGroup(apiurl, merchant, access.key, group_code, (data) => {
             menu.session.set('group_code', group_code);
             menu.session.set('group_name', data.name);
             menu.con(
@@ -905,14 +905,53 @@ menu.state('Group.Management', {
 })
 
 menu.state('Group.Management.AddMember', {
-    run: () => {
+    run: async () => {
+        await AirtelService.GetGroupLeaderGroups(apiurl, merchant, access.key, helpers.formatPhoneNumber(menu.args.phoneNumber),
+            async (response) => {
+                if(response && response.length > 0)
+                {
+                    menu.session.set('available_groups', response);
+                    let the_message = "Please select the group\n";
+                    response.forEach((element, index) => {
+                        the_message += `${Number(index + 1)}. ${element.name}\n`;
+                    });
+                    menu.con(the_message);
+                }
+                else
+                {
+                    menu.end('No groups to display');
+                }
+            },
+            (error) => {
+                menu.end('Sorry could not retrieve groups'
+                )
+            })
+        
+    },
+    next: {
+        '*\\d+': 'Group.Management.AddMember.SelectGroup'
+    }
+})
+
+menu.state('Group.Management.AddMember.SelectGroup', {
+    run: async () => {
+
+        let available_groups = await menu.session.get('available_groups');
+        let group = available_groups[Number(menu.val - 1)];
+        if(!group)
+        {
+            return menu.end("You did not select a valid group");
+        }
+
+        menu.session.set('selected_group', group);
         menu.con(
-            `Add Group Member\'s Mobile Number\n`
+            `Enter Group Member\'s Mobile Number\n`
         )
     },
     next: {
         '*\\d+': 'Group.Management.AddMember.Mobile'
-    }
+    },
+    defaultNext: 'InvalidInput'
 })
 
 menu.state('Group.Management.AddMember.Mobile', {
@@ -940,13 +979,56 @@ menu.state('Group.Management.AddMember.Mobile', {
 menu.state('Group.Management.AddMember.Mobile.Role', {
     run: async () => {
         let member_phonenumber = await menu.session.get('member_phonenumber');
-        menu.con(
-            `You have added ${member_phonenumber}\n` +
-            `to the group\n` +
-            `1. Confirm \n` +
-            `2. Back \n` +
-            `0. Cancel \n`
-        )
+
+        let memberRole = member_roles[Number(menu.val) - 1];
+        
+        if(memberRole == 'Ass. Leader')
+        {
+            let customer = {
+                "Mobile": helpers.formatPhoneNumber(member_phonenumber),
+                "FullName": "Customer"
+            }
+            let selected_group = await menu.session.get('selected_group');
+            AirtelService.AddGroupVice(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code ,customer, (response) => {                
+                return menu.con(
+                    `You have successfully added ${member_phonenumber} as the group vice\n`
+                )
+            }, (err) => {
+                console.log(err)
+                menu.end(
+                    `Sorry could not add group vice`
+                )
+            })
+    
+            
+            // menu.con(
+            //     `You have added ${member_phonenumber}\n` +
+            //     `to the group\n` +
+            //     `1. Confirm \n` +
+            //     `2. Back \n` +
+            //     `0. Cancel \n`
+            // )
+        }
+        else
+        {
+            let customer = {
+                "Mobile": helpers.formatPhoneNumber(member_phonenumber),
+                "FullName": "Customer"
+            }
+            let selected_group = await menu.session.get('selected_group');
+            AirtelService.AddCustomerToGroup(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code ,customer, (response) => {                
+                return menu.con(
+                    `You have successfully added ${member_phonenumber} as the group vice\n`
+                )
+            }, (err) => {
+                // console.log(err)
+                menu.end(
+                    `Sorry could not add group vice`
+                )
+            })
+            
+        }
+        
     },
     next: {
         '1': 'Group.Management.AddMember.Mobile.Role.Confirm',
