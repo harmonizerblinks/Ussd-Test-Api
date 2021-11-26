@@ -36,5 +36,7 @@ module.exports = function(app) {
     app.get('/customer/getGroupDetails/:code', verify.verifyToken, apps.getGroupDetails);
     app.post('/customer/groupDeposit', verify.verifyToken, apps.groupDeposit);
     app.post('/customer/groupWithdrawal', verify.verifyToken, apps.groupWithdrawal);
+    app.get('/customer/getCustomerGroups/:mobile', verify.verifyToken, apps.getCustomerGroups);
+    app.get('/customer/getGroupMemberTransactions/:mobile/:code', verify.verifyToken, apps.getGroupMemberTransactions);
 
 }
