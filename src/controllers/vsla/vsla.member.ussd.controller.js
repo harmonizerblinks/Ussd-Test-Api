@@ -6,7 +6,7 @@ let sessions = {};
 const appKey = '062262554'; const appId = '052683438';
 // const apiUrl = "https://app.alias-solutions.net:50033/Ussd/";
 var apiUrl = 'https://api-aslans.paynowafrica.com/api/services/app/';
-
+const bcrypt = require('bcryptjs');
 menu.sessionConfig({
     start: (sessionId, callback) => {
         // initialize current session if it doesn't exist
@@ -58,7 +58,7 @@ menu.startState({
                     )
             }
             else {
-                menu.con('Enter the number you were sign up with');
+                menu.con('Enter the number you were signed up with');
             }
         })
     },
@@ -311,7 +311,7 @@ menu.state('othershares.proceed', {
 menu.state('Number', {
     run: () => {
         console.log(menu.args);
-        menu.end('use the number use were sign up with');
+        menu.end('use the number use were signed up with');
     },
     next: {
         // using regex to match user input to next state
