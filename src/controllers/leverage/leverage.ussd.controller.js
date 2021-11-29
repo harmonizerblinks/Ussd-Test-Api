@@ -54,13 +54,17 @@ menu.on('error', (err) => {
 menu.startState({
     run: async() => {
         // Fetch Customer information
-        console.log(menu.args,'Argument');
         
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
-            console.log(1,data); 
-            if(data && data.active && data.pin != '' && data.pin != null && data.pin != '1234') {
+            // console.log(1,data); 
+            let pinValid = false;
+            if(data.pin)
+            {
+                pinValid = ! bcrypt.compareSync("1234", data.pin)
+            }
+            if(data && data.active && data.pin != '' && data.pin != null && data.pin != '1234' && pinValid) {
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
 
@@ -72,7 +76,8 @@ menu.startState({
                 '\n4. Other' +
                 '\n5. Contact');
 
-            } else if(data && data.active && (data.pin == null || data.pin == '' || data.pin == '1234')) {
+            } 
+            else if(data && data.active && (data.pin == null || data.pin == '' || data.pin == '1234' || !pinValid )) {
                 menu.session.set('cust', data);
                 // menu.session.set('pin', data.pin);
 
@@ -142,7 +147,8 @@ menu.state('User.account',{
 menu.state('User.pin',{
     run: async() => {
         var pin = await menu.session.get('pin');
-        if(menu.val === pin) {
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid) {
             // var newpin = Number(menu.val);
             // menu.session.set('newpin', newpin);
             menu.con('Enter new 4 digits PIN');
@@ -180,15 +186,17 @@ menu.state('User.verifypin', {
         var pin = await menu.session.get('newpin');
         if(menu.val === pin) {
             var newpin = Number(menu.val);
+            const hashedPin = bcrypt.hashSync(newpin, 10);
             // var cust = await menu.session.get('cust');
             // console.log(cust);
             var mobile = menu.args.phoneNumber;
             // menu.con('Thank you for successfully creating a PIN. Enter zero(0) to continue');
-            var value = { type: 'Customer', mobile: mobile, pin: pin, newpin: newpin, confirmpin: newpin };
+            var value = { type: 'Customer', mobile: mobile, pin: hashedPin, newpin: hashedPin, confirmpin: hashedPin };
             await postChangePin(value, (data)=> { 
                 // console.log(1,data); 
-                menu.session.set('pin', newpin);
-                menu.con(data.message);
+                menu.session.set('pin', hashedPin);
+                // menu.con(data.message);
+                menu.end('Pin successfully changed')
             }).catch((err)=>{ menu.end(err); });;
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
@@ -331,8 +339,8 @@ menu.state('Withdrawal.account',{
     run: async() => {
         var pin = await menu.session.get('pin');
         // var custpin = Number(menu.val);
-        console.info(pin, menu.val);
-        if(menu.val === pin) {
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid) {
             // var accts = ''; var count = 1;
             // var accounts = await menu.session.get('accounts');
             // accounts.forEach(val => {
@@ -372,7 +380,6 @@ menu.state('Withdrawal.amount',{
         var index = Number(menu.val);
         var val = {mobile: menu.args.phoneNumber, index: index};
         await fetchCustomerAccount(val, async(account)=> { 
-            console.log(account);
             if(account && account.code) {
                 menu.session.set('account',account);
                 await fetchBalance(account.code, async(result)=> { 
@@ -402,7 +409,7 @@ menu.state('Withdrawal.view',{
         // use menu.val to access user input value
         var amount = Number(menu.val);
         // save user input in session
-        if(amount < 1) { menu.end("Minimum Withdrawal Amount is 1 cedis") }
+        if(amount < 1) { menu.end("Minimum Withdrawal Amount is GHS 1") }
         menu.session.set('amount', amount);
         // var cust = await menu.session.get('cust');
         var account = await menu.session.get('account');
@@ -463,7 +470,7 @@ menu.state('Withdrawal.confirm', {
 menu.state('Withdrawal.cancel', {
     run: () => {
         // Cancel Withdrawal request
-        menu.end('Thank you for using People Pension Trust.');
+        menu.end('Thank you for using our service.');
     }
 });
 
@@ -480,9 +487,8 @@ menu.state('CheckBalance',{
 menu.state('CheckBalance.account',{
     run: async() => {
         var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        console.log(pin);
-        if(menu.val === pin) {
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid) {
             await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
                 if(accounts.length > 0) {
                     var accts = ''; var count = 1;
@@ -501,7 +507,7 @@ menu.state('CheckBalance.account',{
                 menu.end(err)
             });
         } else {
-            menu.con('Incorrect Pin. Enter zero(0) to continue')
+            menu.end('Incorrect pin, please retry later')
         }
     },
     next: {
@@ -515,9 +521,7 @@ menu.state('CheckBalance.balance',{
     run: async() => {
         var index = Number(menu.val);
         var val = {mobile: menu.args.phoneNumber, index: index};
-        console.log(val);
         await fetchCustomerAccount(val, async(account)=> { 
-            console.log(account);
             if(account && account.code) {
                 await fetchBalance(account.code, async(result)=> { 
                     // console.log(result) 
@@ -575,8 +579,8 @@ menu.state('Statement',{
 menu.state('Statement.account',{
     run: async() => {
         var pin = await menu.session.get('pin');
-        // var custpin = Number(menu.val);
-        if(menu.val === pin) {
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid) {
             await fetchCustomerAccounts(menu.args.phoneNumber, (accounts)=> { 
                 if(accounts.length > 0) {
                     var accts = ''; var count = 1;
@@ -609,11 +613,9 @@ menu.state('Statement.transactions',{
     run: async() => {
         var index = Number(menu.val);
         var accounts = await menu.session.get('accounts');
-        // console.log(accounts);
         var account = accounts[index-1]
         // menu.session.set('account', account);
-        await fetchStatement(account.code, async(data)=> { 
-            console.log(data)
+        await fetchStatement(account.code, async(data)=> {
             var accts = ''; var count = 1;
             await data.forEach(async(val) => {
                 // console.log(val);

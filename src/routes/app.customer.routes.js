@@ -31,5 +31,12 @@ module.exports = function(app) {
     app.get('/customer/verifyMobile/:mobile', verify.verifyToken, apps.getInfo);
     app.get('/customer/validate-account/:account', verify.verifyToken, apps.validateAccountNumber);
     app.post('/customer/transfer-to-local', verify.verifyToken, apps.transferToLocal);
+    app.post('/customer/createGroup', verify.verifyToken, apps.createGroup);
+    app.post('/customer/addGroupVice', verify.verifyToken, apps.addGroupVice);
+    app.get('/customer/getGroupDetails/:code', verify.verifyToken, apps.getGroupDetails);
+    app.post('/customer/groupDeposit', verify.verifyToken, apps.groupDeposit);
+    app.post('/customer/groupWithdrawal', verify.verifyToken, apps.groupWithdrawal);
+    app.get('/customer/getCustomerGroups/:mobile', verify.verifyToken, apps.getCustomerGroups);
+    app.get('/customer/getGroupMemberTransactions/:mobile/:code', verify.verifyToken, apps.getGroupMemberTransactions);
 
 }

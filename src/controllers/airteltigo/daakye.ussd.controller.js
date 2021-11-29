@@ -836,7 +836,7 @@ menu.state('Group.CreateOrJoin.Join', {
 menu.state('Group.CreateOrJoin.Join.Select', {
     run: async () => {
         let group_code = menu.val;
-        AirtelService.getGroup(apiurl, merchant, access.key, group_code, (data) => {
+        await AirtelService.getGroup(apiurl, merchant, access.key, group_code, (data) => {
             menu.session.set('group_code', group_code);
             menu.session.set('group_name', data.name);
             menu.con(
@@ -905,14 +905,53 @@ menu.state('Group.Management', {
 })
 
 menu.state('Group.Management.AddMember', {
-    run: () => {
+    run: async () => {
+        await AirtelService.GetGroupLeaderGroups(apiurl, merchant, access.key, helpers.formatPhoneNumber(menu.args.phoneNumber),
+            async (response) => {
+                if(response && response.length > 0)
+                {
+                    menu.session.set('available_groups', response);
+                    let the_message = "Please select the group\n";
+                    response.forEach((element, index) => {
+                        the_message += `${Number(index + 1)}. ${element.name}\n`;
+                    });
+                    menu.con(the_message);
+                }
+                else
+                {
+                    menu.end('No groups to display');
+                }
+            },
+            (error) => {
+                menu.end('Sorry could not retrieve groups'
+                )
+            })
+        
+    },
+    next: {
+        '*\\d+': 'Group.Management.AddMember.SelectGroup'
+    }
+})
+
+menu.state('Group.Management.AddMember.SelectGroup', {
+    run: async () => {
+
+        let available_groups = await menu.session.get('available_groups');
+        let group = available_groups[Number(menu.val - 1)];
+        if(!group)
+        {
+            return menu.end("You did not select a valid group");
+        }
+
+        menu.session.set('selected_group', group);
         menu.con(
-            `Add Group Member\'s Mobile Number\n`
+            `Enter Group Member\'s Mobile Number\n`
         )
     },
     next: {
         '*\\d+': 'Group.Management.AddMember.Mobile'
-    }
+    },
+    defaultNext: 'InvalidInput'
 })
 
 menu.state('Group.Management.AddMember.Mobile', {
@@ -940,13 +979,56 @@ menu.state('Group.Management.AddMember.Mobile', {
 menu.state('Group.Management.AddMember.Mobile.Role', {
     run: async () => {
         let member_phonenumber = await menu.session.get('member_phonenumber');
-        menu.con(
-            `You have added ${member_phonenumber}\n` +
-            `to the group\n` +
-            `1. Confirm \n` +
-            `2. Back \n` +
-            `0. Cancel \n`
-        )
+
+        let memberRole = member_roles[Number(menu.val) - 1];
+        
+        if(memberRole == 'Ass. Leader')
+        {
+            let customer = {
+                "Mobile": helpers.formatPhoneNumber(member_phonenumber),
+                "FullName": "Customer"
+            }
+            let selected_group = await menu.session.get('selected_group');
+            AirtelService.AddGroupVice(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code ,customer, (response) => {                
+                return menu.con(
+                    `You have successfully added ${member_phonenumber} as the group vice\n`
+                )
+            }, (err) => {
+                console.log(err)
+                menu.end(
+                    `Sorry could not add group vice`
+                )
+            })
+    
+            
+            // menu.con(
+            //     `You have added ${member_phonenumber}\n` +
+            //     `to the group\n` +
+            //     `1. Confirm \n` +
+            //     `2. Back \n` +
+            //     `0. Cancel \n`
+            // )
+        }
+        else
+        {
+            let customer = {
+                "Mobile": helpers.formatPhoneNumber(member_phonenumber),
+                "FullName": "Customer"
+            }
+            let selected_group = await menu.session.get('selected_group');
+            AirtelService.AddCustomerToGroup(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code ,customer, (response) => {                
+                return menu.con(
+                    `You have successfully added ${member_phonenumber} as the group vice\n`
+                )
+            }, (err) => {
+                // console.log(err)
+                menu.end(
+                    `Sorry could not add group vice`
+                )
+            })
+            
+        }
+        
     },
     next: {
         '1': 'Group.Management.AddMember.Mobile.Role.Confirm',
@@ -1142,22 +1224,51 @@ menu.state('Group.Savings.SelectGroup.Option.Amount.Confirm', {
 
 menu.state('Group.Withdrawal', {
     run: () => {
-        menu.con(
-            `Select group to withdraw` +
-            `1. Group 1\n` +
-            `2. Group 2\n`
-        )
+        let phone_number = helpers.formatPhoneNumber(menu.args.phoneNumber);
+        AirtelService.GetCustomerGroups(apiurl, merchant, access.key, phone_number, (response) => {
+            if(response && response.length > 0)
+            {
+                menu.session.set('groups', response);
+                let message = `Select group to withdraw from\n`;
+                response.forEach((element, index) => {
+                    message += `${(index + 1)}. ${element.groupname}\n`;
+                });
+                menu.con(message)
+            }
+            else
+            {
+                menu.end(
+                    `Sorry, you don't belong to any group`
+                )
+            }
+            
+        }, (err) => {
+            menu.end(
+                `Sorry, could not get customer's groups\n`
+            )
+        })
     },
     next: {
-        '*[1-2]': 'Group.Withdrawal.SelectGroup',
+        '*\\d+': 'Group.Withdrawal.SelectGroup',
     }
 })
 
 menu.state('Group.Withdrawal.SelectGroup', {
-    run: () => {
-        menu.con(
-            `Enter withdrawal amount`
-        )
+    run: async () => {
+        let groups = await menu.session.get('groups');
+
+        let group = groups[(Number(menu.val) -1)];
+        if(group)
+        {
+            menu.session.set('selected_group', group);
+            menu.con(
+                `Enter withdrawal amount`
+            )
+        }
+        else
+        {
+            menu.go("InvalidInput")
+        }
     },
     next: {
         '*\\d+': 'Group.Withdrawal.SelectGroup.Amount',
@@ -1165,12 +1276,14 @@ menu.state('Group.Withdrawal.SelectGroup', {
 })
 
 menu.state('Group.Withdrawal.SelectGroup.Amount', {
-    run: () => {
+    run: async () => {
         let withdrawal_amount = Number(menu.val);
+        menu.session.set('amount', withdrawal_amount);
+        let group = await menu.session.get('selected_group')
         menu.con(
-            `Confirm withdrawal of ${withdrawal_amount} from group\n` +
-            `1. Confirm` +
-            `2. Back` +
+            `Confirm withdrawal of GHS ${withdrawal_amount} from group ${group.groupname}\n` +
+            `1. Confirm\n` +
+            `2. Back\n` +
             `0. Cancel`
         )
     },
@@ -1193,10 +1306,43 @@ menu.state('Group.Withdrawal.SelectGroup.Amount.Confirm', {
 })
 
 menu.state('Group.Withdrawal.SelectGroup.Amount.Confirm.Pin', {
-    run: () => {
-        menu.end(
-            `You will receive a prompt to approve withdrawal \n`
-        )
+    run: async () => {
+        let pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if(pinValid)
+        {
+            let account = await menu.session.get('selected_group');
+            let amount = await menu.session.get('amount');
+            let customer = {
+                "Account": `${account.code}`,
+                "Method": "Momo",
+                "NetWork": menu.args.operator,
+                "GroupId": account.groupid,
+                "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+                "Source": "Ussd",
+                "Amount": amount
+            }
+            await AirtelService.Withdrawal(ussdapiurl, customer, merchant, access,
+                (response) => {
+                    menu.end(
+                        `You will receive a prompt to approve withdrawal \n`
+                    )
+                },
+                (error) => {
+                    if(error.message)
+                    {
+                        menu.end(error.message);
+                    }
+                    else
+                    {
+                        menu.end("Sorry could not process transaction");
+                    }
+                })
+        }
+        else{
+            menu.end("Invalid pin, please try again later")
+        }
+        
     }
 })
 
