@@ -58,8 +58,9 @@ menu.startState({
         let WelcomeNewUser = 'Welcome to Daakye Personal SUSU\nSelect Susu Type' +
             '\n1. Personal' +
             '\n2. Group';
-        await AirtelService.fetchCustomer(apiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
+        await AirtelService.fetchCustomer(ussdapiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             (response) => {
+                // console.log(response);
                 if (response.pin) {
                     menu.session.set('pin', response.pin);
                     menu.session.set('account', response.accounts[0]);
@@ -87,7 +88,7 @@ menu.startState({
 
 menu.state('Personal', {
     run: async () => {
-        await AirtelService.fetchCustomer(apiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
+        await AirtelService.fetchCustomer(ussdapiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             (response) => {
                 menu.con('Welcome to Daakye Personal SUSU' +
                     '\n1. Savings' +
@@ -141,16 +142,15 @@ menu.state('Personal.Register.Read', {
 
 menu.state('Personal.Register.AcceptDecline', {
     run: async () => {
-        
+
         // await AirtelService.getInfo( "http://localhost:4041/api/", access.code, access.key, menu.args.phoneNumber,
-        await AirtelService.getInfo( ussdapiurl, access.code, access.key, menu.args.phoneNumber,
+        await AirtelService.getInfo(ussdapiurl, access.code, access.key, menu.args.phoneNumber,
             (response) => {
-                if(response.firstname && response.lastname){
+                if (response.firstname && response.lastname) {
                     menu.session.set('firstname', response.firstname)
                     menu.session.set('lastname', response.lastname)
                 }
-                else
-                {                
+                else {
                     menu.session.set('firstname', "N/A")
                     menu.session.set('lastname', "")
                 }
@@ -216,16 +216,14 @@ menu.state('Personal.Savings', {
 
         //check if user is already registered by retrieving their saved pin in session, otherwise they selected this option that wasn't displayed to them
         let pin = await menu.session.get('pin');
-        if(pin)
-        {
+        if (pin) {
             let message = "";
             optionArray.forEach((element, index) => {
                 message += `${(index + 1)}. ${element}\n`;
             });
             menu.con(message)
         }
-        else
-        {
+        else {
             menu.go("InvalidInput")
         }
     },
@@ -260,13 +258,13 @@ menu.state('Personal.Savings.ChooseOption', {
 })
 
 menu.state('Personal.Savings.Amount', {
-    run: async () => {        
+    run: async () => {
         var mobile = menu.args.phoneNumber;
         await AirtelService.getCustomerAccount(apiurl, merchant, access.key, helpers.formatPhoneNumber(mobile), 1,
             (response) => {
                 let account = response;
-                menu.session.set('account', account);       
-                menu.session.set('amount', menu.val);                
+                menu.session.set('account', account);
+                menu.session.set('amount', menu.val);
                 menu.con(
                     `Dear customer,\n` +
                     `Confirm payment of GHS ${menu.val} to\n` +
@@ -278,7 +276,7 @@ menu.state('Personal.Savings.Amount', {
             },
             (error) => {
                 menu.end("Sorry could not retrieve account details");
-            })        
+            })
     },
     next: {
         '1': 'Personal.Savings.Amount.Confirm',
@@ -297,7 +295,7 @@ menu.state('Personal.Savings.Amount.Confirm', {
             "Account": `${account.code}`,
             "Method": "Momo",
             "Source": "Ussd",
-            "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+            "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber),
             "Amount": amount,
             "Frequency": personal_savings_option,
             "NetWork": menu.args.operator,
@@ -328,13 +326,13 @@ menu.state('Personal.Savings.OnlyOnce', {
 
 
 menu.state('Personal.Savings.OnlyOnce.Amount', {
-    run: async () => {        
+    run: async () => {
         var mobile = menu.args.phoneNumber;
         await AirtelService.getCustomerAccount(apiurl, merchant, access.key, helpers.formatPhoneNumber(mobile), 1,
             (response) => {
                 let account = response;
-                menu.session.set('account', account);       
-                menu.session.set('amount', menu.val);                
+                menu.session.set('account', account);
+                menu.session.set('amount', menu.val);
                 menu.con(
                     `Dear customer,\n` +
                     `Confirm payment of GHS ${menu.val} to\n` +
@@ -345,7 +343,7 @@ menu.state('Personal.Savings.OnlyOnce.Amount', {
             },
             (error) => {
                 menu.end("Sorry could not retrieve account details");
-            })        
+            })
     },
     next: {
         '1': 'Personal.Savings.OnlyOnce.Amount.Confirm',
@@ -363,7 +361,7 @@ menu.state('Personal.Savings.OnlyOnce.Amount.Confirm', {
             "Account": `${account.code}`,
             "Method": "Momo",
             "NetWork": menu.args.operator,
-            "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+            "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber),
             "Source": "Ussd",
             "Amount": amount
         }
@@ -384,12 +382,10 @@ menu.state('Personal.Withdrawal', {
     run: async () => {
         //check if user is already registered by retrieving their saved pin in session, otherwise they selected this option that wasn't displayed to them
         let pin = await menu.session.get('pin');
-        if(pin)
-        {
+        if (pin) {
             menu.con('Enter withdrawal amount')
         }
-        else
-        {
+        else {
             menu.go("InvalidInput")
         }
     },
@@ -433,19 +429,18 @@ menu.state('Personal.Withdrawal.Amount.Confirm.Pin', {
     run: async () => {
         let pin = await menu.session.get('pin');
         let pinValid = bcrypt.compareSync(menu.val, pin);
-        if(pinValid)
-        {
+        if (pinValid) {
             let account = await menu.session.get('account');
             let amount = await menu.session.get('withdrawal_amount');
             let customer = {
                 "Account": `${account.code}`,
                 "Method": "Momo",
                 "NetWork": menu.args.operator,
-                "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+                "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber),
                 "Source": "Ussd",
                 "Amount": amount
             }
-            
+
             await AirtelService.Withdrawal(ussdapiurl, customer, merchant, access,
                 (response) => {
                     menu.end(
@@ -453,17 +448,15 @@ menu.state('Personal.Withdrawal.Amount.Confirm.Pin', {
                     )
                 },
                 (error) => {
-                    if(error.message)
-                    {
+                    if (error.message) {
                         menu.end(error.message);
                     }
-                    else
-                    {
+                    else {
                         menu.end("Sorry could not process transaction");
                     }
                 })
         }
-        else{
+        else {
 
             menu.end("Invalid pin, please try again later")
         }
@@ -475,8 +468,7 @@ menu.state('Personal.MyAccount', {
 
         //check if user is already registered by retrieving their saved pin in session, otherwise they selected this option that wasn't displayed to them
         let pin = await menu.session.get('pin');
-        if(pin)
-        {
+        if (pin) {
             menu.con(
                 `My Account` +
                 '\n1. Check Balance' +
@@ -484,8 +476,7 @@ menu.state('Personal.MyAccount', {
                 '\n3. Change Pin'
             )
         }
-        else
-        {
+        else {
             menu.go("InvalidInput")
         }
     },
@@ -512,24 +503,21 @@ menu.state('Personal.MyAccount.CheckBalance.Pin', {
     run: async () => {
         let pin = await menu.session.get('pin');
         let pinValid = bcrypt.compareSync(menu.val, pin);
-        if(pinValid)
-        {
-            let account = await menu.session.get('account');            
-            if(account.balance || account.balance == 0)
-            {
+        if (pinValid) {
+            let account = await menu.session.get('account');
+            if (account.balance || account.balance == 0) {
                 menu.end(
                     `Your current balance is GHS ${account.balance}\n`
-                )    
+                )
             }
-            else
-            {
+            else {
                 menu.end("Sorry could not retrieve account balance");
-            }               
+            }
         }
-        else{
+        else {
             menu.end("Invalid pin, please try again later")
         }
-        
+
     }
 })
 
@@ -549,43 +537,38 @@ menu.state('Personal.MyAccount.MiniStatement.Pin', {
 
         let pin = await menu.session.get('pin');
         let pinValid = bcrypt.compareSync(menu.val, pin);
-        if(pinValid)
-        {
+        if (pinValid) {
             let account = await menu.session.get('account');
 
-            await AirtelService.getAccountTransaction(ussdapiurl, merchant, access, account.code ,
+            await AirtelService.getAccountTransaction(ussdapiurl, merchant, access, account.code,
                 (response) => {
-                    if(response.length > 0)
-                    {
+                    if (response.length > 0) {
                         let message = `Your last 3 transactions are:\n`
 
                         response.forEach((element, index) => {
-                            message += `${(index + 1)}. ${ helpers.trimDate(element.date)} - GHS ${ element.amount}\n`;
+                            message += `${(index + 1)}. ${helpers.trimDate(element.date)} - GHS ${element.amount}\n`;
                         });
 
-                        menu.end(message ) 
+                        menu.end(message)
                     }
-                    else
-                    {
+                    else {
                         menu.end("No recent transactions to display")
                     }
-                    
+
                 },
                 (error) => {
-                    if(error.message)
-                    {
+                    if (error.message) {
                         menu.end(error.message);
                     }
-                    else
-                    {
+                    else {
                         menu.end("Sorry could not retrieve mini statement");
                     }
-                })             
-                      
+                })
+
         }
-        else{
+        else {
             menu.end("Invalid pin, please try again later")
-        }        
+        }
     }
 })
 
@@ -602,21 +585,20 @@ menu.state('Personal.MyAccount.ChangePin', {
 
 menu.state('Personal.MyAccount.ChangePin.CurrentPin', {
     run: async () => {
-        
+
         let pin = await menu.session.get('pin');
         let pinValid = bcrypt.compareSync(menu.val, pin);
-        if(pinValid)
-        {
+        if (pinValid) {
             let hashedOldPin = bcrypt.hashSync(menu.val, 10)
-            menu.session.set('old_pin',  hashedOldPin);
+            menu.session.set('old_pin', hashedOldPin);
             menu.con(
                 `Enter new pin\n`
-            )              
+            )
         }
-        else{
+        else {
             menu.end("Invalid pin, please try again later")
         }
-        
+
     },
     next: {
         '*[0-9]+': 'Personal.MyAccount.ChangePin.NewPin',
@@ -644,18 +626,18 @@ menu.state('Personal.MyAccount.ChangePin.NewPin.Confirm', {
         var pin_new = await menu.session.get('new_pin');
         var old_pin = await menu.session.get('old_pin');
 
-        if (menu.val == pin_new) {            
+        if (menu.val == pin_new) {
             const hashedPin = bcrypt.hashSync(menu.val, 10);
             var mobile = menu.args.phoneNumber;
-            
+
             var customer = { "Type": "Customer", "Mobile": helpers.formatPhoneNumber(mobile), "Pin": old_pin, "NewPin": hashedPin, "ConfirmPin": hashedPin };
-            await AirtelService.postChangePin( ussdapiurl , customer, merchant, access, (data) => {
+            await AirtelService.postChangePin(ussdapiurl, customer, merchant, access, (data) => {
                 // menu.session.set('pin', newpin);
                 menu.end("Pin successfully changed");
-            },(err) => { 
-                menu.end("Sorry pin could not be changed"); 
+            }, (err) => {
+                menu.end("Sorry pin could not be changed");
             });
-            
+
         } else {
             menu.end('Sorry, pin confirmation does not match');
         }
@@ -700,13 +682,13 @@ menu.state('User.verifypin', {
             // var newpin = Number(menu.val);
             const newpin = bcrypt.hashSync(menu.val, 10);
             var mobile = menu.args.phoneNumber;
-            
+
             var customer = { "Type": "Customer", "Mobile": helpers.formatPhoneNumber(mobile), "Pin": newpin, "NewPin": newpin, "ConfirmPin": newpin };
             await AirtelService.postChangePin(ussdapiurl, customer, merchant, access, (data) => {
                 // menu.session.set('pin', newpin);
                 menu.end("Pin successfully changed");
-            },(err) => { 
-                menu.end("Sorry pin could not be changed"); 
+            }, (err) => {
+                menu.end("Sorry pin could not be changed");
             });
         } else {
             menu.con('Incorrect Pin. Enter zero(0) to continue')
@@ -767,14 +749,13 @@ menu.state('Group.CreateOrJoin.Create.Name', {
     run: async () => {
         menu.session.set('group_name', menu.val);
         // await AirtelService.getInfo( "http://localhost:4041/api/", access.code, access.key, menu.args.phoneNumber,
-        await AirtelService.getInfo( ussdapiurl, access.code, access.key, menu.args.phoneNumber,
+        await AirtelService.getInfo(ussdapiurl, access.code, access.key, menu.args.phoneNumber,
             (response) => {
-                if(response.firstname && response.lastname){
+                if (response.firstname && response.lastname) {
                     menu.session.set('firstname', response.firstname)
                     menu.session.set('lastname', response.lastname)
                 }
-                else
-                {                
+                else {
                     menu.session.set('firstname', "N")
                     menu.session.set('lastname', "/A")
                 }
@@ -798,17 +779,17 @@ menu.state('Group.CreateOrJoin.Create.Name.Description', {
         let firstname = await menu.session.get('firstname');
         let lastname = await menu.session.get('lastname');
         let mobile = menu.args.phoneNumber
-        var group = { "Type": "Group","Name": group_name, "Mobile": helpers.formatPhoneNumber(mobile), "Group_Leader":  `${lastname} ${firstname}`, "Balance": 0 };
-            await AirtelService.CreateGroup( apiurl , merchant, access.key, group, (response) => {
-                menu.end(
-                    `You have created group ${group_name} successfully\n` +
-                    `Group code is ${response.code}\n` +
-                    `You can add new members from the Group Mgt menu\n`
-                )
-            },(err) => { 
-                menu.end( err.message || "Sorry, could not create group"); 
-            });
-        
+        var group = { "Type": "Group", "Name": group_name, "Mobile": helpers.formatPhoneNumber(mobile), "Group_Leader": `${firstname} ${lastname}`, "Balance": 0 };
+        await AirtelService.CreateGroup(apiurl, merchant, access.key, group, (response) => {
+            menu.end(
+                `You have created group ${group_name} successfully\n` +
+                `Group code is ${response.code}\n` +
+                `You can add new members from the Group Mgt menu\n`
+            )
+        }, (err) => {
+            menu.end(err.message || "Sorry, could not create group");
+        });
+
     },
     next: {
         '1': 'Exit',
@@ -863,9 +844,9 @@ menu.state('Group.CreateOrJoin.Join.Select.Confirm', {
         let group_code = await menu.session.get('group_code');
         let group_name = await menu.session.get('group_name');
 
-        await AirtelService.fetchCustomer(apiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
+        await AirtelService.fetchCustomer(ussdapiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             async (response) => {
-                let customer = { "FullName": response.fullname ,"Mobile": response.mobile,"Gender": response.gender };
+                let customer = { "FullName": response.fullname, "Mobile": response.mobile, "Gender": response.gender };
 
                 await AirtelService.AddCustomerToGroup(apiurl, merchant, access.key, group_code, customer,
                     (response) => {
@@ -880,8 +861,8 @@ menu.state('Group.CreateOrJoin.Join.Select.Confirm', {
             (error) => {
                 menu.end('Please register as a customer first'
                 )
-            })       
-        
+            })
+
     },
     next: {
         '1': '__start__',
@@ -908,8 +889,7 @@ menu.state('Group.Management.AddMember', {
     run: async () => {
         await AirtelService.GetGroupLeaderGroups(apiurl, merchant, access.key, helpers.formatPhoneNumber(menu.args.phoneNumber),
             async (response) => {
-                if(response && response.length > 0)
-                {
+                if (response && response.length > 0) {
                     menu.session.set('available_groups', response);
                     let the_message = "Please select the group\n";
                     response.forEach((element, index) => {
@@ -917,8 +897,7 @@ menu.state('Group.Management.AddMember', {
                     });
                     menu.con(the_message);
                 }
-                else
-                {
+                else {
                     menu.end('No groups to display');
                 }
             },
@@ -926,7 +905,7 @@ menu.state('Group.Management.AddMember', {
                 menu.end('Sorry could not retrieve groups'
                 )
             })
-        
+
     },
     next: {
         '*\\d+': 'Group.Management.AddMember.SelectGroup'
@@ -938,8 +917,7 @@ menu.state('Group.Management.AddMember.SelectGroup', {
 
         let available_groups = await menu.session.get('available_groups');
         let group = available_groups[Number(menu.val - 1)];
-        if(!group)
-        {
+        if (!group) {
             return menu.end("You did not select a valid group");
         }
 
@@ -981,15 +959,14 @@ menu.state('Group.Management.AddMember.Mobile.Role', {
         let member_phonenumber = await menu.session.get('member_phonenumber');
 
         let memberRole = member_roles[Number(menu.val) - 1];
-        
-        if(memberRole == 'Ass. Leader')
-        {
+
+        if (memberRole == 'Ass. Leader') {
             let customer = {
                 "Mobile": helpers.formatPhoneNumber(member_phonenumber),
                 "FullName": "Customer"
             }
             let selected_group = await menu.session.get('selected_group');
-            AirtelService.AddGroupVice(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code ,customer, (response) => {                
+            AirtelService.AddGroupVice(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code, customer, (response) => {
                 return menu.con(
                     `You have successfully added ${member_phonenumber} as the group vice\n`
                 )
@@ -999,8 +976,8 @@ menu.state('Group.Management.AddMember.Mobile.Role', {
                     `Sorry could not add group vice`
                 )
             })
-    
-            
+
+
             // menu.con(
             //     `You have added ${member_phonenumber}\n` +
             //     `to the group\n` +
@@ -1009,14 +986,13 @@ menu.state('Group.Management.AddMember.Mobile.Role', {
             //     `0. Cancel \n`
             // )
         }
-        else
-        {
+        else {
             let customer = {
                 "Mobile": helpers.formatPhoneNumber(member_phonenumber),
                 "FullName": "Customer"
             }
             let selected_group = await menu.session.get('selected_group');
-            AirtelService.AddCustomerToGroup(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code ,customer, (response) => {                
+            AirtelService.AddCustomerToGroup(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code, customer, (response) => {
                 return menu.con(
                     `You have successfully added ${member_phonenumber} as the group vice\n`
                 )
@@ -1026,9 +1002,9 @@ menu.state('Group.Management.AddMember.Mobile.Role', {
                     `Sorry could not add group vice`
                 )
             })
-            
+
         }
-        
+
     },
     next: {
         '1': 'Group.Management.AddMember.Mobile.Role.Confirm',
@@ -1094,8 +1070,7 @@ menu.state('Group.Savings', {
     run: () => {
         let phone_number = helpers.formatPhoneNumber(menu.args.phoneNumber);
         AirtelService.GetCustomerGroups(apiurl, merchant, access.key, phone_number, (response) => {
-            if(response && response.length > 0)
-            {
+            if (response && response.length > 0) {
                 menu.session.set('groups', response);
                 let message = `Select group to deposit to\n`;
                 response.forEach((element, index) => {
@@ -1103,19 +1078,18 @@ menu.state('Group.Savings', {
                 });
                 menu.con(message)
             }
-            else
-            {
+            else {
                 menu.end(
                     `Sorry, you don't belong to any group`
                 )
             }
-            
+
         }, (err) => {
             menu.end(
                 `Sorry, could not get customer's groups\n`
             )
         })
-        
+
     },
     next: {
         '*\\d+': 'Group.Savings.SelectGroup',
@@ -1127,9 +1101,8 @@ menu.state('Group.Savings.SelectGroup', {
         //check if user selected a valid group #
         let groups = await menu.session.get('groups');
 
-        let group = groups[(Number(menu.val) -1)];
-        if(group)
-        {
+        let group = groups[(Number(menu.val) - 1)];
+        if (group) {
             menu.session.set('selected_group', group);
             let message = `Choose Option\n`;
             optionArray.forEach((element, index) => {
@@ -1137,8 +1110,7 @@ menu.state('Group.Savings.SelectGroup', {
             });
             menu.con(message)
         }
-        else
-        {
+        else {
             menu.go("InvalidInput")
         }
     },
@@ -1152,16 +1124,14 @@ menu.state('Group.Savings.SelectGroup.Option', {
     run: () => {
         var option_index = Number(menu.val);
         var option = optionArray[(option_index - 1)];
-        if(option)
-        {
+        if (option) {
             menu.session.set('savings_option_selected', option);
 
             menu.con(
                 `Enter savings amount`
             )
         }
-        else
-        {
+        else {
             menu.go("InvalidInput")
         }
     },
@@ -1201,7 +1171,7 @@ menu.state('Group.Savings.SelectGroup.Option.Amount.Confirm', {
             "Account": `${account_group.code}`,
             "Method": "Momo",
             "Source": "Ussd",
-            "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+            "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber),
             "Amount": amount,
             "Frequency": savings_option,
             "NetWork": menu.args.operator,
@@ -1218,7 +1188,7 @@ menu.state('Group.Savings.SelectGroup.Option.Amount.Confirm', {
                 menu.end("Sorry could not process transaction");
             })
 
-        
+
     }
 })
 
@@ -1226,8 +1196,7 @@ menu.state('Group.Withdrawal', {
     run: () => {
         let phone_number = helpers.formatPhoneNumber(menu.args.phoneNumber);
         AirtelService.GetCustomerGroups(apiurl, merchant, access.key, phone_number, (response) => {
-            if(response && response.length > 0)
-            {
+            if (response && response.length > 0) {
                 menu.session.set('groups', response);
                 let message = `Select group to withdraw from\n`;
                 response.forEach((element, index) => {
@@ -1235,13 +1204,12 @@ menu.state('Group.Withdrawal', {
                 });
                 menu.con(message)
             }
-            else
-            {
+            else {
                 menu.end(
                     `Sorry, you don't belong to any group`
                 )
             }
-            
+
         }, (err) => {
             menu.end(
                 `Sorry, could not get customer's groups\n`
@@ -1257,16 +1225,14 @@ menu.state('Group.Withdrawal.SelectGroup', {
     run: async () => {
         let groups = await menu.session.get('groups');
 
-        let group = groups[(Number(menu.val) -1)];
-        if(group)
-        {
+        let group = groups[(Number(menu.val) - 1)];
+        if (group) {
             menu.session.set('selected_group', group);
             menu.con(
                 `Enter withdrawal amount`
             )
         }
-        else
-        {
+        else {
             menu.go("InvalidInput")
         }
     },
@@ -1309,8 +1275,7 @@ menu.state('Group.Withdrawal.SelectGroup.Amount.Confirm.Pin', {
     run: async () => {
         let pin = await menu.session.get('pin');
         let pinValid = bcrypt.compareSync(menu.val, pin);
-        if(pinValid)
-        {
+        if (pinValid) {
             let account = await menu.session.get('selected_group');
             let amount = await menu.session.get('amount');
             let customer = {
@@ -1318,7 +1283,7 @@ menu.state('Group.Withdrawal.SelectGroup.Amount.Confirm.Pin', {
                 "Method": "Momo",
                 "NetWork": menu.args.operator,
                 "GroupId": account.groupid,
-                "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber) ,
+                "Mobile": helpers.formatPhoneNumber(menu.args.phoneNumber),
                 "Source": "Ussd",
                 "Amount": amount
             }
@@ -1329,55 +1294,99 @@ menu.state('Group.Withdrawal.SelectGroup.Amount.Confirm.Pin', {
                     )
                 },
                 (error) => {
-                    if(error.message)
-                    {
+                    if (error.message) {
                         menu.end(error.message);
                     }
-                    else
-                    {
+                    else {
                         menu.end("Sorry could not process transaction");
                     }
                 })
         }
-        else{
+        else {
             menu.end("Invalid pin, please try again later")
         }
-        
+
     }
 })
 
 //Group Approval
 menu.state('Group.Approval', {
-    run: () => {
-        menu.con(
-            `Select group` +
-            `1. Group 1\n` +
-            `2. Group 2\n`
-        )
+    run: async () => {
+        await AirtelService.GetGroupLeaderGroups(apiurl, merchant, access.key, helpers.formatPhoneNumber(menu.args.phoneNumber),
+            (response) => {
+                if (response && response.length > 0) {
+
+                    menu.session.set('available_groups', response);
+                    let message = `Select group:\n`
+
+                    response.forEach((element, index) => {
+                        message += `${(index + 1)}. ${element.name}\n`;
+                    });
+                    menu.con(message)
+                }
+                else {
+                    menu.end('No groups to display')
+                }
+
+            },
+            (error) => {
+                menu.con('Something went wrong, could not get groups');
+            })
+
     },
     next: {
-        '*[1-2]': 'Group.Approval.SelectGroup',
+        '*[1-9]': 'Group.Approval.SelectGroup',
     }
 })
 
 menu.state('Group.Approval.SelectGroup', {
-    run: () => {
-        menu.con(
-            `Transactions\n` +
-            `1. Member 1... GHS amount ...\n` +
-            `2. Member 2... GHS amount ...\n`
-        )
+    run: async () => {
+
+        let available_groups = await menu.session.get('available_groups');
+        let group = available_groups[Number(menu.val - 1)];
+        if (!group) {
+            return menu.end("You did not select a valid group");
+        }
+        menu.session.set('selected_group', group);
+
+        await AirtelService.GetPendingApprovals(apiurl, merchant, access.key, group.code , helpers.formatPhoneNumber(menu.args.phoneNumber),
+            (response) => {
+                if (response && response.length > 0) {
+                    menu.session.set('pending_approvals', response);
+                    let message = `Pending Approvals:\n`
+
+                    response.forEach((element, index) => {
+                        message += `${(index + 1)}. ${element.mobile} - GHS ${element.amount}\n`;
+                    });
+                    menu.con(message)
+                }
+                else {
+                    menu.end('No pending approvals to display')
+                }
+
+            },
+            (error) => {
+                menu.con('Something went wrong, could not get approvals');
+            })
     },
     next: {
-        '*[1-2]': 'Group.Approval.SelectGroup.Transactions',
+        '*[0-9]': 'Group.Approval.SelectGroup.Transactions',
     }
 })
 
 menu.state('Group.Approval.SelectGroup.Transactions', {
-    run: () => {
+    run: async () => {
+        
+        let pending_approvals = await menu.session.get('pending_approvals');
+        let approval = pending_approvals[Number(menu.val - 1)];
+        if (!approval) {
+            return menu.end("You did not select a valid approval");
+        }
+        
+        menu.session.set('selected_approval', approval);
         menu.con(
-            `Confirm withdrawal of GHS amount\n` +
-            `from your Daakye Susu account\n` +
+            `Confirm withdrawal of GHS ${approval.amount}\n` +
+            `from the Daakye Susu group account\n` +
             `1. Approve\n` +
             `2. Decline\n`
         )
@@ -1400,10 +1409,29 @@ menu.state('Group.Approval.SelectGroup.Transactions.Approve', {
 })
 
 menu.state('Group.Approval.SelectGroup.Transactions.Approve.Pin', {
-    run: () => {
-        menu.end(
-            `Withdrawal successfully approved\n`
-        )
+    run: async () => {
+
+        var pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if (pinValid) {
+            // selected_approval
+            let selected_approval = await menu.session.get('selected_approval');
+            var approval = {
+                "ApprovalId" : selected_approval.code, 
+                "Mobile" : helpers.formatPhoneNumber(menu.args.phoneNumber),
+            };
+
+            await AirtelService.WithdrawalApprove(apiurl, merchant, access.key, approval, (data) => {
+                menu.end(
+                    `Withdrawal successfully approved\n`
+                )
+            }, (err) => {
+                menu.end("Sorry withdrawal could not be approved");
+            });
+        }
+        else {
+            menu.end("Invalid pin, please try again later")
+        }
     }
 })
 
@@ -1419,10 +1447,29 @@ menu.state('Group.Approval.SelectGroup.Transactions.Decline', {
 })
 
 menu.state('Group.Approval.SelectGroup.Transactions.Decline.Pin', {
-    run: () => {
-        menu.end(
-            `Withdrawal transaction successfully declined\n`
-        )
+    run: async () => {
+        var pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if (pinValid) {
+            // selected_approval
+            let selected_approval = await menu.session.get('selected_approval');
+            var rejected = {
+                "ApprovalId" : selected_approval.id, 
+                "Mobile" : helpers.formatPhoneNumber(menu.args.phoneNumber),
+            };
+
+            await AirtelService.WithdrawalReject(apiurl, merchant, access.key, rejected, (data) => {
+                menu.end(
+                    `Withdrawal transaction successfully declined\n`
+                )
+            }, (err) => {
+                menu.end("Sorry withdrawal could not be declined");
+            });
+        }
+        else {
+            menu.end("Invalid pin, please try again later")
+        }
+        
     },
 })
 
