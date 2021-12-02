@@ -40,22 +40,15 @@ menu.startState({
 	run: async () => {
 		await fetchCustomer(menu.args.phoneNumber,
 			(response) => {
-				if(response.active)
-				{
-					menu.con(`Welcome to Saham Educational Policy\n
-					1. Subscribe
-					2. Payment
-					3. Policies
-					4. Claims
-					`)
-				}
-				else
-				{
-					menu.end('Please activate your account first')
-				}
+				menu.con(`Welcome to PTA School Insurance\n
+				1. Subscribe
+				2. Payment
+				3. Policies
+				4. Claims
+				`)
 			},
 			(error) => {
-				menu.con('Welcome to Saham Educational Policy\nPress (0) zero to register as a parent\n0. Register')
+				menu.con('Welcome to PTA School Insurance\nPress (0) zero to register as a parent\n0. Register')
 			})
 	},
 	next: {
@@ -145,16 +138,16 @@ menu.state('Register.DOB', {
 		menu.con('Please enter Your Date of Birth \nFormat: YYYY/MM/DD , Example: 1984/12/30')
 	},
 	next: {
-		'*[0-9]+': 'Register.Profession',
+		'*[0-9]+': 'Register.Email',
 	},
 	defaultNext: 'IncorrectInput'
 });
 
-menu.state('Register.Profession', {
+menu.state('Register.Email', {
 	run: () => {
 		if (helpers.isValidDate(menu.val)) {
 			menu.session.set('dob', menu.val);
-			menu.con('Please enter profession')
+			menu.con('Please enter email')
 		}
 		else {
 			menu.end('You entered an invalid date, please try again later')
@@ -162,41 +155,36 @@ menu.state('Register.Profession', {
 
 	},
 	next: {
-		'*[a-zA-Z]+': 'Register.Workplace',
-	},
-	defaultNext: 'IncorrectInput'
-});
-
-menu.state('Register.Workplace', {
-	run: () => {
-		menu.session.set('profession', menu.val);
-		menu.con('Please enter place of work')
-	},
-	next: {
-		'*[a-zA-Z]+': 'Register.Workplace',
+		'*[a-zA-Z]+': 'Register.Confirm',
 	},
 	defaultNext: 'IncorrectInput'
 });
 
 menu.state('Register.Confirm', {
 	run: async () => {
-		menu.session.set('workplace', menu.val);
 
-		var firstname = await menu.session.get('firstname');
-		var lastname = await menu.session.get('lastname');
-		var dob = await menu.session.get('dob');
-		var profession = await menu.session.get('profession');
-		var fullname = "";
-		if (firstname && lastname) {
-			fullname = firstname + ' ' + lastname;
+		if (helpers.isValidEmail(menu.val)) {
+			menu.session.set('email', menu.val);
+
+			var firstname = await menu.session.get('firstname');
+			var lastname = await menu.session.get('lastname');
+			var dob = await menu.session.get('dob');
+			var email = await menu.session.get('email');
+			var fullname = "";
+			if (firstname && lastname) {
+				fullname = firstname + ' ' + lastname;
+			}
+			else {
+				fullname = 'customer';
+			}
+
+			menu.con('Please confirm your registration\nName: ' + fullname + '\nDOB: ' + dob + '\Email: ' + email +
+				'\n1. Confirm' +
+				'\n2. Cancel')
 		}
 		else {
-			fullname = 'customer';
+			menu.end('You entered an invalid email address, please try again later')
 		}
-
-		menu.con('Please confirm your registration\nName: ' + fullname + '\nDOB: ' + dob + '\nProfession: ' + profession + 'Workplace: ' + menu.val +
-			'\n1. Confirm' +
-			'\n2. Cancel')
 	},
 	next: {
 		'1': 'Register.Submit',
@@ -210,10 +198,8 @@ menu.state('Register.Submit', {
 		var firstname = await menu.session.get('firstname');
 		var lastname = await menu.session.get('lastname');
 		var dob = await menu.session.get('dob');
-		var profession = await menu.session.get('profession');
-		var workplace = await menu.session.get('workplace');
-		var mobile = menu.args.phoneNumber ;
-		
+		var email = await menu.session.get('email');
+		var mobile = menu.args.phoneNumber;
 		var fullname = "";
 		if (firstname && lastname) {
 			fullname = firstname + ' ' + lastname;
@@ -223,17 +209,16 @@ menu.state('Register.Submit', {
 		}
 
 		var customer = {
-            code: access.code, key: access.key,
-            fullname: fullname, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: dob, profession: profession, workplace: workplace
-        };
+			code: access.code, key: access.key,
+			fullname: fullname, mobile: mobile, gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: dob, email: email
+		};
 
 		await postCustomer(customer, (response) => {
 			menu.end('Thank you for registering, ' + fullname + '\nYour registration has been submitted successfully');
-        }, (error) => {
-            menu.end(error.message || 'Registration not Successful')
-        })
+		}, (error) => {
+			menu.end(error.message || 'Registration not Successful')
+		})
 
-		menu.end('Thank you for registering, ' + fullname + '\nYour registration has been submitted successfully')
 	},
 });
 ///////////////--------------END REGISTRATION--------------////////////////
@@ -269,7 +254,7 @@ menu.state('Subscribe.DOB', {
 		if (helpers.isValidDate(menu.val)) {
 			menu.session.set('student_dob', menu.val);
 			menu.con(
-				'Please enter the school\'s name'
+				'Please enter the region'
 			);
 
 		}
@@ -278,40 +263,21 @@ menu.state('Subscribe.DOB', {
 		}
 	},
 	next: {
-		'*[a-zA-Z]+': 'Subscribe.Type'
+		'*[a-zA-Z]+': 'Subscribe.Region'
 	},
 	defaultNext: 'IncorrectInput'
 })
 
-menu.state('Subscribe.Type', {
+menu.state('Subscribe.Region', {
 	run: async () => {
-		menu.session.set('school_name', menu.val);
-		let the_message = "Please select type of school\n";
-		school_types.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
-		});
-		menu.con(the_message);
+		menu.session.set('region', menu.val);
+		menu.con(
+			'Please enter the school\'s name'
+		);
+
 	},
 	next: {
-		'*[1-2]': 'Subscribe.Policy'
-	},
-	defaultNext: 'IncorrectInput'
-})
-
-menu.state('Subscribe.Policy', {
-	run: async () => {
-
-		let schoolType = school_types[Number(menu.val) - 1];
-		menu.session.set('school_type', schoolType);
-
-		let the_message = "Please select school policy\n";
-		school_policies.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
-		});
-		menu.con(the_message)
-	},
-	next: {
-		'*[1-3]': 'Subscribe.Stage'
+		'*[a-zA-Z]+': 'Subscribe.Stage'
 	},
 	defaultNext: 'IncorrectInput'
 })
@@ -319,8 +285,7 @@ menu.state('Subscribe.Policy', {
 menu.state('Subscribe.Stage', {
 	run: async () => {
 
-		let schoolPolicy = school_policies[Number(menu.val) - 1];
-		menu.session.set('school_policy', schoolPolicy);
+		menu.session.set('school_name', menu.val);
 
 		menu.con('Please enter class/stage');
 	},
@@ -337,7 +302,6 @@ menu.state('Subscribe.Display', {
 		let name = await menu.session.get('name');
 		let student_dob = await menu.session.get('student_dob');
 		let school_name = await menu.session.get('school_name');
-		let school_type = await menu.session.get('school_type');
 
 		let the_message = "Display Details\n";
 		menu.con(`${the_message}Name: ${name}\DOB: ${student_dob}\nSchool: ${school_name}\nClass/Stage: ${menu.val}\nAmnt:\n` +
@@ -347,22 +311,31 @@ menu.state('Subscribe.Display', {
 	next: {
 		'1': 'Subscribe.Submit',
 		'2': 'Cancel',
-		'3': '__start__'
+		'#': '__start__'
 	},
 	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Subscribe.Submit', {
 	run: async () => {
-		
+
 		let name = await menu.session.get('name');
 		let student_dob = await menu.session.get('student_dob');
 		let school_name = await menu.session.get('school_name');
-		let school_type = await menu.session.get('school_type');
 		let school_stage = await menu.session.get('school_stage');
+		var mobile = menu.args.phoneNumber;
 
-		// postCustomer
-		menu.end('Thank you for subscribing' )
+		var customer = {
+			code: access.code, key: access.key,
+			name: name, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: student_dob, school: school_name, class: school_stage
+		};
+
+		await postCustomer(customer, (response) => {
+			menu.end('Thank you for subscribing')
+		}, (error) => {
+			menu.end(error.message || 'Subscription not successful')
+		})
+
 	},
 });
 
@@ -375,11 +348,24 @@ menu.state('Subscribe.Submit', {
 
 menu.state('Payment', {
 	run: async () => {
-		menu.con(
-			'Please select a student\n' +
-			'1. Student 1\n' +
-			'2. Student 2\n'
-		);
+		await getStudents(helpers.formatPhoneNumber(menu.args.phoneNumber),
+			async (response) => {
+				if (response && response.length > 0) {
+					menu.session.set('students_list', response);
+					let the_message = "Please select a student\n";
+					response.forEach((element, index) => {
+						the_message += `${Number(index + 1)}. ${element.name}\n`;
+					});
+					menu.con(the_message);
+				}
+				else {
+					menu.end('No students to display');
+				}
+			},
+			(error) => {
+				menu.end('Sorry could not retrieve students'
+				)
+			})
 	},
 	next: {
 		'*[1-9]': 'Payment.Select'
@@ -388,103 +374,44 @@ menu.state('Payment', {
 
 menu.state('Payment.Select', {
 	run: async () => {
+		
+		let students_list = await menu.session.get('students_list');
+        let student = students_list[Number(menu.val - 1)];
+        if (!student) {
+            return menu.end("You did not select a valid student");
+        }
+
+        menu.session.set('selected_student', student);
 		menu.con(
 			'Display Details\n' +
-			'Name: Kofi Osei\n' +
-			'1. Proceed 1\n' +
-			'2. Change Policy 2\n'
+			`Name: ${student.name}\n` +
+			'1. Proceed 1\n'
 		);
 	},
 	next: {
 		'1': 'Payment.Proceed',
-		'2': 'Payment.ChangePolicy'
-	}
+	},
+	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Payment.Proceed', {
 	run: async () => {
-		menu.con(
-			'Please authorize the payment on your phone'
-		);
-	}
-})
 
-menu.state('Payment.ChangePolicy', {
-	run: async () => {
-		let the_message = "Please select type of school\n";
-		school_types.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
-		});
-		menu.con(the_message);
-	},
-	next: {
-		'*[1-2]': 'Payment.ChangePolicy.SchoolType'
-	}
-})
+		let selected_student = await menu.session.get('selected_student');
 
-menu.state('Payment.ChangePolicy.SchoolType', {
-	run: async () => {
-		let schoolType = school_types[Number(menu.val) - 1];
-		menu.session.set('school_type', schoolType);
-
-		let the_message = "Please select school policy\n";
-		school_policies.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
-		});
-		menu.con(the_message)
-	},
-	next: {
-		'*[1-2]': 'Payment.ChangePolicy.Policy'
-	},
-	defaultNext: 'IncorrectInput'
-})
-
-menu.state('Payment.ChangePolicy.Policy', {
-	run: async () => {
-		let schoolPolicy = school_policies[Number(menu.val) - 1];
-		menu.session.set('school_policy', schoolPolicy);
-
-		menu.con('Please enter class/stage');
-	},
-	next: {
-		'*[1-2]': 'Payment.ChangePolicy.ClassStage'
-	}
-})
-
-menu.state('Payment.ChangePolicy.ClassStage', {
-	run: async () => {
+		var customer = {
+			code: access.code, key: access.key,
+			student: selected_student.name, mobile: mobile, gender: "N/A", source: "USSD", network: menu.args.operator
+		};
+		await postCustomer(customer, (response) => {
+			menu.con(
+				'Please authorize the payment on your phone'
+			);
+		}, (error) => {
+			menu.end(error.message || 'Payment not successful')
+		})
 		
-		menu.session.set('school_stage', menu.val);
-		let school_type = await menu.session.get('school_type');
-		let school_policy = await menu.session.get('school_policy');
-
-		let the_message = "Display Details\n";
-		menu.con(`${the_message}Class/Stage: ${menu.val}\nAmnt:\n` +
-			`1. Confirm\n2. Cancel`
-		);
-		
-	},
-	next: {
-		'1': 'Payment.ChangePolicy.Confirm',
-		'2': 'Cancel'
 	}
-})
-
-menu.state('Payment.ChangePolicy.Submit', {
-	run: async () => {
-		
-		let school_type = await menu.session.get('school_type');
-		let school_policy = await menu.session.get('school_policy');
-		let school_stage = await menu.session.get('school_stage');
-
-		menu.end('Change successful');
-		
-	},
-	next: {
-		'1': 'Payment.ChangePolicy.Confirm',
-		'2': 'Cancel'
-	},
-	defaultNext: 'IncorrectInput'
 })
 
 ///////////////--------------END PAYMENT--------------////////////////
@@ -696,11 +623,13 @@ async function fetchCustomer(val, callback, errorCallback) {
 		val = val.replace('+233', '0');
 	}
 	var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
+	console.log(api_endpoint);
 	var request = unirest('GET', api_endpoint)
 		.end(async (resp) => {
 			if (resp.error) {
 				return await errorCallback(resp);
 			}
+			// console.log(resp.raw_body);
 			var response = JSON.parse(resp.raw_body);
 			if (response.active) {
 				menu.session.set('name', response.name);
@@ -711,6 +640,7 @@ async function fetchCustomer(val, callback, errorCallback) {
 				menu.session.set('pin', response.pin);
 				// menu.session.set('limit', response.result.limit);
 			}
+
 			return await callback(response);
 		});
 	// }
@@ -748,6 +678,7 @@ async function postDeposit(val, callback) {
 async function getInfo(mobile, callback, errorCallback) {
 	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
 	var api_endpoint = `${apiurl}getInfo/${access.code}/${access.key}/${mobile}`;
+	console.log(api_endpoint);
 	var req = unirest('GET', api_endpoint)
 		.headers({
 			'Content-Type': 'application/json'
@@ -761,18 +692,35 @@ async function getInfo(mobile, callback, errorCallback) {
 }
 
 async function postCustomer(customer, callback, errorCallback) {
-    var api_endpoint = apiurl + 'CreatePolicyHolder/';
-    var req = unirest('POST', api_endpoint)
-        .headers({
-            'Content-Type': 'application/json'
-        })
-        .send(JSON.stringify(customer))
-        .end(async (resp) => {
-            if (resp.error) {
-                return await errorCallback(resp.body);
-            }
-            return await callback(resp.body);
-        });
+	var api_endpoint = apiurl + 'CreatePolicyHolder/';
+	var req = unirest('POST', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.send(JSON.stringify(customer))
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp.body);
+			}
+			return await callback(resp.body);
+		});
+	return true
+}
+
+
+async function getStudents(mobile, callback, errorCallback) {
+	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
+	var api_endpoint = `${apiurl}getStudents/${access.code}/${access.key}/${mobile}`;
+	var req = unirest('GET', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp.body);
+			}
+			return await callback(resp.body);
+		});
 }
 
 exports.ussdApp = async (req, res) => {
