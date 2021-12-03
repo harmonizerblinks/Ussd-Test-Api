@@ -40,12 +40,10 @@ menu.startState({
 	run: async () => {
 		await fetchCustomer(menu.args.phoneNumber,
 			(response) => {
-				menu.con(`Welcome to PTA School Insurance\n
-				1. Subscribe
-				2. Payment
-				3. Policies
-				4. Claims
-				`)
+				menu.con(`Welcome to PTA School Insurance\n` +
+				`1. Subscribe\n` +
+				`2. Payment`
+				)
 			},
 			(error) => {
 				menu.con('Welcome to PTA School Insurance\nPress (0) zero to register as a parent\n0. Register')
@@ -53,9 +51,8 @@ menu.startState({
 	},
 	next: {
 		'0': 'Register',
-		'1': 'Payment',
-		'2': 'checkpolicy',
-		'3': 'Claims'
+		'1': 'Subscribe',
+		'2': 'Payment'
 	}
 })
 
@@ -246,7 +243,8 @@ menu.state('Subscribe.Name', {
 	},
 	next: {
 		'*[0-9]+': 'Subscribe.DOB'
-	}
+	},
+	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Subscribe.DOB', {
@@ -322,12 +320,13 @@ menu.state('Subscribe.Submit', {
 		let name = await menu.session.get('name');
 		let student_dob = await menu.session.get('student_dob');
 		let school_name = await menu.session.get('school_name');
+		let region = await menu.session.get('region');
 		let school_stage = await menu.session.get('school_stage');
 		var mobile = menu.args.phoneNumber;
 
 		var customer = {
 			code: access.code, key: access.key,
-			name: name, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: student_dob, school: school_name, class: school_stage
+			name: name, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', maritalstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dob: student_dob, school: school_name, class: school_stage, region: region
 		};
 
 		await postCustomer(customer, (response) => {
@@ -385,11 +384,13 @@ menu.state('Payment.Select', {
 		menu.con(
 			'Display Details\n' +
 			`Name: ${student.name}\n` +
-			'1. Proceed 1\n'
+			'1. Proceed \n' +
+			'2. Cancel \n'
 		);
 	},
 	next: {
 		'1': 'Payment.Proceed',
+		'2': 'Cancel',
 	},
 	defaultNext: 'IncorrectInput'
 })
