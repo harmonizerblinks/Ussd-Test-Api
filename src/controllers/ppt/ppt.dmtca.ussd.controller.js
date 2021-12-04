@@ -685,11 +685,11 @@ menu.state('Deposit.send', {
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
         await postDeposit(data, async(result)=> { 
-            menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+            menu.end('Request submitted. You will receive a payment prompt shortly');
         }, async (error) => {
             // console.log('Sorry request could not be processed ' + error)
         });
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+        menu.end('Request submitted. You will receive a payment prompt shortly');
     }
 });
 
