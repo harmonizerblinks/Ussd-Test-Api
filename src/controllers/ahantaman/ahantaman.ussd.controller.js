@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../../config/mongodb.config.js');
 let types = ["", "Current", "Savings", "Susu" ];
-// let apiurl = "http://localhost:4000/Ussd/";
+let apiurl = "http://localhost:5000/Ussd/";
 // let apiurl = "https://api.alias-solutions.net:8444/MiddlewareApi/ussd/";
-let apiurl = "https://app.alias-solutions.net:5000/ussd/";
+// let apiurl = "https://app.alias-solutions.net:5000/ussd/";
 
 let access = { code: "ARB", key: "10198553" };
 // let access = { code: "L005", key: "546787787" };
@@ -55,6 +55,7 @@ menu.startState({
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. We apologise for any inconvenience.');
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> {
+            console.log(data);
             if(data && data.active && data.pin != '' && data.pin != null && data.pin != '1234') {
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
@@ -748,6 +749,7 @@ async function fetchCustomer(val, callback) {
         val = val.replace('+233','0');
     }
     var api_endpoint = apiurl + 'getCustomer/' + access.code+'/'+access.key + '/' + val;
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
     .end(async(resp)=> { 
         if (resp.error) { 

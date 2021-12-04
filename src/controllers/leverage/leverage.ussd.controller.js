@@ -59,12 +59,7 @@ menu.startState({
         // menu.end('Dear Customer, \nAhaConnect Service (*789*8#) is down for an upgrade. You will be notified when the service is restored. We apologise for any inconvenience.');
         await fetchCustomer(menu.args.phoneNumber, (data)=> { 
             // console.log(1,data); 
-            let pinValid = false;
-            if(data.pin)
-            {
-                pinValid = ! bcrypt.compareSync("1234", data.pin)
-            }
-            if(data && data.active && data.pin != '' && data.pin != null && data.pin != '1234' && pinValid) {
+            if(data && data.active && data.pin != '' && data.pin != null && data.pin != '1234' && data.pin.length > 4) {
                 menu.session.set('cust', data);
                 menu.session.set('pin', data.pin);
 
@@ -77,7 +72,7 @@ menu.startState({
                 '\n5. Contact');
 
             } 
-            else if(data && data.active && (data.pin == null || data.pin == '' || data.pin == '1234' || !pinValid )) {
+            else if(data && data.active && (data.pin == null || data.pin == '' || data.pin == '1234' || data.pin.length <= 4)) {
                 menu.session.set('cust', data);
                 // menu.session.set('pin', data.pin);
 

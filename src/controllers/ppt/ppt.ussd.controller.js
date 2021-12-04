@@ -366,7 +366,7 @@ menu.state('Pay.Option.Complete', {
         });
         let message = 'Request submitted. You will receive a payment prompt shortly';
         if (network == "MTN") {
-            message+="\nIf you don't get prompt, kindly dial *170# > My Wallet > My Approvals and Approve payment"
+            message+="\nIf you don't get prompt, dial *170#>My Wallet>My Approvals"
         }
         menu.end(message)
     }

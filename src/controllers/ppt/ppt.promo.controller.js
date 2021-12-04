@@ -297,7 +297,7 @@ menu.state('Pay.view.AutoDebit', {
             console.log(error);
             // menu.end('Sorry could not process transaction, please retry later')
         });
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+        menu.end('Request submitted. You will receive a payment prompt shortly')
     }
 });
 
