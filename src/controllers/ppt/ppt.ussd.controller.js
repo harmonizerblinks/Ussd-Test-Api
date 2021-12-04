@@ -317,8 +317,7 @@ menu.state('Pay.Option.Amount', {
         let amount = Number(menu.val);
         if(amount < 1) { menu.end("Minimum Amount is GHS 1") }
         else if(amount > 5000) { menu.end("Maximum Amount is GHS 5000") }
-        else
-        {
+        else {
             menu.session.set('amount', amount); 
             menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
             '\n1. Proceed' +
@@ -340,11 +339,9 @@ menu.state('Pay.Option.OneTimeAmount', {
         else if(amount > 5000) { menu.end("Maximum Amount is GHS 5000") }
         else
         {
-        menu.session.set('amount', amount);  
-        menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +
-        '\n1. Proceed' +
-        '\n0. Exit'
-        )
+            menu.session.set('amount', amount);  
+            menu.con(`Make sure you have enough wallet balance to proceed with transaction of GHS ${amount} ` +'\n1. Proceed' +
+            '\n0. Exit')
         }
 },
     next: {
@@ -400,9 +397,9 @@ menu.state('Pay.send', {
         async (error) => {
             menu.end('Sorry request could not be processed')
         }); 
-        let message = 'Request submitted successfully. You will receive a payment prompt shortly';
+        let message = 'Request submitted. You will receive a payment prompt shortly';
         if (network == "MTN") {
-            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+            message+="\nIf you don't get prompt, dial *170#>My Wallet>My Approvals"
         }
         menu.end(message);
     }
