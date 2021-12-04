@@ -66,6 +66,7 @@ module.exports = function(app) {
 
     //School Insurance
     var schoolinsurance = require('../controllers/schoolinsurance/insurance.ussd.controller.js');
+    var ptaSchoolinsurance = require('../controllers/schoolinsurance/pta.ussd.controller');
 
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
     app.post('/group', hmplus.ussdApp);
@@ -132,4 +133,5 @@ module.exports = function(app) {
 
     //School Insurance
     app.post('/api/schoolinsurance', schoolinsurance.ussdApp);
+    app.post('/api/schoolinsurance/pta', ptaSchoolinsurance.ussdApp);
 }

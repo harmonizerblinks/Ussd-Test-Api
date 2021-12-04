@@ -15,5 +15,9 @@ module.exports = {
     trimDate(the_date)
     {
         return new Date(the_date).toLocaleDateString();
+    },
+    isValidEmail(email)
+    {
+        return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
     }
 };
