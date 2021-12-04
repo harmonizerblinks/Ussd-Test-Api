@@ -357,7 +357,7 @@ menu.state('Pay.Option.Complete', {
         var paymentoption = await menu.session.get('paymentoption');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid};
+        var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,merchantid:account.merchantid };
         await postAutoDeposit(data, async(data) => {
 
         });
@@ -390,11 +390,10 @@ menu.state('Pay.send', {
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD', withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber};
-        await postDeposit(data, async(result)=> { 
+        postDeposit(data,(result)=> { 
             // console.log(JSON.stringify(result)); 
             // menu.end('Request submitted successfully. You will receive a payment prompt shortly')
-        }, 
-        async (error) => {
+        }, (error) => {
             menu.end('Sorry request could not be processed')
         }); 
         let message = 'Request submitted. You will receive a payment prompt shortly';
@@ -690,14 +689,15 @@ menu.state('Deposit.send', {
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
         var data = { merchant:access.code,account:account.code,type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'USSD',withdrawal:false,reference:'Payment received for ' + account.code};
-        await postDeposit(data, async(result)=> { 
+        postDeposit(data, (result)=> { 
             // menu.end('Request submitted successfully. You will receive a payment prompt shortly');
-        }, async (error) => {
+        }, (error) => {
             // console.log('Sorry request could not be processed ' + error)
         });
-        let message = 'Request submitted successfully. You will receive a payment prompt shortly';
+        let message = 'Request submitted. You will receive a payment prompt shortly';
         if (network == "MTN") {
-            message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
+            message+="\nIf you don't get prompt, dial *170#>My Wallet>My Approvals"
+            // message+="\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
         }
         menu.end(message);
     }
@@ -1180,7 +1180,8 @@ async function stopAutoDeposit(val, callback) {
     return true
 }
 
-async function postDeposit(val, callback, errorCallback) {
+function postDeposit(val, callback, errorCallback) {
+    console.log(JSON.stringify(val));
     var api_endpoint = apiurl + 'Deposit/'+access.code+'/'+access.key;
     var req = unirest('POST', api_endpoint)
     .headers({
