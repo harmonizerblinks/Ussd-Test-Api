@@ -22,6 +22,8 @@ module.exports = function(app) {
     var hmplusofficer = require('../controllers/hmplus/hmplus.officer.ussd.controller.js');
     // Aslan
     var aslan = require('../controllers/aslan/aslan.ussd.controller.js');
+    // Group Savings
+    var aslan = require('../controllers/aslan/aslan.ussd.controller.js');
     // ECG 
     var ecg = require('../controllers/ecg.ussd.controller.js');
     var benin = require('../controllers/benin.controller.js');
@@ -73,6 +75,7 @@ module.exports = function(app) {
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
     app.post('/', daakyeSusu.ussdApp);
     app.post('/benin', benin.ussdApp);
+
     // Ecg Ussd *
     app.post('/api/ecg', ecg.ussdApp);
     // Ahantaman collections 

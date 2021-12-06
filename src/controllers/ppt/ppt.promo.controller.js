@@ -291,13 +291,13 @@ menu.state('Pay.view.AutoDebit', {
         var data = { merchant:access.code,account:account.code, frequency: paymentoption, type:'Deposit',network:network,mobile:mobile,amount:amount,method:'MOMO',source:'REFERER-'+officer.code, withdrawal:false, reference:'Deposit to Scheme Number '+account.schemenumber,};
 
         await postAutoDeposit(data, async(data) => {
-            console.log(error);
+            console.log(data);
             // menu.end('Request submitted successfully. You will receive a payment prompt shortly')
         },async(error) => {
             console.log(error);
             // menu.end('Sorry could not process transaction, please retry later')
         });
-        menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+        menu.end('Request submitted. You will receive a payment prompt shortly')
     }
 });
 

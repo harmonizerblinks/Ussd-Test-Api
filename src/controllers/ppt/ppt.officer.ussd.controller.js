@@ -237,9 +237,9 @@ menu.state('Deposit.send', {
                 await postDeposit(data, async(result)=> { 
                     console.log(result) 
                     // menu.end(JSON.stringify(result)); 
-                    menu.end('Request submitted successfully. You will receive a payment prompt shortly');
+                    menu.end('Request submitted. You will receive a payment prompt shortly');
                 });
-                menu.end('Request submitted successfully. You will receive a payment prompt shortly')
+                menu.end('Request submitted. You will receive a payment prompt shortly')
             }else{
                 menu.end('Unable to Process Payment. Please Try again');
             }
