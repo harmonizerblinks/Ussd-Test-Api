@@ -256,7 +256,7 @@ menu.state('Subscribe.Name', {
 	run: async () => {
 		menu.session.set('name', menu.val);
 		menu.con(
-			'Please enter student\'s DOB \nFormat: YYYY/MM/DD , Example: 1984/12/30'
+			'Please enter student\'s dat of birth \nFormat: YYYY/MM/DD , Example: 1984/12/30'
 		);
 	},
 	next: {
@@ -347,7 +347,7 @@ menu.state('Subscribe.Display', {
 	next: {
 		'1': 'Subscribe.Submit',
 		'2': 'Cancel',
-		'3': '__start__'
+		'#': '__start__'
 	},
 	defaultNext: 'IncorrectInput'
 })
@@ -361,8 +361,17 @@ menu.state('Subscribe.Submit', {
 		let school_type = await menu.session.get('school_type');
 		let school_stage = await menu.session.get('school_stage');
 
+		var customer = {
+            code: access.code, key: access.key,
+            fullname: fullname, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: student_dob, name: name, school_name: school_name, school_type: school_type , school_stage: school_stage
+        };
+
+		await postCustomer(customer, (response) => {
+			menu.end('Thank you for subscribing' )
+        }, (error) => {
+            menu.end(error.message || 'Registration not Successful')
+        })
 		// postCustomer
-		menu.end('Thank you for subscribing' )
 	},
 });
 
@@ -375,11 +384,25 @@ menu.state('Subscribe.Submit', {
 
 menu.state('Payment', {
 	run: async () => {
-		menu.con(
-			'Please select a student\n' +
-			'1. Student 1\n' +
-			'2. Student 2\n'
-		);
+
+		await getStudents(helpers.formatPhoneNumber(menu.args.phoneNumber),
+			async (response) => {
+				if (response && response.length > 0) {
+					menu.session.set('students_list', response);
+					let the_message = "Please select a student\n";
+					response.forEach((element, index) => {
+						the_message += `${Number(index + 1)}. ${element.name}\n`;
+					});
+					menu.con(the_message);
+				}
+				else {
+					menu.end('No students to display');
+				}
+			},
+			(error) => {
+				menu.end('Sorry could not retrieve students'
+				)
+			})
 	},
 	next: {
 		'*[1-9]': 'Payment.Select'
@@ -388,16 +411,26 @@ menu.state('Payment', {
 
 menu.state('Payment.Select', {
 	run: async () => {
+ 
+		let students_list = await menu.session.get('students_list');
+        let student = students_list[Number(menu.val - 1)];
+        if (!student) {
+            return menu.end("You did not select a valid student");
+        }
+
+        menu.session.set('selected_student', student);
 		menu.con(
 			'Display Details\n' +
-			'Name: Kofi Osei\n' +
-			'1. Proceed 1\n' +
-			'2. Change Policy 2\n'
+			`Name: ${student.name}\n` +
+			'1. Proceed \n' +
+			'2. Change Policy \n' +
+			'3. Cancel \n'
 		);
 	},
 	next: {
 		'1': 'Payment.Proceed',
-		'2': 'Payment.ChangePolicy'
+		'2': 'Payment.ChangePolicy',
+		'2': 'Cancel'
 	}
 })
 
@@ -773,6 +806,21 @@ async function postCustomer(customer, callback, errorCallback) {
             }
             return await callback(resp.body);
         });
+}
+
+async function getStudents(mobile, callback, errorCallback) {
+	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
+	var api_endpoint = `${apiurl}getStudents/${access.code}/${access.key}/${mobile}`;
+	var req = unirest('GET', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp.body);
+			}
+			return await callback(resp.body);
+		});
 }
 
 exports.ussdApp = async (req, res) => {
