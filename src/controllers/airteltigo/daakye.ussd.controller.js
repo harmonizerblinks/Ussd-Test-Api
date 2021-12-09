@@ -88,7 +88,7 @@ menu.startState({
 
 menu.state('Personal', {
     run: async () => {
-        await AirtelService.fetchCustomer(ussdapiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
+        await AirtelService.getCustomerAccount(apiurl, merchant, access.key, helpers.formatPhoneNumber(menu.args.phoneNumber),1 ,
             (response) => {
                 menu.con('Welcome to Daakye Personal SUSU' +
                     '\n1. Savings' +
@@ -275,7 +275,7 @@ menu.state('Personal.Savings.Amount', {
                 )
             },
             (error) => {
-                menu.end("Sorry could not retrieve account details");
+                menu.end( error.message || "Sorry could not retrieve account details");
             })
     },
     next: {
@@ -342,7 +342,7 @@ menu.state('Personal.Savings.OnlyOnce.Amount', {
                 )
             },
             (error) => {
-                menu.end("Sorry could not retrieve account details");
+                menu.end(error.message || "Sorry could not retrieve account details");
             })
     },
     next: {
@@ -902,7 +902,7 @@ menu.state('Group.Management.AddMember', {
                 }
             },
             (error) => {
-                menu.end('Sorry could not retrieve groups'
+                menu.end(error.message || 'Sorry could not retrieve groups'
                 )
             })
 
@@ -1024,55 +1024,11 @@ menu.state('Group.Management.AddMember.Mobile.Role.Confirm', {
 
 menu.state('Group.Management.CheckBalance', {
     run: () => {
-        menu.con(
-            `Enter ATM Pin`
-        )
-    },
-    next: {
-        '*\\d+': 'Group.Management.CheckBalance.Pin'
-    }
-
-})
-
-
-menu.state('Group.Management.CheckBalance.Pin', {
-    run: () => {
-        menu.end(
-            `Your current balance is ###`
-        )
-    }
-})
-
-menu.state('Group.Management.MiniStatement', {
-    run: () => {
-        menu.con(
-            `Enter ATM Pin`
-        )
-    },
-    next: {
-        '*\\d+': 'Group.Management.MiniStatement.Pin'
-    }
-
-})
-
-menu.state('Group.Management.MiniStatement.Pin', {
-    run: () => {
-        menu.end(
-            `Your last 3 transactions are\n` +
-            `1. XXX\n` +
-            `2. XXX\n` +
-            `3. XXX\n`
-        )
-    }
-})
-
-menu.state('Group.Savings', {
-    run: () => {
         let phone_number = helpers.formatPhoneNumber(menu.args.phoneNumber);
         AirtelService.GetCustomerGroups(apiurl, merchant, access.key, phone_number, (response) => {
             if (response && response.length > 0) {
-                menu.session.set('groups', response);
-                let message = `Select group to deposit to\n`;
+                menu.session.set('accounts', response);
+                let message = `Select group\n`;
                 response.forEach((element, index) => {
                     message += `${(index + 1)}. ${element.groupname}\n`;
                 });
@@ -1086,7 +1042,176 @@ menu.state('Group.Savings', {
 
         }, (err) => {
             menu.end(
-                `Sorry, could not get customer's groups\n`
+                err.message || `Sorry, could not get customer's groups\n`
+            )
+        })
+    },
+    next: {
+        '*\\d+': 'Group.Management.CheckBalance.Group'
+    }
+
+})
+
+menu.state('Group.Management.CheckBalance.Group', {
+    run: async () => {
+        let groups = await menu.session.get('accounts');
+
+        let group = groups[(Number(menu.val) - 1)];
+        if (group) {
+            menu.session.set('selected_account', group);
+            menu.con(
+                `Enter ATM Pin`
+            )
+        }
+        else {
+            menu.go("InvalidInput")
+        }
+        
+    },
+    next: {
+        '*\\d+': 'Group.Management.CheckBalance.Pin'
+    },
+    defaultNext: 'InvalidInput'
+})
+
+
+menu.state('Group.Management.CheckBalance.Pin', {
+    run: async() => {
+        let pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if (pinValid) {
+            let account = await menu.session.get('selected_account');
+            await AirtelService.getAccount(ussdapiurl, merchant, access,account.code,
+                (response) => {
+                    menu.end(
+                        `Your current balance is ${response.balance}`
+                    )
+                },
+                (error) => {
+                    if (error.message) {
+                        menu.end(error.message);
+                    }
+                    else {
+                        menu.end("Sorry could not process transaction");
+                    }
+                })
+        }
+        else {
+            menu.end("Invalid pin, please try again later")
+        }
+    }
+})
+
+menu.state('Group.Management.MiniStatement', {
+    run: () => {
+        let phone_number = helpers.formatPhoneNumber(menu.args.phoneNumber);
+        AirtelService.GetCustomerGroups(apiurl, merchant, access.key, phone_number, (response) => {
+            if (response && response.length > 0) {
+                menu.session.set('accounts', response);
+                let message = `Select group\n`;
+                response.forEach((element, index) => {
+                    message += `${(index + 1)}. ${element.groupname}\n`;
+                });
+                menu.con(message)
+            }
+            else {
+                menu.end(
+                    `Sorry, you don't belong to any group`
+                )
+            }
+
+        }, (err) => {
+            menu.end(
+                err.message || `Sorry, could not get customer's groups\n`
+            )
+        })
+    },
+    next: {
+        '*\\d+': 'Group.Management.MiniStatement.Group'
+    }
+
+})
+
+menu.state('Group.Management.MiniStatement.Group', {
+    run: async () => {
+        let accounts = await menu.session.get('accounts');
+
+        let account = accounts[(Number(menu.val) - 1)];
+        if (account) {
+            menu.session.set('selected_account', account);
+            menu.con(
+                `Enter ATM Pin`
+            )
+        }
+        else {
+            menu.go("InvalidInput")
+        }
+        
+    },
+    next: {
+        '*\\d+': 'Group.Management.MiniStatement.Pin'
+    },
+
+})
+
+menu.state('Group.Management.MiniStatement.Pin', {
+    run: async () => {
+        let pin = await menu.session.get('pin');
+        let pinValid = bcrypt.compareSync(menu.val, pin);
+        if (pinValid) {
+            let account = await menu.session.get('selected_account');
+
+            await AirtelService.getAccountTransaction(ussdapiurl, merchant, access, account.code,
+                (response) => {
+                    if (response.length > 0) {
+                        let message = `Your last 3 transactions are:\n`
+                        response.forEach((element, index) => {
+                            message += `${(index + 1)}. ${helpers.trimDate(element.date)} - GHS ${element.amount}\n`;
+                        });
+
+                        menu.end(message)
+                    }
+                    else {
+                        menu.end("No recent transactions to display")
+                    }
+
+                },
+                (error) => {
+                    if (error.message) {
+                        menu.end(error.message);
+                    }
+                    else {
+                        menu.end("Sorry could not retrieve mini statement");
+                    }
+                })
+        }
+        else {
+            menu.end("Invalid pin, please try again later")
+        }
+    }
+})
+
+menu.state('Group.Savings', {
+    run: async () => {
+        let phone_number = helpers.formatPhoneNumber(menu.args.phoneNumber);
+        AirtelService.GetCustomerGroups(apiurl, merchant, access.key, phone_number, (response) => {
+            if (response && response.length > 0) {
+                menu.session.set('groups', response);
+                let message = `Select group to pay\n`;
+                response.forEach((element, index) => {
+                    message += `${(index + 1)}. ${element.groupname}\n`;
+                });
+                menu.con(message)
+            }
+            else {
+                menu.end(
+                    `Sorry, you don't belong to any group`
+                )
+            }
+
+        }, (err) => {
+            menu.end(
+                err.message || `Sorry, could not get customer's groups\n`
             )
         })
 
@@ -1212,7 +1337,7 @@ menu.state('Group.Withdrawal', {
 
         }, (err) => {
             menu.end(
-                `Sorry, could not get customer's groups\n`
+                err.message || `Sorry, could not get customer's groups\n`
             )
         })
     },
