@@ -60,7 +60,6 @@ menu.startState({
             '\n2. Group';
         await AirtelService.fetchCustomer(ussdapiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             (response) => {
-                // console.log(response);
                 if (response.pin) {
                     menu.session.set('pin', response.pin);
                     menu.session.set('account', response.accounts[0]);
@@ -90,6 +89,7 @@ menu.state('Personal', {
     run: async () => {
         await AirtelService.getCustomerAccount(apiurl, merchant, access.key, helpers.formatPhoneNumber(menu.args.phoneNumber),1 ,
             (response) => {
+                menu.session.set('personal_account', response);
                 menu.con('Welcome to Daakye Personal SUSU' +
                     '\n1. Savings' +
                     '\n2. Withdrawal' +
@@ -398,7 +398,7 @@ menu.state('Personal.Withdrawal.Amount', {
     run: async () => {
         menu.session.set('withdrawal_amount', menu.val);
 
-        let account = await menu.session.get('account');
+        let account = await menu.session.get('personal_account');
         menu.con(
             `Confirm Withdrawal of GHS ${menu.val} from your Daakye Susu Account, Account Number ${account.code}` +
             '\n1. Confirm' +
@@ -440,7 +440,6 @@ menu.state('Personal.Withdrawal.Amount.Confirm.Pin', {
                 "Source": "Ussd",
                 "Amount": amount
             }
-
             await AirtelService.Withdrawal(ussdapiurl, customer, merchant, access,
                 (response) => {
                     menu.end(
@@ -504,7 +503,7 @@ menu.state('Personal.MyAccount.CheckBalance.Pin', {
         let pin = await menu.session.get('pin');
         let pinValid = bcrypt.compareSync(menu.val, pin);
         if (pinValid) {
-            let account = await menu.session.get('account');
+            let account = await menu.session.get('personal_account');
             if (account.balance || account.balance == 0) {
                 menu.end(
                     `Your current balance is GHS ${account.balance}\n`
@@ -538,7 +537,7 @@ menu.state('Personal.MyAccount.MiniStatement.Pin', {
         let pin = await menu.session.get('pin');
         let pinValid = bcrypt.compareSync(menu.val, pin);
         if (pinValid) {
-            let account = await menu.session.get('account');
+            let account = await menu.session.get('personal_account');
 
             await AirtelService.getAccountTransaction(ussdapiurl, merchant, access, account.code,
                 (response) => {
@@ -756,13 +755,13 @@ menu.state('Group.CreateOrJoin.Create.Name', {
                     menu.session.set('lastname', response.lastname)
                 }
                 else {
-                    menu.session.set('firstname', "N")
-                    menu.session.set('lastname', "/A")
+                    menu.session.set('firstname', "N/A")
+                    menu.session.set('lastname', "N/A")
                 }
             },
             (error) => {
-                menu.session.set('firstname', "N")
-                menu.session.set('lastname', "/A")
+                menu.session.set('firstname', "N/A")
+                menu.session.set('lastname', "N/A")
             })
         menu.con(
             `Enter Group Description`
@@ -846,8 +845,7 @@ menu.state('Group.CreateOrJoin.Join.Select.Confirm', {
 
         await AirtelService.fetchCustomer(ussdapiurl, helpers.formatPhoneNumber(menu.args.phoneNumber), merchant, access,
             async (response) => {
-                let customer = { "FullName": response.fullname, "Mobile": response.mobile, "Gender": response.gender };
-
+                let customer = { "FullName": response.fullname, "Mobile": response.mobile, "Gender": "N/A" };
                 await AirtelService.AddCustomerToGroup(apiurl, merchant, access.key, group_code, customer,
                     (response) => {
                         menu.end(
@@ -963,7 +961,8 @@ menu.state('Group.Management.AddMember.Mobile.Role', {
         if (memberRole == 'Ass. Leader') {
             let customer = {
                 "Mobile": helpers.formatPhoneNumber(member_phonenumber),
-                "FullName": "Customer"
+                "FullName": "Customer",
+                "Gender": "N/A"
             }
             let selected_group = await menu.session.get('selected_group');
             AirtelService.AddGroupVice(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code, customer, (response) => {
@@ -971,7 +970,6 @@ menu.state('Group.Management.AddMember.Mobile.Role', {
                     `You have successfully added ${member_phonenumber} as the group vice\n`
                 )
             }, (err) => {
-                console.log(err)
                 menu.end(
                     `Sorry could not add group vice`
                 )
@@ -989,18 +987,27 @@ menu.state('Group.Management.AddMember.Mobile.Role', {
         else {
             let customer = {
                 "Mobile": helpers.formatPhoneNumber(member_phonenumber),
-                "FullName": "Customer"
+                "FullName": "Customer",
+                "Gender": "N/A"
             }
             let selected_group = await menu.session.get('selected_group');
-            AirtelService.AddCustomerToGroup(apiurl, merchant, access.key, menu.args.phoneNumber, selected_group.code, customer, (response) => {
+            AirtelService.AddCustomerToGroup(apiurl, merchant, access.key, selected_group.code, customer, (response) => {
                 return menu.con(
-                    `You have successfully added ${member_phonenumber} as the group vice\n`
+                    `You have successfully added ${member_phonenumber} to the group\n`
                 )
             }, (err) => {
-                // console.log(err)
-                menu.end(
-                    `Sorry could not add group vice`
-                )
+                if(err.message)
+                    {
+                        return menu.end(
+                            err.message
+                        )
+                    }
+                    else
+                    {
+                        return menu.end(
+                            `Sorry could not add group member`
+                        )
+                    }
             })
 
         }
