@@ -92,6 +92,23 @@ exports.getCustomerAccount = async (apiurl, merch, key, mobile, index, callback,
 
 }
 
+exports.getCustomerAccounts = async (apiurl, merch, key, mobile, callback, errorCallback) => {
+    var api_endpoint = `${apiurl}getCustomerPersonalAccounts/${merch}/${key}/${mobile}`;
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .end(async (resp) => {
+            // if (res.error) throw new Error(res.error); 
+            if (resp.error) {
+                // return res;
+                return await errorCallback(resp.body);
+            }
+            return await callback(resp.body);
+        });
+
+}
+
 exports.CreateCustomerAccount = async (apiurl, customer, merchant, access, callback, errorCallback) => {
 
     var api_endpoint = `${apiurl}CreateCustomer/${merchant}/${access.key}`;
@@ -177,6 +194,22 @@ exports.getAccountTransaction = async (apiurl, merchant, access, accountcode, ca
         });
 }
 
+exports.getAccount = async (apiurl, merchant, access, accountcode, callback, errorCallback) => {
+
+    var api_endpoint = `${apiurl}getAccount/${merchant}/${access.key}/${accountcode}`;
+    var request = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .end(async (resp) => {
+            if (resp.error) {
+                return await errorCallback(resp.body);
+            }
+            return await callback(resp.body);
+
+        });
+}
+
 exports.getGroup = async (apiurl, merch, key, code, callback, errorCallback) => {
     var api_endpoint = `${apiurl}getGroup/${merch}/${key}/${code}`;
     var req = unirest('GET', api_endpoint)
@@ -233,6 +266,7 @@ exports.CreateGroup = async (apiurl, merchant, key, group, callback, errorCallba
 
 exports.GetCustomerGroups = async (apiurl, merch, key, mobile, callback, errorCallback) => {
     var api_endpoint = `${apiurl}GetCustomerGroups/${merch}/${key}/${mobile}`;
+    console.log(api_endpoint)
     var req = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'

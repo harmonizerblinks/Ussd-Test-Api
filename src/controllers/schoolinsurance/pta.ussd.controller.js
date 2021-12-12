@@ -519,7 +519,6 @@ menu.state('policy', {
 	run: async () => {
 		var index = Number(menu.val);
 		var accounts = await menu.session.get('accounts');
-		// console.log(accounts);
 		var cust = await menu.session.get('cust');
 		var account = accounts[index - 1]
 		menu.session.set('account', account);
@@ -544,7 +543,6 @@ menu.state('confirm', {
 		var mobile = menu.args.phoneNumber;
 		var data = { merchant: access.code, account: account.code, type: 'Deposit', network: network, mobile: mobile, amount: amount, method: 'MOMO', source: 'USSD', withdrawal: false, reference: 'Deposit to Account Number ' + account.code, merchantid: account.merchantid };
 		await postDeposit(data, async (result) => {
-			// console.log(result) 
 			// menu.end(JSON.stringify(result)); 
 			let message = 'Payment request of amount GHC ' + amount + ' has been sent to your phone.';
 			if (network == "MTN") {
@@ -624,13 +622,11 @@ async function fetchCustomer(val, callback, errorCallback) {
 		val = val.replace('+233', '0');
 	}
 	var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-	console.log(api_endpoint);
 	var request = unirest('GET', api_endpoint)
 		.end(async (resp) => {
 			if (resp.error) {
 				return await errorCallback(resp);
 			}
-			// console.log(resp.raw_body);
 			var response = JSON.parse(resp.raw_body);
 			if (response.active) {
 				menu.session.set('name', response.name);
@@ -646,7 +642,6 @@ async function fetchCustomer(val, callback, errorCallback) {
 		});
 	// }
 	// catch(err) {
-	//     console.log(err);
 	//     return err;
 	// }
 }
@@ -660,16 +655,12 @@ async function postDeposit(val, callback) {
 		})
 		.send(JSON.stringify(val))
 		.end(async (resp) => {
-			console.log(JSON.stringify(val));
 			if (resp.error) {
-				console.log(resp.error);
 				await postDeposit(val);
 				return await callback(resp);
 			}
-			// if (res.error) throw new Error(res.error); 
-			// console.log(resp.raw_body);
+			// if (res.error) throw new Error(res.error);
 			var response = JSON.parse(resp.raw_body);
-			console.log(response);
 			return await callback(response);
 		});
 	return true
@@ -679,7 +670,6 @@ async function postDeposit(val, callback) {
 async function getInfo(mobile, callback, errorCallback) {
 	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
 	var api_endpoint = `${apiurl}getInfo/${access.code}/${access.key}/${mobile}`;
-	console.log(api_endpoint);
 	var req = unirest('GET', api_endpoint)
 		.headers({
 			'Content-Type': 'application/json'

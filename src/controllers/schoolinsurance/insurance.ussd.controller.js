@@ -8,6 +8,7 @@ let access = { code: "ACU001", key: "1029398" };
 let helpers = require('../../utils/helpers')
 let school_types = ["Private", "Public"];
 let school_policies = ["Up To J.H.S", "Up To S.H.S", "Up To University"];
+let claim_types = ["Death", "Redundancy", "Critical illness", "Permanent TT Disability", "Maintenance Allowance", "Accidental Injury"];
 menu.sessionConfig({
 	start: (sessionId, callback) => {
 		// initialize current session if it doesn't exist
@@ -256,7 +257,7 @@ menu.state('Subscribe.Name', {
 	run: async () => {
 		menu.session.set('name', menu.val);
 		menu.con(
-			'Please enter student\'s DOB \nFormat: YYYY/MM/DD , Example: 1984/12/30'
+			'Please enter student\'s dat of birth \nFormat: YYYY/MM/DD , Example: 1984/12/30'
 		);
 	},
 	next: {
@@ -288,7 +289,7 @@ menu.state('Subscribe.Type', {
 		menu.session.set('school_name', menu.val);
 		let the_message = "Please select type of school\n";
 		school_types.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
+			the_message += `${(Number(index + 1))}. ${element}\n`;
 		});
 		menu.con(the_message);
 	},
@@ -306,7 +307,7 @@ menu.state('Subscribe.Policy', {
 
 		let the_message = "Please select school policy\n";
 		school_policies.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
+			the_message += `${(Number(index + 1))}. ${element}\n`;
 		});
 		menu.con(the_message)
 	},
@@ -347,7 +348,7 @@ menu.state('Subscribe.Display', {
 	next: {
 		'1': 'Subscribe.Submit',
 		'2': 'Cancel',
-		'3': '__start__'
+		'#': '__start__'
 	},
 	defaultNext: 'IncorrectInput'
 })
@@ -361,8 +362,17 @@ menu.state('Subscribe.Submit', {
 		let school_type = await menu.session.get('school_type');
 		let school_stage = await menu.session.get('school_stage');
 
+		var customer = {
+            code: access.code, key: access.key,
+            fullname: fullname, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: student_dob, name: name, school_name: school_name, school_type: school_type , school_stage: school_stage
+        };
+
+		await postCustomer(customer, (response) => {
+			menu.end('Thank you for subscribing' )
+        }, (error) => {
+            menu.end(error.message || 'Registration not Successful')
+        })
 		// postCustomer
-		menu.end('Thank you for subscribing' )
 	},
 });
 
@@ -375,11 +385,25 @@ menu.state('Subscribe.Submit', {
 
 menu.state('Payment', {
 	run: async () => {
-		menu.con(
-			'Please select a student\n' +
-			'1. Student 1\n' +
-			'2. Student 2\n'
-		);
+
+		await getStudents(helpers.formatPhoneNumber(menu.args.phoneNumber),
+			async (response) => {
+				if (response && response.length > 0) {
+					menu.session.set('students_list', response);
+					let the_message = "Please select a student\n";
+					response.forEach((element, index) => {
+						the_message += `${(Number(index + 1))}. ${element.name}\n`;
+					});
+					menu.con(the_message);
+				}
+				else {
+					menu.end('No students to display');
+				}
+			},
+			(error) => {
+				menu.end('Sorry could not retrieve students'
+				)
+			})
 	},
 	next: {
 		'*[1-9]': 'Payment.Select'
@@ -388,16 +412,26 @@ menu.state('Payment', {
 
 menu.state('Payment.Select', {
 	run: async () => {
+ 
+		let students_list = await menu.session.get('students_list');
+        let student = students_list[Number(menu.val - 1)];
+        if (!student) {
+            return menu.end("You did not select a valid student");
+        }
+
+        menu.session.set('selected_student', student);
 		menu.con(
 			'Display Details\n' +
-			'Name: Kofi Osei\n' +
-			'1. Proceed 1\n' +
-			'2. Change Policy 2\n'
+			`Name: ${student.name}\n` +
+			'1. Proceed \n' +
+			'2. Change Policy \n' +
+			'3. Cancel \n'
 		);
 	},
 	next: {
 		'1': 'Payment.Proceed',
-		'2': 'Payment.ChangePolicy'
+		'2': 'Payment.ChangePolicy',
+		'2': 'Cancel'
 	}
 })
 
@@ -413,7 +447,7 @@ menu.state('Payment.ChangePolicy', {
 	run: async () => {
 		let the_message = "Please select type of school\n";
 		school_types.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
+			the_message += `${(Number(index + 1))}. ${element}\n`;
 		});
 		menu.con(the_message);
 	},
@@ -429,7 +463,7 @@ menu.state('Payment.ChangePolicy.SchoolType', {
 
 		let the_message = "Please select school policy\n";
 		school_policies.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
+			the_message += `${(Number(index + 1))}. ${element}\n`;
 		});
 		menu.con(the_message)
 	},
@@ -448,7 +482,8 @@ menu.state('Payment.ChangePolicy.Policy', {
 	},
 	next: {
 		'*[1-2]': 'Payment.ChangePolicy.ClassStage'
-	}
+	},
+	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Payment.ChangePolicy.ClassStage', {
@@ -459,7 +494,7 @@ menu.state('Payment.ChangePolicy.ClassStage', {
 		let school_policy = await menu.session.get('school_policy');
 
 		let the_message = "Display Details\n";
-		menu.con(`${the_message}Class/Stage: ${menu.val}\nAmnt:\n` +
+		menu.con(`${the_message}School Type: ${school_type}\nPolicy: ${school_policy}\nClass/Stage: ${menu.val}\nAmnt:\n` +
 			`1. Confirm\n2. Cancel`
 		);
 		
@@ -467,7 +502,8 @@ menu.state('Payment.ChangePolicy.ClassStage', {
 	next: {
 		'1': 'Payment.ChangePolicy.Confirm',
 		'2': 'Cancel'
-	}
+	},
+	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Payment.ChangePolicy.Submit', {
@@ -476,8 +512,19 @@ menu.state('Payment.ChangePolicy.Submit', {
 		let school_type = await menu.session.get('school_type');
 		let school_policy = await menu.session.get('school_policy');
 		let school_stage = await menu.session.get('school_stage');
+		let selected_student = await menu.session.get('selected_student');		
 
-		menu.end('Change successful');
+		var policy = {
+            Code: access.code, Key: access.key, Mobile: menu.args.phoneNumber, SchoolType: school_type,
+			SchoolPolicy: school_policy, SchoolStage: school_stage, StudentId: selected_student.code
+        };
+
+		await updatePolicy(policy, (response) => {
+			menu.end('Change successful');
+        }, (error) => {
+            menu.end(error.message || 'Sorry, policy could not be updated')
+        })
+		
 		
 	},
 	next: {
@@ -499,7 +546,7 @@ menu.state('Policies', {
 
 		let the_message = "Please select type of school\n";
 		school_types.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
+			the_message += `${(Number(index + 1 ))}. ${element}\n`;
 		});
 		menu.con(the_message);
 	},
@@ -516,7 +563,7 @@ menu.state('Policies.Type', {
 
 		let the_message = "Please select type of school policy\n";
 		school_policies.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
+			the_message += `${(Number(index + 1))}. ${element}\n`;
 		});
 		menu.con(the_message)
 
@@ -543,20 +590,23 @@ menu.state('Policies.Policy', {
 
 menu.state('Claims', {
 	run: async () => {
-		menu.con(
-			`Please select a claim\n` +
-			`1. Death\n` +
-			`2. Redundancy\n` +
-			`3. Critical Illness\n`
-		)
+		let the_message = "Please select a claim\n";
+		claim_types.forEach((element, index) => {
+			the_message += `${(Number(index +1))}. ${element}\n`;
+		});
+		menu.con(the_message);
 	},
 	next: {
-		'*[1-3]': 'Claims.Select'
+		'*[1-6]': 'Claims.Select'
 	},
 })
 
 menu.state('Claims.Select', {
 	run: async () => {
+
+		let claim_type = claim_types[Number(menu.val) - 1];
+		menu.session.set('claim_type', claim_type);
+
 		menu.end(
 			`Claim request received, our help desk will attend to you shortly\n`
 		)
@@ -767,6 +817,36 @@ async function postCustomer(customer, callback, errorCallback) {
             'Content-Type': 'application/json'
         })
         .send(JSON.stringify(customer))
+        .end(async (resp) => {
+            if (resp.error) {
+                return await errorCallback(resp.body);
+            }
+            return await callback(resp.body);
+        });
+}
+
+async function getStudents(mobile, callback, errorCallback) {
+	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
+	var api_endpoint = `${apiurl}getStudents/${access.code}/${access.key}/${mobile}`;
+	var req = unirest('GET', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp.body);
+			}
+			return await callback(resp.body);
+		});
+}
+
+async function updatePolicy(policy, callback, errorCallback) {
+    var api_endpoint = apiurl + 'CreatePolicyHolder/';
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(policy))
         .end(async (resp) => {
             if (resp.error) {
                 return await errorCallback(resp.body);
