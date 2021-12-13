@@ -266,7 +266,6 @@ exports.CreateGroup = async (apiurl, merchant, key, group, callback, errorCallba
 
 exports.GetCustomerGroups = async (apiurl, merch, key, mobile, callback, errorCallback) => {
     var api_endpoint = `${apiurl}GetCustomerGroups/${merch}/${key}/${mobile}`;
-    console.log(api_endpoint)
     var req = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -292,11 +291,9 @@ exports.AddGroupVice = async (apiurl, merchant, key, masterMobile, groupCode, cu
         .send(JSON.stringify(customer))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.body);
                 return await errorCallback(resp.body);
             }
             else {
-                console.log(resp.body);
                 return await callback(resp.body);
             }
 

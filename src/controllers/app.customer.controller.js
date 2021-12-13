@@ -740,21 +740,20 @@ exports.transferToLocal = async (req, res) =>{
 
 exports.createGroup =  async (req, res) =>{
     const access = await getkey(req.user.merchant);
-    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` })
     const val = req.body;
     const api_endpoint = (access.apiurl || apiurl) + 'AirtelTigo/CreateGroup/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
+    // console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
         .send(JSON.stringify(val))
         .end(async (resp) => {
-            console.log(resp.raw_body);
             if (resp.error) {
                 console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
-                return res.status(500).send({
+                return res.status(400).send({
                     message: response.message || "Error occured while creating group",
                     success: false
                 });
@@ -770,21 +769,20 @@ exports.createGroup =  async (req, res) =>{
 
 exports.addGroupVice = async (req, res) =>{
     const access = await getkey(req.user.merchant);
-    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
     const val =  req.body;
-    const api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/AddGroupVice/${access.code}/${access.key}/${val.groupCode}`;
-    console.log(api_endpoint);
+    const api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/AddGroupVice/${access.code}/${access.key}/${val.MasterMobile}/${val.GroupCode}`;
+    // console.log(api_endpoint)
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
         .send(JSON.stringify(val))
         .end(async (resp) => {
-            console.log(resp.raw_body);
             if (resp.error) {
-                console.log(resp.raw_body);
-                var response = JSON.parse(resp.raw_body);
-                return res.status(500).send({
+                // console.log(resp.body)
+                var response = resp.body;
+                return res.status(400).send({
                     message: response.message || "Error occured while creating group vice",
                     success: false
                 });

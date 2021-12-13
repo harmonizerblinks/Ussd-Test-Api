@@ -707,7 +707,7 @@ menu.state('Group', {
             '\n1. Create/Join Group' +
             '\n2. Savings' +
             '\n3. Withdrawal' +
-            '\n4. Approval' +
+            '\n4. Approvals' +
             '\n5. Group Mgt'
         )
     },

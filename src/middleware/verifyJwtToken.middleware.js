@@ -13,7 +13,7 @@ verifyToken = async(req, res, next) => {
             message: 'No token provided.'
         });
     }
-    console.log(token);
+    // console.log(token);
     if (token.startsWith('Bearer ')) {
         // Remove Bearer from string
         token = token.slice(7, token.length);
