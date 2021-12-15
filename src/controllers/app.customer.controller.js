@@ -34,7 +34,6 @@ exports.validateCustomer = (req, res) => {
     const access = getkey(merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var api_endpoint = (access.apiurl || apiurl) + 'ussd/getCustomer/' + merchant + '/' + access.key + '/' + mobile;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -75,7 +74,6 @@ exports.getCustomer = async (req, res) => {
     const access = getkey(val.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${val.merchant}` })
     var api_endpoint = (access.apiurl || apiurl) + `ussd/getCustomer/${val.merchant}/` + access.key + '/' + access.code + '/';
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -96,18 +94,14 @@ exports.sendOtp = async (req, res) => {
     var val = req.body;
     const access = getkey(val.merchant);
     var api_endpoint = (access.apiurl || apiurl )+ 'otp/' + val.mobile + '/' + val.merchant + '?id=CUSTOMER';
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
-            console.log(resp.body);
             if (resp.error) {
-                console.log(resp.error);
                 res.status(500).send({
                     success: false,
                     message: 'Unable to sent Otp'
                 });
             }
-            // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             res.send({
                 success: true,
@@ -121,18 +115,14 @@ exports.verifyOtp = async (req, res) => {
     const access = getkey(val.merchant);
     // var api_endpoint = apiurl + 'otp/'+ val.mobile + '/'+ val.merchant +'?id=AGENT';
     var api_endpoint = (access.apiurl || apiurl) + 'otp/verify/' + val.mobile + '/' + val.otp + '/' + val.merchant + '?id=CUSTOMER';
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
-            console.log(resp)
             if (resp.error) {
-                console.log(resp.error);
                 res.status(500).send({
                     success: false,
                     message: 'Code Not Valid'
                 });
             }
-            // console.log(resp.body);
             var response = JSON.parse(resp.raw_body);
             res.send({
                 success: true,
@@ -142,7 +132,6 @@ exports.verifyOtp = async (req, res) => {
 }
 
 exports.setPassword = async (req, res) => {
-    console.log(JSON.stringify(req.body));
     if (req.body.mobile == null || req.body.newpin == null) {
         return res.status(500).send({
             message: "Mobile Number and Pin is Required"
@@ -165,9 +154,7 @@ exports.setPassword = async (req, res) => {
         newpin: newpin,
         confirmpin: newpin
     };
-    console.log(JSON.stringify(value));
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/Change/' + access.code + '/' + access.key;
-    console.log(api_endpoint)
     var request = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -175,15 +162,12 @@ exports.setPassword = async (req, res) => {
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.body);
                 return res.status(500).send({
                     success: false,
                     message: resp.body.message || "Error updating Customer Pin "
                 });;
             }
-            console.log(resp.raw_body, resp.body);
             var response = JSON.parse(resp.raw_body);
-            // console.log(response, response.code);
             if (response.code != 1) {
                 return res.status(500).send({
                     success: false,
@@ -205,7 +189,6 @@ exports.login = (req, res) => {
     var api_endpoint = (access.apiurl || apiurl) + 'ussd/getCustomer/' + val.merchant + '/' + access.key + '/' + val.mobile;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
-            console.log(resp)
             if (resp.error) {
                 res.status(500).send({
                     success: false,
@@ -222,7 +205,6 @@ exports.login = (req, res) => {
                 });
             }
             // var hash = bcrypt.hashSync(data.pin);
-            // // console.log(hash);
             var passwordIsValid = bcrypt.compareSync(val.pin, data.pin);
             if (passwordIsValid) {
                 const token = jwt.sign({
@@ -285,7 +267,6 @@ exports.changePassword = async (req, res) => {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 res.status(500).send({
                     success: false,
                     register: false,
@@ -322,7 +303,6 @@ exports.changePassword = async (req, res) => {
                                 message: resp.body.message || "Error updating user Password "
                             });;
                         }
-                        // console.log(resp.raw_body);
                         res.send({
                             message: resp.body.message || "Pin Changed successfully"
                         });
@@ -341,7 +321,6 @@ exports.getCustomers = async (req, res) => {
     const { page, limit, search } = req.query
     const access = await getkey(req.user.merchant);
     var api_endpoint = (access.apiurl || apiurl) + `App/getCustomers/${access.code}/${access.key}?search=${search}&page=${page}&limit=${limit}`;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
@@ -353,7 +332,6 @@ exports.getCustomers = async (req, res) => {
                 });
             }
             var response = JSON.parse(resp.raw_body);
-            console.log(response);
             res.send({
                 success: true,
                 ...response
@@ -366,11 +344,9 @@ exports.getTransactions = async (req, res) => {
     const access = await getkey(req.user.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/getAccountTransaction/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 res.status(500).send({
                     success: false,
                     register: false,
@@ -378,7 +354,6 @@ exports.getTransactions = async (req, res) => {
                     error: resp
                 });
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             res.send(response);
         });
@@ -389,12 +364,10 @@ exports.getAccounts = async (req, res) => {
     const access = getkey(merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var api_endpoint = (access.apiurl || apiurl) + `Ussd/getCustomerAccounts/${merchant}/` + access.key + '/' + mobile;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             try {
                 if (resp.error) {
-                    console.log(resp.error);
                     res.status(500).send({
                         success: false,
                         error: resp
@@ -412,9 +385,7 @@ exports.getAccounts = async (req, res) => {
 
 exports.getStatement = async (req, res) => {
     var val = req.body;
-    console.log(val);
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd?AppId=' + chanel.code + '&AppKey=' + chanel.key + '&SchemeNumber=' + val.schemenumber + '&EndDate=' + val.enddate;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -427,7 +398,6 @@ exports.getStatement = async (req, res) => {
                 });
                 // throw new Error(res.error); 
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             res.send(response.result);
         });
@@ -451,7 +421,6 @@ exports.Deposit = async (req, res) => {
     };
 
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/Deposit/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -459,14 +428,11 @@ exports.Deposit = async (req, res) => {
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
                     message: response || "Unable to proccess Payment at the moment"
                 });
             }
-            // if (res.error) throw new Error(res.error);
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             res.send({
                 output: 'Payment Request Sent',
@@ -492,7 +458,6 @@ exports.Withdraw = async (req, res) => {
     };
 
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/Withdrawal/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -500,14 +465,11 @@ exports.Withdraw = async (req, res) => {
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
                     message: response || "Unable to proccess Payment at the moment"
                 });
             }
-            // if (res.error) throw new Error(res.error);
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             res.send({
                 output: 'Payment Request Sent',
@@ -521,7 +483,6 @@ exports.createCustomer = async (req, res) => {
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/CreateCustomer/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -529,15 +490,12 @@ exports.createCustomer = async (req, res) => {
         .send(JSON.stringify(val))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
                 var respon = JSON.parse(resp.raw_body);
                 // if (response.error) throw new Error(response.error);
                 return res.status(500).send({
                     message: respon.message || "Unable to create customer at the moment"
                 });
             }
-            // if (res.error) throw new Error(res.error);
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             // await callback(response);
             res.send({
@@ -553,7 +511,6 @@ exports.uploadProfilePhoto = async (req, res) => {
     form.on("file", async (_name, file) => {
         const fileType = file.type.split('/')[1];
         const api_endpoint = apiurl + `Upload/${fileType}`;
-        console.log(api_endpoint);
         const form = new FormData();
         form.append('file', fs.createReadStream(file.path), { filename: `${_name}.${fileType}`, contentType: file.type });
         try{
@@ -584,22 +541,18 @@ exports.transfer = async (req, res) =>{
     };
     
     const api_endpoint = (access.apiurl || apiurl) + 'Ussd/TranferToAccount/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
         .send(JSON.stringify(payload))
         .end(async (resp) => {
-            console.log(resp.raw_body);
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
                     message: response || "Unable to proccess Transfer at the moment"
                 });
             }
-            console.log(resp.raw_body);
             //var response = JSON.parse(resp.raw_body);
             return res.send({
                 message: 'Transfer Successful'
@@ -624,7 +577,6 @@ exports.transferToMomo = async (req, res) => {
     };
 
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/TransfertoMomo/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -632,14 +584,11 @@ exports.transferToMomo = async (req, res) => {
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
                     message: response || "Unable to proccess Payment at the moment"
                 });
             }
-            // if (res.error) throw new Error(res.error);
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             res.send({
                 output: 'Payment Request Sent',
@@ -653,11 +602,9 @@ exports.getInfo = async (req, res) => {
     const access = await getkey(req.user.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/getInfo/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 return res.status(500).send({
                     success: false,
                     register: false,
@@ -665,7 +612,6 @@ exports.getInfo = async (req, res) => {
                     error: resp
                 });
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             return res.send(response);
         });
@@ -676,11 +622,10 @@ exports.validateAccountNumber = async (req, res) => {
     const access = await getkey(req.user.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${access.merchant}` })
     var api_endpoint = (access.apiurl || apiurl) + 'Ussd/getAccount/' + access.code + '/' + access.key + '/' + val;
-    console.log(api_endpoint);
+    
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.error);
                 return res.status(500).send({
                     success: false,
                     register: false,
@@ -688,7 +633,6 @@ exports.validateAccountNumber = async (req, res) => {
                     error: resp
                 });
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             return res.send(response);
         });
@@ -709,22 +653,18 @@ exports.transferToLocal = async (req, res) =>{
     };
     
     const api_endpoint = (access.apiurl || apiurl) + 'Ussd/AccountLocalTransfer/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
         })
         .send(JSON.stringify(payload))
         .end(async (resp) => {
-            console.log(resp.raw_body);
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
                     message: response || "Unable to proccess Transfer at the moment"
                 });
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             if(response.code === -1)
                 return res.status(500).send({
@@ -743,7 +683,7 @@ exports.createGroup =  async (req, res) =>{
     if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` })
     const val = req.body;
     const api_endpoint = (access.apiurl || apiurl) + 'AirtelTigo/CreateGroup/' + access.code + '/' + access.key;
-    // console.log(api_endpoint);
+    
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -751,7 +691,6 @@ exports.createGroup =  async (req, res) =>{
         .send(JSON.stringify(val))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(400).send({
                     message: response.message || "Error occured while creating group",
@@ -772,7 +711,6 @@ exports.addGroupVice = async (req, res) =>{
     if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
     const val =  req.body;
     const api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/AddGroupVice/${access.code}/${access.key}/${val.MasterMobile}/${val.GroupCode}`;
-    // console.log(api_endpoint)
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -780,7 +718,6 @@ exports.addGroupVice = async (req, res) =>{
         .send(JSON.stringify(val))
         .end(async (resp) => {
             if (resp.error) {
-                // console.log(resp.body)
                 var response = resp.body;
                 return res.status(400).send({
                     message: response.message || "Error occured while creating group vice",
@@ -798,23 +735,20 @@ exports.addGroupVice = async (req, res) =>{
 
 exports.getGroupDetails = async (req, res) =>{
     const access = await getkey(req.user.merchant);
-    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
     const { code } =  req.params;
     var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/GetGroup/${access.code}/${access.key}/${code}`;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
-                var response = JSON.parse(resp.raw_body);
-                res.status(500).send({
+                var response = resp.body;
+                return res.status(400).send({
                     message: response.message || 'Error occured while getting group details',
                     success: false
                 });
             }
             var response = JSON.parse(resp.raw_body);
-            console.log(response);
-            res.send({
+            return res.send({
                 success: true,
                 data: response
             })
@@ -823,23 +757,22 @@ exports.getGroupDetails = async (req, res) =>{
 
 exports.groupDeposit = async (req, res) =>{
     const access = await getkey(req.user.merchant);
-    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
     var value = {
         Account: val.account,
-        type: 'Deposit',
-        network: val.network,
-        mobile: val.mobile,
-        amount: val.amount,
-        method: val.method,
-        source: val.source,
-        withdrawal: false,
-        groupId: val.groupId,
-        reference: 'Deposit to Account Number ' + val.account
+        Type: 'Deposit',
+        NetWork: val.network,
+        Mobile: val.mobile,
+        Amount: val.amount,
+        Method: val.method,
+        Source: val.source,
+        Withdrawal: false,
+        GroupId: val.group_id,
+        Reference: 'Deposit to Account Number ' + val.account
     };
 
-    var api_endpoint = (access.apiurl || apiurl) + 'AirtelTigo/Deposit/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
+    var api_endpoint = (access.apiurl || apiurl) + 'Ussd/Deposit/' + access.code + '/' + access.key;
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -847,17 +780,15 @@ exports.groupDeposit = async (req, res) =>{
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
-                var response = JSON.parse(resp.raw_body);
-                return res.status(500).send({
+                var response = resp.body;
+                return res.status(400).send({
                     success: false,
                     message: response.message || "Unable to proccess Payment at the moment"
                 });
             }
             // if (res.error) throw new Error(res.error);
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
-            res.send({
+            return res.send({
                 success: true,
                 message: response.message || 'Payment Request Sent'
             });
@@ -866,23 +797,22 @@ exports.groupDeposit = async (req, res) =>{
 
 exports.groupWithdrawal = async (req, res) =>{
     const access = await getkey(req.user.merchant);
-    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
     var value = {
-        account: val.account,
-        type: 'Withdrawal',
-        network: val.network,
-        mobile: val.mobile,
-        amount: val.amount,
-        method: val.method,
-        source: val.source,
-        withdrawal: true,
-        groupId: val.groupId,
-        reference: 'Withdrawal from Account Number ' + val.account
+        Account: val.account,
+        Type: 'Withdrawal',
+        NetWork: val.network,
+        Mobile: val.mobile,
+        Amount: val.amount,
+        Method: val.method,
+        Source: val.source,
+        Withdrawal: true,
+        GroupId: val.group_id,
+        Reference: 'Withdrawal from Account Number ' + val.account
     };
 
     var api_endpoint = (access.apiurl || apiurl) + 'AirtelTigo/WithdrawalRequest/' + access.code + '/' + access.key;
-    console.log(api_endpoint);
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -890,14 +820,12 @@ exports.groupWithdrawal = async (req, res) =>{
         .send(JSON.stringify(value))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
                 return res.status(500).send({
                     message: response.message || "Unable to proccess Payment at the moment",
                     success: false
                 });
             }
-            console.log(resp.raw_body);
             var response = JSON.parse(resp.raw_body);
             
             res.status(response.status && response.status === 'FAILED' ? 500 : 200).send({
@@ -909,54 +837,125 @@ exports.groupWithdrawal = async (req, res) =>{
 
 exports.getCustomerGroups = async (req, res) =>{
     const access = await getkey(req.user.merchant);
-    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
     const { mobile } =  req.params;
     var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/GetCustomerGroups/${access.code}/${access.key}/${mobile}`;
-    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
-                res.status(500).send({
+                return res.status(400).send({
                     message: response.message || 'Error occured while getting customer groups',
                     success: false
                 });
             }
             var response = JSON.parse(resp.raw_body);
-            console.log(response);
-            res.send({
+            return res.send({
                 success: true,
                 data: response
             })
         });
 }
 
-exports.getGroupMemberTransactions = async (req, res) =>{
+exports.getCustomerGroupAccount = async (req, res) =>{
     const access = await getkey(req.user.merchant);
-    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` });
-    const { mobile, code } =  req.params;
-    var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/GetCustomerGroupAccount/${access.code}/${access.key}/${mobile}/${code}`;
-    console.log(api_endpoint);
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
+    const { mobile, group_code } =  req.params;
+    var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/GetCustomerGroupAccount/${access.code}/${access.key}/${mobile}/${group_code}`;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
                 var response = JSON.parse(resp.raw_body);
-                res.status(500).send({
+                return res.status(400).send({
+                    message: response.message || 'Error occured while getting customer\'s group account',
+                    success: false
+                });
+            }
+            var response = JSON.parse(resp.raw_body);
+            return res.send({
+                success: true,
+                data: response
+            })
+        });
+}
+
+
+exports.getAccountTransactions = async (req, res) =>{
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
+    const { account_number } =  req.params;
+    var api_endpoint = (access.apiurl || apiurl) + `Ussd/getAccountTransaction/${access.code}/${access.key}/${account_number}`;
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                var response = JSON.parse(resp.raw_body);
+                return res.status(400).send({
                     message: response.message || 'Error occured while getting group member transactions',
                     success: false
                 });
             }
             var response = JSON.parse(resp.raw_body);
-            console.log(response);
-            res.send({
+            return res.send({
                 success: true,
                 data: response
             })
         });
 }
 
+exports.getGroupLeaderGroups = async (req, res) =>{
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
+    const { mobile } =  req.params;
+    var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/GetGroupLeaderGroups/${access.code}/${access.key}/${mobile}`;
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                var response = JSON.parse(resp.raw_body);
+                return res.status(400).send({
+                    message: response.message || 'Could not get the group leader\'s groups',
+                    success: false
+                });
+            }
+            var response = JSON.parse(resp.raw_body);
+            return res.send({
+                success: true,
+                data: response
+            })
+        });
+}
+
+exports.addCustomerToGroup = async (req, res) =>{
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    var val = req.body;
+    var value = {
+        FullName: val.fullname,
+        Mobile: val.mobile,
+        Gender: "N/A",
+        Source: "web",
+    };
+
+    var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/AddCustomerToGroup/${access.code}/${access.key}/${val.group_code}`;
+    var req = unirest('POST', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        .send(JSON.stringify(value))
+        .end(async (resp) => {
+            if (resp.error) {
+                var response = resp.body;
+                return res.status(400).send({
+                    success: false,
+                    message: response.message || "Unable to add customer to group"
+                });
+            }
+            var response = JSON.parse(resp.raw_body);
+            return res.send({
+                success: true,
+                message: response.message || 'Customer added to group'
+            });
+        });
+}
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
