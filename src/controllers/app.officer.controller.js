@@ -730,6 +730,34 @@ exports.createCustomer = async (req, res) => {
         });
 };
 
+exports.getAccountTypes = async (req, res) => {
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    var val = req.body;
+    var api_endpoint = (access.apiurl || apiurl) + 'Ussd/getAccountTypes/' + access.code + '/' + access.key;
+    console.log(api_endpoint);
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        // .send(JSON.stringify(val))
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.raw_body);
+                var respon = JSON.parse(resp.raw_body);
+                // if (response.error) throw new Error(response.error);
+                return res.status(500).send({
+                    message: resp.body.message || respon.message || "Unable to create customer at the moment"
+                });
+            }
+            // if (res.error) throw new Error(res.error);
+            console.log(resp.raw_body);
+            // var response = JSON.parse(resp.raw_body);
+            // await callback(response);
+            res.send(resp.body);
+        });
+};
+
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
