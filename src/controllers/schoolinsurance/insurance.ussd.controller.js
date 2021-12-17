@@ -728,73 +728,20 @@ menu.state('Cancel', {
 
 
 //////////-------------START SESSION FUNCTION--------------//////////////
-module.exports.startSession = (req, res) => {
+exports.ussdApp = async (req, res) => {
+	// Create a 
 	let args = req.body;
 	if (args.Type == 'initiation') {
 		args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
 	}
-	menu.run(args, ussdResult => {
-		menu.session.set('network', args.Operator);
+	await menu.run(args, async (ussdResult) => {
+		// if (args.Operator) { menu.session.set('network', args.Operator); }
 		res.send(ussdResult);
 	});
-}
-
-async function fetchCustomer(val, callback, errorCallback) {
-	// try {
-	if (val && val.startsWith('+233')) {
-		// Remove Bearer from string
-		val = val.replace('+233', '0');
-	}
-	var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-	var request = unirest('GET', api_endpoint)
-		.end(async (resp) => {
-			if (resp.error) {
-				return await errorCallback(resp);
-			}
-			var response = JSON.parse(resp.raw_body);
-			if (response.active) {
-				menu.session.set('name', response.name);
-				menu.session.set('mobile', val);
-				menu.session.set('accounts', response.accounts);
-				menu.session.set('cust', response);
-				menu.session.set('type', response.type);
-				menu.session.set('pin', response.pin);
-				// menu.session.set('limit', response.result.limit);
-			}
-			return await callback(response);
-		});
-	// }
-	// catch(err) {
-	//     console.log(err);
-	//     return err;
-	// }
-}
+};
 
 
-async function postDeposit(val, callback) {
-	var api_endpoint = apiurl + 'Deposit/' + access.code + '/' + access.key;
-	var req = unirest('POST', api_endpoint)
-		.headers({
-			'Content-Type': 'application/json'
-		})
-		.send(JSON.stringify(val))
-		.end(async (resp) => {
-			console.log(JSON.stringify(val));
-			if (resp.error) {
-				console.log(resp.error);
-				await postDeposit(val);
-				return await callback(resp);
-			}
-			// if (res.error) throw new Error(res.error); 
-			// console.log(resp.raw_body);
-			var response = JSON.parse(resp.raw_body);
-			console.log(response);
-			return await callback(response);
-		});
-	return true
-}
-
-
+//////////-------------API FUNCTION--------------//////////////
 async function getInfo(mobile, callback, errorCallback) {
 	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
 	var api_endpoint = `${apiurl}getInfo/${access.code}/${access.key}/${mobile}`;
@@ -810,28 +757,144 @@ async function getInfo(mobile, callback, errorCallback) {
 		});
 }
 
-async function postCustomer(customer, callback, errorCallback) {
-    var api_endpoint = apiurl + 'CreatePolicyHolder/';
-    var req = unirest('POST', api_endpoint)
-        .headers({
-            'Content-Type': 'application/json'
-        })
-        .send(JSON.stringify(customer))
+async function fetchParent(val, callback, errorCallback) {
+	// try {
+	if (val && val.startsWith('+233')) {
+		// Remove Bearer from string
+		val = val.replace('+233', '0');
+	}
+	var api_endpoint = apiurl + 'getParent/' + access.code + '/' + access.key + '/' + val;
+	var request = unirest('GET', api_endpoint)
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp);
+			}
+			var response = JSON.parse(resp.raw_body);
+			if (response.active) {
+				// menu.session.set('limit', response.result.limit);
+			}
+
+			return await callback(response);
+		});
+	// }
+	// catch(err) {
+	//     return err;
+	// }
+}
+
+async function fetchParentChildren(val, callback, errorCallback) {
+	
+	var api_endpoint = apiurl + 'getParentChildren/' + access.code+'/'+access.key + '/' + val;
+	console.log(api_endpoint);
+	var request = unirest('GET', api_endpoint)
+	.end(async(resp)=> { 
+		if (resp.error) { 
+			// console.log(resp.error);
+			// var response = JSON.parse(res);
+			// return res;
+			return await errorCallback(resp.body);
+		}
+		// console.log(resp.raw_body);
+		var response = JSON.parse(resp.raw_body);
+		
+		return await callback(response);
+	});
+}
+
+async function fetchParentChild(val, callback, errorCallback) {
+
+	var api_endpoint = apiurl + 'getParentChild/'+ access.code+'/'+access.key +'/'+ val.mobile+'/'+ val.index;
+	console.log(api_endpoint);
+	var request = unirest('GET', api_endpoint)
+	.end(async(resp)=> { 
+		if (resp.error) { 
+			// console.log(resp.error);
+			// var response = JSON.parse(res);
+			// return res;
+			return await errorCallback(resp.body);
+		}
+		// console.log(resp.raw_body);
+		// var response = JSON.parse(resp.raw_body);
+		
+		return await callback(resp.body);
+	});
+}
+
+async function AvailablePolicyTypes(val, callback) {
+    var api_endpoint = apiurl + 'AvailablePolicyTypes/' + val + '?appid=' + access.code + '&key=' + access.key;
+    var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                return await errorCallback(resp.body);
+                // var response = JSON.parse(res);
+                // return res;
+                return await callback(resp);
             }
-            return await callback(resp.body);
+            var response = JSON.parse(resp.raw_body);
+
+            return await callback(response);
         });
 }
 
-async function getStudents(mobile, callback, errorCallback) {
-	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
-	var api_endpoint = `${apiurl}getStudents/${access.code}/${access.key}/${mobile}`;
-	var req = unirest('GET', api_endpoint)
+async function AvailablePolicyType(val, callback) {
+    // var api_endpoint = apiurl + 'AvailablePolicyType/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
+    var api_endpoint = apiurl + 'AvailablePolicyType/' + val.type + '/' + val.index + '?appid=' + access.code + '&key=' + access.key;
+    var request = unirest('GET', api_endpoint)
+        .end(async (resp) => {
+            if (resp.error) {
+                // var response = JSON.parse(res);
+                // return res;
+                return await callback(resp);
+            }
+            var response = JSON.parse(resp.raw_body);
+
+            return await callback(response);
+        });
+}
+
+async function postDeposit(val, callback) {
+	var api_endpoint = apiurl + 'Deposit/' + access.code + '/' + access.key;
+	var req = unirest('POST', api_endpoint)
 		.headers({
 			'Content-Type': 'application/json'
 		})
+		.send(JSON.stringify(val))
+		.end(async (resp) => {
+			if (resp.error) {
+				await postDeposit(val);
+				return await callback(resp);
+			}
+			// if (res.error) throw new Error(res.error);
+			var response = JSON.parse(resp.raw_body);
+			return await callback(response);
+		});
+	return true
+}
+
+async function Register(val, callback, errorCallback) {
+
+	var api_endpoint = `${apiurl}RegisterParent/${access.code}/${access.key}`
+	var req = unirest('POST', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.send(JSON.stringify(val))
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp.body);
+			}
+			return await callback(resp.body);
+		});
+	return true
+}
+
+async function Subcription(val, callback, errorCallback) {
+	
+	var api_endpoint = `${apiurl}RegisterStudent/${access.code}/${access.key}`;
+	var req = unirest('POST', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.send(JSON.stringify(val))
 		.end(async (resp) => {
 			if (resp.error) {
 				return await errorCallback(resp.body);
@@ -840,29 +903,18 @@ async function getStudents(mobile, callback, errorCallback) {
 		});
 }
 
-async function updatePolicy(policy, callback, errorCallback) {
-    var api_endpoint = apiurl + 'CreatePolicyHolder/';
-    var req = unirest('POST', api_endpoint)
-        .headers({
-            'Content-Type': 'application/json'
-        })
-        .send(JSON.stringify(policy))
-        .end(async (resp) => {
-            if (resp.error) {
-                return await errorCallback(resp.body);
-            }
-            return await callback(resp.body);
-        });
+async function ChangePolicy(mobile, callback, errorCallback) {
+	
+	var api_endpoint = `${apiurl}ChangeStudentPolicy/${access.code}/${access.key}`;
+	var req = unirest('POST', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.send(JSON.stringify(customer))
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp.body);
+			}
+			return await callback(resp.body);
+		});
 }
-
-exports.ussdApp = async (req, res) => {
-	// Create a 
-	let args = req.body;
-	if (args.Type == 'initiation') {
-		args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
-	}
-	await menu.run(args, async (ussdResult) => {
-		// if (args.Operator) { menu.session.set('network', args.Operator); }
-		res.send(ussdResult);
-	});
-};

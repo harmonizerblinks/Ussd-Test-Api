@@ -2,12 +2,23 @@ const UssdMenu = require('ussd-builder');
 const unirest = require('unirest');
 const generator = require('generate-serial-number')
 let menu = new UssdMenu({ provider: 'hubtel' });
-let sessions = {};
-const apiurl = "https://api.paynowafrica.com/";
-let access = { code: "ACU001", key: "1029398" };
 let helpers = require('../../utils/helpers')
 let school_types = ["Private", "Public"];
 let school_policies = ["Up To J.H.S", "Up To S.H.S", "Up To University"];
+let amount = 21;
+
+
+// Test Credentials
+let apiurl = "https://app.alias-solutions.net:5010/";
+let access = { code: "ENTLIFE", key: "1029398" };
+
+// Live Credential
+// let apiurl = "https://app.alias-solutions.net:5011/";
+// let access = { code: "ENTLIFE", key: "1029398" };
+
+
+let sessions = {};
+
 menu.sessionConfig({
 	start: (sessionId, callback) => {
 		// initialize current session if it doesn't exist
@@ -38,12 +49,15 @@ menu.sessionConfig({
 
 menu.startState({
 	run: async () => {
-		await fetchCustomer(menu.args.phoneNumber,
+		await fetchParent(menu.args.phoneNumber,
 			(response) => {
-				menu.con(`Welcome to PTA School Insurance\n` +
-				`1. Subscribe\n` +
-				`2. Payment`
-				)
+				if(response.active) {
+					menu.con(`Welcome to PTA School Insurance\n` +
+					`1. Subscribe\n` +
+					`2. Payment`)
+				} else{
+					menu.con('Welcome to PTA School Insurance\nPress (0) zero to register as a parent\n0. Register')
+				}
 			},
 			(error) => {
 				menu.con('Welcome to PTA School Insurance\nPress (0) zero to register as a parent\n0. Register')
@@ -152,7 +166,7 @@ menu.state('Register.Email', {
 
 	},
 	next: {
-		'*[a-zA-Z]+': 'Register.Confirm',
+		'*[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$': 'Register.Confirm',
 	},
 	defaultNext: 'IncorrectInput'
 });
@@ -205,17 +219,22 @@ menu.state('Register.Submit', {
 			fullname = 'customer';
 		}
 
-		var customer = {
+		var parent = {
 			code: access.code, key: access.key,
-			fullname: fullname, mobile: mobile, gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: dob, email: email
+			fullname: fullname, firstname: firstname, lastname: lastname, mobile: mobile, date_of_birth: dob, email: email, source: "USSD", network: menu.args.operator, profession: "N/A", gender: "N/A", place_of_work: 'n/a',
 		};
 
-		await postCustomer(customer, (response) => {
-			menu.end('Thank you for registering, ' + fullname + '\nYour registration has been submitted successfully');
+		await Register(parent, (response) => {
+			menu.con('Thank you for registering, ' + fullname + '\nYour registration was successful'+ 
+			'\nPress (0) zero to Continue');
 		}, (error) => {
 			menu.end(error.message || 'Registration not Successful')
 		})
 
+	},
+	next: {
+		'0': '__start__',
+		'*[0-9]': '__start__',
 	},
 });
 ///////////////--------------END REGISTRATION--------------////////////////
@@ -252,30 +271,42 @@ menu.state('Subscribe.DOB', {
 		if (helpers.isValidDate(menu.val)) {
 			menu.session.set('student_dob', menu.val);
 			menu.con(
-				'Please enter the region'
+				'Please enter School Code'
 			);
-
 		}
 		else {
 			menu.end('You entered an invalid date, please try again later')
 		}
 	},
 	next: {
-		'*[a-zA-Z]+': 'Subscribe.Region'
+		'*[0-9]+': 'Subscribe.School'
 	},
 	defaultNext: 'IncorrectInput'
 })
 
-menu.state('Subscribe.Region', {
+menu.state('Subscribe.School', {
 	run: async () => {
-		menu.session.set('region', menu.val);
-		menu.con(
-			'Please enter the school\'s name'
-		);
-
+		menu.session.set('school_code', menu.val);
+		await fetchSchool(menu.val,(data)=>{
+			if(data.active){
+				menu.session.set('school', data);
+				menu.con(
+					'School Name: '+data.name
+				);
+			} else{
+				menu.con(
+					'Please enter a valid School Code'
+				);
+			}
+		},(err)=>{
+			menu.con(
+				'Please enter a valid School Code'
+			);
+		});
 	},
 	next: {
-		'*[a-zA-Z]+': 'Subscribe.Stage'
+		'*[a-zA-Z]+': 'Subscribe.Stage',
+		'*[0-9]+': 'Subscribe.School'
 	},
 	defaultNext: 'IncorrectInput'
 })
@@ -283,7 +314,8 @@ menu.state('Subscribe.Region', {
 menu.state('Subscribe.Stage', {
 	run: async () => {
 
-		menu.session.set('school_name', menu.val);
+		const sch = await menu.session.get('school');
+		if(!sch) menu.end("Invalid school code provided, please try again.")
 
 		menu.con('Please enter class/stage');
 	},
@@ -298,11 +330,11 @@ menu.state('Subscribe.Display', {
 
 		menu.session.set('school_stage', menu.val);
 		let name = await menu.session.get('name');
-		let student_dob = await menu.session.get('student_dob');
-		let school_name = await menu.session.get('school_name');
+		let dob = await menu.session.get('student_dob');
+		// let school = await menu.session.get('school');
 
 		let the_message = "Display Details\n";
-		menu.con(`${the_message}Name: ${name}\DOB: ${student_dob}\nSchool: ${school_name}\nClass/Stage: ${menu.val}\nAmnt:\n` +
+		menu.con(`${the_message}Name: ${name}\DOB: ${dob}\nClass/Stage: ${menu.val}\nAmount: GHS ${amount}\n` +
 			`1. Confirm\n2. Cancel\n#. Main Menu`
 		);
 	},
@@ -318,15 +350,15 @@ menu.state('Subscribe.Submit', {
 	run: async () => {
 
 		let name = await menu.session.get('name');
-		let student_dob = await menu.session.get('student_dob');
-		let school_name = await menu.session.get('school_name');
+		let dob = await menu.session.get('student_dob');
+		let school_code = await menu.session.get('school_code');
 		let region = await menu.session.get('region');
 		let school_stage = await menu.session.get('school_stage');
 		var mobile = menu.args.phoneNumber;
 
 		var customer = {
 			code: access.code, key: access.key,
-			name: name, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', maritalstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dob: student_dob, school: school_name, class: school_stage, region: region
+			name: name, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', maritalstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dob: dob, school: school_name, class: school_stage, region: region
 		};
 
 		await postCustomer(customer, (response) => {
@@ -339,8 +371,6 @@ menu.state('Subscribe.Submit', {
 });
 
 ///////////////--------------END SUBSCRIBE--------------////////////////
-
-
 
 
 ///////////////--------------START PAYMENT--------------////////////////
@@ -418,177 +448,7 @@ menu.state('Payment.Proceed', {
 ///////////////--------------END PAYMENT--------------////////////////
 
 
-
-
-///////////////--------------START POLICIES--------------////////////////
-
-menu.state('Policies', {
-	run: async () => {
-
-		let the_message = "Please select type of school\n";
-		school_types.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
-		});
-		menu.con(the_message);
-	},
-	next: {
-		'*[1-2]': 'Policies.Type'
-	}
-})
-
-menu.state('Policies.Type', {
-	run: async () => {
-
-		let schoolType = school_types[Number(menu.val) - 1];
-		menu.session.set('school_type', schoolType);
-
-		let the_message = "Please select type of school policy\n";
-		school_policies.forEach((element, index) => {
-			the_message += `${(index)}. ${element}\n`;
-		});
-		menu.con(the_message)
-
-	},
-	next: {
-		'*[1-3]': 'Policies.Policy'
-	},
-})
-
-
-menu.state('Policies.Policy', {
-	run: async () => {
-		menu.end(`Death
-		Redundancy
-		Critical Illness...`)
-	},
-})
-
-///////////////--------------END POLICIES--------------////////////////
-
-
-
-///////////////--------------START CLAIMS--------------////////////////
-
-menu.state('Claims', {
-	run: async () => {
-		menu.con(
-			`Please select a claim\n` +
-			`1. Death\n` +
-			`2. Redundancy\n` +
-			`3. Critical Illness\n`
-		)
-	},
-	next: {
-		'*[1-3]': 'Claims.Select'
-	},
-})
-
-menu.state('Claims.Select', {
-	run: async () => {
-		menu.end(
-			`Claim request received, our help desk will attend to you shortly\n`
-		)
-	},
-	defaultNext: 'IncorrectInput'
-})
-
-///////////////--------------END CLAIMS--------------////////////////
-
-
-///////////////--------------INSURANCE STARTS--------------////////////////
-
-menu.state('pay', {
-	run: async () => {
-		var schemes = ''; var count = 1;
-		var accounts = await menu.session.get('accounts');
-		accounts.forEach(val => {
-			schemes += '\n' + count + '. ' + val.type + ' A/C';
-			count += 1;
-		});
-		menu.con(`Please Select Policy Number: ${schemes}`)
-	},
-	next: {
-		'0': '__start__',
-		'*\\d+': 'policy'
-	}
-})
-
-
-menu.state('policy', {
-	run: async () => {
-		var index = Number(menu.val);
-		var accounts = await menu.session.get('accounts');
-		var cust = await menu.session.get('cust');
-		var account = accounts[index - 1]
-		menu.session.set('account', account);
-		menu.con(`Dear ${cust.fullname}, you are making a payment of GHS  ${amount}  for policy number ${account.accountNumber}` +
-			'\n1. Confirm' +
-			'\n2. Cancel'
-		)
-	},
-	next: {
-		'1': 'confirm',
-		'2': 'deposit',
-	}
-})
-
-menu.state('confirm', {
-	run: async () => {
-		// access user input value save in session
-		//var cust = await menu.session.get('cust');
-		var amount = await menu.session.get('amount');
-		var account = await menu.session.get('account');
-		var network = await menu.session.get('network');
-		var mobile = menu.args.phoneNumber;
-		var data = { merchant: access.code, account: account.code, type: 'Deposit', network: network, mobile: mobile, amount: amount, method: 'MOMO', source: 'USSD', withdrawal: false, reference: 'Deposit to Account Number ' + account.code, merchantid: account.merchantid };
-		await postDeposit(data, async (result) => {
-			// menu.end(JSON.stringify(result)); 
-			let message = 'Payment request of amount GHC ' + amount + ' has been sent to your phone.';
-			if (network == "MTN") {
-				message += "\nIf you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment"
-			}
-			menu.end(message);
-		});
-	}
-})
-
-///////////////--------------CHECK STATUS STARTS--------------////////////////
-
-menu.state('checkpolicy', {
-	run: async () => {
-		var schemes = ''; var count = 1;
-		var accounts = await menu.session.get('accounts');
-		accounts.forEach(val => {
-			schemes += '\n' + count + '. ' + val.type + ' A/C';
-			count += 1;
-		});
-		menu.con(`Please Select Policy Number:
-		${schemes}`)
-	},
-	next: {
-		'*\\d+': 'checkpolicy.account',
-	}
-})
-
-menu.state('checkpolicy.account', {
-	run: () => {
-		menu.con('Your policy number 000000241 will expire on 12/10/21' + '\n\nPress zero (0) to return to the Main Menu')
-	},
-	next: {
-		'0': '__start__'
-	}
-
-})
-
-///////////////--------------CLAIMS STARTS--------------////////////////
-
-menu.state('claims', {
-	run: () => {
-		menu.end('Your request for claim was successful. You will be contacted shortly.')
-	}
-})
-
-
+///////////////-------------- ERRORS --------------////////////////
 menu.state('IncorrectInput', {
 	run: () => {
 		menu.end('Sorry, incorrect input entered')
@@ -603,7 +463,6 @@ menu.state('Cancel', {
 
 
 //////////-------------START SESSION FUNCTION--------------//////////////
-
 exports.ussdApp = async (req, res) => {
 	// Create a 
 	let args = req.body;
@@ -631,12 +490,23 @@ async function getInfo(mobile, callback, errorCallback) {
 		});
 }
 
+
+async function fetchSchool(val, callback, errorCallback) {
+	
+	var api_endpoint = apiurl + 'getSchool/' + access.code + '/' + access.key + '/' + val;
+	var request = unirest('GET', api_endpoint)
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp);
+			}
+			var response = JSON.parse(resp.raw_body);
+			
+			return await callback(response);
+		});
+}
+
 async function fetchParent(val, callback, errorCallback) {
-	// try {
-	if (val && val.startsWith('+233')) {
-		// Remove Bearer from string
-		val = val.replace('+233', '0');
-	}
+	
 	var api_endpoint = apiurl + 'getParent/' + access.code + '/' + access.key + '/' + val;
 	var request = unirest('GET', api_endpoint)
 		.end(async (resp) => {
@@ -650,10 +520,6 @@ async function fetchParent(val, callback, errorCallback) {
 
 			return await callback(response);
 		});
-	// }
-	// catch(err) {
-	//     return err;
-	// }
 }
 
 async function fetchParentChildren(val, callback, errorCallback) {
@@ -725,31 +591,6 @@ async function AvailablePolicyType(val, callback) {
         });
 }
 
-async function fetchCustomer(val, callback, errorCallback) {
-	// try {
-	if (val && val.startsWith('+233')) {
-		// Remove Bearer from string
-		val = val.replace('+233', '0');
-	}
-	var api_endpoint = apiurl + 'getCustomer/' + access.code + '/' + access.key + '/' + val;
-	var request = unirest('GET', api_endpoint)
-		.end(async (resp) => {
-			if (resp.error) {
-				return await errorCallback(resp);
-			}
-			var response = JSON.parse(resp.raw_body);
-			if (response.active) {
-				// menu.session.set('limit', response.result.limit);
-			}
-
-			return await callback(response);
-		});
-	// }
-	// catch(err) {
-	//     return err;
-	// }
-}
-
 async function postDeposit(val, callback) {
 	var api_endpoint = apiurl + 'Deposit/' + access.code + '/' + access.key;
 	var req = unirest('POST', api_endpoint)
@@ -769,13 +610,14 @@ async function postDeposit(val, callback) {
 	return true
 }
 
-async function postCustomer(customer, callback, errorCallback) {
-	var api_endpoint = apiurl + 'CreatePolicyHolder/';
+async function Register(val, callback, errorCallback) {
+
+	var api_endpoint = `${apiurl}RegisterParent/${access.code}/${access.key}`
 	var req = unirest('POST', api_endpoint)
 		.headers({
 			'Content-Type': 'application/json'
 		})
-		.send(JSON.stringify(customer))
+		.send(JSON.stringify(val))
 		.end(async (resp) => {
 			if (resp.error) {
 				return await errorCallback(resp.body);
@@ -785,13 +627,30 @@ async function postCustomer(customer, callback, errorCallback) {
 	return true
 }
 
-async function getStudents(mobile, callback, errorCallback) {
-	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
-	var api_endpoint = `${apiurl}getStudents/${access.code}/${access.key}/${mobile}`;
-	var req = unirest('GET', api_endpoint)
+async function Subcription(val, callback, errorCallback) {
+	
+	var api_endpoint = `${apiurl}RegisterStudent/${access.code}/${access.key}`;
+	var req = unirest('POST', api_endpoint)
 		.headers({
 			'Content-Type': 'application/json'
 		})
+		.send(JSON.stringify(val))
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp.body);
+			}
+			return await callback(resp.body);
+		});
+}
+
+async function ChangePolicy(mobile, callback, errorCallback) {
+	
+	var api_endpoint = `${apiurl}ChangeStudentPolicy/${access.code}/${access.key}`;
+	var req = unirest('POST', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.send(JSON.stringify(customer))
 		.end(async (resp) => {
 			if (resp.error) {
 				return await errorCallback(resp.body);
