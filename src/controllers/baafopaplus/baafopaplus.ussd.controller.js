@@ -900,7 +900,6 @@ async function fetchCustomer(val, callback) {
     // }
 }
 
-
 async function fetchCustomerAccounts(val, callback) {
     // if (val && val.startsWith('+233')) {
     //     // Remove Bearer from string
@@ -969,7 +968,6 @@ async function AvailablePolicyType(val, callback) {
             return await callback(response);
         });
 }
-
 
 async function CheckStatus(val, callback) {
     var api_endpoint = apiurl + 'GetPolicyStatus/' + access.code + '/' + access.key + '/' + val;

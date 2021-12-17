@@ -16,7 +16,7 @@ let accesses = [{
     key: "1029398",
     apiurl: "https://app.alias-solutions.net:5003/"
 }, {
-    code: "ACU001",
+    code: "SHA001",
     key: "1029398",
     apiurl: "https://app.alias-solutions.net:5003/"
 }];
@@ -712,11 +712,11 @@ exports.createCustomer = async (req, res) => {
         .send(JSON.stringify(val))
         .end(async (resp) => {
             if (resp.error) {
-                console.log(resp.raw_body);
+                // console.log(resp.raw_body);
                 var respon = JSON.parse(resp.raw_body);
                 // if (response.error) throw new Error(response.error);
                 return res.status(500).send({
-                    message: respon.message || "Unable to create customer at the moment"
+                    message: respon.message != null? respon.message : "Unable to create customer at the moment"
                 });
             }
             // if (res.error) throw new Error(res.error);
