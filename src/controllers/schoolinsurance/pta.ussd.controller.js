@@ -328,7 +328,7 @@ menu.state('Subscribe.Stage', {
 menu.state('Subscribe.Display', {
 	run: async () => {
 
-		menu.session.set('school_stage', menu.val);
+		menu.session.set('grade', menu.val);
 		let name = await menu.session.get('name');
 		let dob = await menu.session.get('student_dob');
 		// let school = await menu.session.get('school');
@@ -351,14 +351,14 @@ menu.state('Subscribe.Submit', {
 
 		let name = await menu.session.get('name');
 		let dob = await menu.session.get('student_dob');
-		let school_code = await menu.session.get('school_code');
-		let region = await menu.session.get('region');
-		let school_stage = await menu.session.get('school_stage');
+		// let school_code = await menu.session.get('school_code');
+		let school = await menu.session.get('school');
+		let grade = await menu.session.get('grade');
 		var mobile = menu.args.phoneNumber;
 
 		var customer = {
 			code: access.code, key: access.key,
-			name: name, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', maritalstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dob: dob, school: school_name, class: school_stage, region: region
+			name: name, mobile: mobile, email: "alias@gmail.com", network: menu.args.operator, amount: amount, dateofbirth: dob, school: school.name, grade: grade, region: region, schoolcode: school.code, accountcode: "PTA", gender: "N/A", source: "USSD", location: 'n/a', agentcode: 'n/a', maritalstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a',
 		};
 
 		await postCustomer(customer, (response) => {
