@@ -19,5 +19,9 @@ module.exports = {
     isValidEmail(email)
     {
         return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+    },
+    mtnMessage()
+    {
+        return "If you don't get the prompt after 20 seconds, kindly dial *170# >> My Wallet >> My Approvals and approve payment";
     }
 };
