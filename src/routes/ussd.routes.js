@@ -69,9 +69,9 @@ module.exports = function(app) {
     var ptaSchoolinsurance = require('../controllers/schoolinsurance/pta.ussd.controller');
 
     // *789*7879# https://maximus-ussd-api.herokuapp.com/group
-    app.post('/group', hmplus.ussdApp);
+    app.post('/group', schoolinsurance.ussdApp);
     // *789*7880# https://maximus-ussd-api.herokuapp.com/leader
-    app.post('/leader', baafopatest.ussdApp);
+    app.post('/leader', ptaSchoolinsurance.ussdApp);
     // *789*7878# https://maximus-ussd-api.herokuapp.com/
     app.post('/', daakyeSusu.ussdApp);
     app.post('/benin', benin.ussdApp);

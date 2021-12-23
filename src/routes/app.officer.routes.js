@@ -24,7 +24,8 @@ module.exports = function(app) {
     app.post('/officer/customer', verify.verifyToken, apps.createCustomer);
     app.get('/officer/dashboard', verify.verifyToken, apps.getOfficerDashBoard);
     app.post('/officer/getOfficer', verify.verifyToken, apps.getOfficer);
-    app.post('/officer/getAccountTypes', verify.verifyToken, apps.getAccountTypes);
+    app.get('/officer/AccountTypes', verify.verifyToken, apps.getAccountTypes);
+    app.get('/officer/AccountType/:account', verify.verifyToken, apps.getAccountType);
     app.get('/officer/getAccounts', verify.verifyToken, apps.getAccounts);
     app.get('/officer/getgroups', verify.verifyToken, apps.getOfficerGroups);
     app.get('/officer/getGroup', verify.verifyToken, apps.getOfficerGroup);

@@ -14,7 +14,8 @@ let accesses = [{
 }, {
     code: "ACU001",
     key: "1029398",
-    apiurl: "https://app.alias-solutions.net:5003/"
+    apiurl: "http://localhost:5000/"
+    // apiurl: "https://app.alias-solutions.net:5003/"
 }, {
     code: "SHA001",
     key: "1029398",
@@ -83,6 +84,7 @@ exports.validateOfficer = (req, res) => {
         });
 };
 
+
 exports.getOfficer = async (req, res) => {
     const val = req.body;
     const access = getkey(val.merchant);
@@ -109,6 +111,7 @@ exports.getOfficer = async (req, res) => {
         })
 }
 
+
 exports.getOfficerDashBoard = async (req, res) => {
     const val = req.user;
     const access = getkey(val.merchant);
@@ -118,22 +121,23 @@ exports.getOfficerDashBoard = async (req, res) => {
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                res.status(500).send({
+                return res.status(500).send({
                     success: false,
                     message: 'Invalid Officer Mobile Number'
                 });
             }
             // var response = JSON.parse(resp.raw_body);
             if (!resp.body) {
-                res.status(500).send({
+                return res.status(500).send({
                     success: false,
                     message: 'Invalid Officer Mobile Number'
                 })
             } else {
-                res.send(resp.body);
+                return res.send(resp.body);
             }
         })
 }
+
 
 exports.sendOtp = async (req, res) => {
     var val = req.body;
@@ -158,6 +162,7 @@ exports.sendOtp = async (req, res) => {
         });
 }
 
+
 exports.verifyOtp = async (req, res) => {
     var val = req.body;
     const access = getkey(val.merchant);
@@ -181,6 +186,7 @@ exports.verifyOtp = async (req, res) => {
             });
         });
 }
+
 
 exports.setPassword = async (req, res) => {
     if (req.body.mobile == null || req.body.newpin == null) {
@@ -236,6 +242,7 @@ exports.setPassword = async (req, res) => {
         });
 };
 
+
 // Login user
 exports.login = (req, res) => {
     var val = req.body;
@@ -290,6 +297,7 @@ exports.login = (req, res) => {
         });
 };
 
+
 // Logout user
 exports.logout = (req, res) => {
     if (req.user) {
@@ -302,6 +310,7 @@ exports.logout = (req, res) => {
         });
     }
 };
+
 
 // Get User Profile
 exports.profile = (req, res) => {
@@ -381,6 +390,7 @@ exports.changePassword = async (req, res) => {
         });
 };
 
+
 exports.getCustomers = async (req, res) => {
     // var val = req.user.mobile;
     const { page, limit, search } =  req.query
@@ -406,6 +416,7 @@ exports.getCustomers = async (req, res) => {
         });
 };
 
+
 exports.getCustomer = async (req, res) => {
     var val = req.params.code;
     const access = await getkey(req.user.merchant);
@@ -428,6 +439,7 @@ exports.getCustomer = async (req, res) => {
             res.send(response);
         });
 };
+
 
 exports.getAccounts = async (req, res) => {
     var val = req.query;
@@ -458,6 +470,7 @@ exports.getAccounts = async (req, res) => {
         });
 };
 
+
 exports.getGroups = async (req, res) => {
     const access = await getkey(req.user.merchant);
     const { page,limit,search } =  req.query;
@@ -482,6 +495,7 @@ exports.getGroups = async (req, res) => {
         });
 };
 
+
 exports.getGroup = async (req, res) => {
     // var val = req.params.scheme;
     const access = await getkey(req.user.merchant);
@@ -503,6 +517,7 @@ exports.getGroup = async (req, res) => {
             res.send(response);
         });
 };
+
 
 exports.getStatement = async (req, res) => {
     var val = req.body;
@@ -527,6 +542,7 @@ exports.getStatement = async (req, res) => {
             res.send(response.result);
         });
 };
+
 
 // Post Payment
 exports.Deposit = async (req, res) => {
@@ -576,6 +592,7 @@ exports.Deposit = async (req, res) => {
         });
 };
 
+
 exports.getOfficerGroups = async (req, res) =>{
     const { page,limit } = req.query;
     const access = getkey(req.user.merchant);
@@ -601,6 +618,7 @@ exports.getOfficerGroups = async (req, res) =>{
         })
 }
 
+
 exports.getOfficerGroup = async (req, res) =>{
     const { code} = req.query;
     const access = getkey(req.user.merchant);
@@ -623,6 +641,7 @@ exports.getOfficerGroup = async (req, res) =>{
         })
 }
 
+
 exports.getAccountTransaction =  async (req, res) =>{
     const { id } =  req.params;
     const access =  getkey(req.user.merchant);
@@ -643,6 +662,7 @@ exports.getAccountTransaction =  async (req, res) =>{
             })
         })
 }
+
 
 exports.getTransactions =  async (req, res) =>{
     const access =  getkey(req.user.merchant);
@@ -665,7 +685,7 @@ exports.getTransactions =  async (req, res) =>{
         })
 }
 
-    // create transaction
+// create transaction
 exports.createTransaction = async (req, res)=>{
     // const { merchant } =  req.params;
     const access =  getkey(req.user.merchant);
@@ -699,12 +719,15 @@ exports.createTransaction = async (req, res)=>{
         })
 }
 
+
 exports.createCustomer = async (req, res) => {
     const access = await getkey(req.user.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
-    var api_endpoint = (access.apiurl || apiurl) + 'Ussd/CreateCustomer/' + access.code + '/' + access.key;
+    var api_endpoint = (access.apiurl || apiurl) + 'App/CreateCustomer/' + access.code + '/' + access.key;
     console.log(api_endpoint);
+    console.log(JSON.stringify(val));
+    if(val.source == null){ val.source = "APP"; };
     var req = unirest('POST', api_endpoint)
         .headers({
             'Content-Type': 'application/json'
@@ -712,7 +735,7 @@ exports.createCustomer = async (req, res) => {
         .send(JSON.stringify(val))
         .end(async (resp) => {
             if (resp.error) {
-                // console.log(resp.raw_body);
+                console.log(resp.raw_body);
                 var respon = JSON.parse(resp.raw_body);
                 // if (response.error) throw new Error(response.error);
                 return res.status(500).send({
@@ -721,20 +744,23 @@ exports.createCustomer = async (req, res) => {
             }
             // if (res.error) throw new Error(res.error);
             console.log(resp.raw_body);
-            var response = JSON.parse(resp.raw_body);
+            // var response = JSON.parse(resp.raw_body);
             // await callback(response);
             res.send({
+                success: true,
                 output: 'Customer Created Successfully',
-                message: response.message
+                data: resp.raw_body
             });
         });
 };
+
 
 exports.getAccountTypes = async (req, res) => {
     const access = await getkey(req.user.merchant);
     if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
     var val = req.body;
-    var api_endpoint = (access.apiurl || apiurl) + 'Ussd/getAccountTypes/' + access.code + '/' + access.key;
+    var type = req.query.type || "Investment";
+    var api_endpoint = (access.apiurl || apiurl) + 'App/AvailableAccountTypes/'+type+'?appid=' + access.code + '&key=' + access.key;
     console.log(api_endpoint);
     var req = unirest('GET', api_endpoint)
         .headers({
@@ -745,16 +771,44 @@ exports.getAccountTypes = async (req, res) => {
             if (resp.error) {
                 console.log(resp.raw_body);
                 var respon = JSON.parse(resp.raw_body);
-                // if (response.error) throw new Error(response.error);
+                return res.status(500).send({
+                    success: false,
+                    message: resp.body.message || respon.message || "Unable to create customer at the moment"
+                });
+            }
+            console.log(resp.raw_body);
+            res.send({success: true, data: resp.body});
+        });
+};
+
+exports.getAccountType = async (req, res) => {
+    const access = await getkey(req.user.merchant);
+    if (!access) res.status(500).send({ success: false, message: `No merchant was found with code ${merchant}` })
+    var val = req.body;
+    var code = req.params.account;
+    var type = req.query.type || "Investment";
+    var api_endpoint = (access.apiurl || apiurl) + 'App/AvailableAccountType/'+type+'/'+code+'?appid=' + access.code + '&key=' + access.key;
+    console.log(api_endpoint);
+    var req = unirest('GET', api_endpoint)
+        .headers({
+            'Content-Type': 'application/json'
+        })
+        // .send(JSON.stringify(val))
+        .end(async (resp) => {
+            if (resp.error) {
+                console.log(resp.raw_body);
+                var respon = JSON.parse(resp.raw_body);
                 return res.status(500).send({
                     message: resp.body.message || respon.message || "Unable to create customer at the moment"
                 });
             }
-            // if (res.error) throw new Error(res.error);
             console.log(resp.raw_body);
-            // var response = JSON.parse(resp.raw_body);
-            // await callback(response);
-            res.send(resp.body);
+            if(!resp.body) {
+                return res.status(500).send({
+                    message: "Invalid Account Code Provided"
+                });
+            }
+            return res.send({success: true, data: resp.body});
         });
 };
 
