@@ -263,7 +263,8 @@ menu.state('Subscribe.Firstname', {
 	},
 	next: {
 		'*[a-zA-Z]+': 'Subscribe.Lastname'
-	}
+	},
+	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Subscribe.Lastname', {

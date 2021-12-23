@@ -3,8 +3,9 @@ const unirest = require('unirest');
 const generator = require('generate-serial-number')
 let menu = new UssdMenu({ provider: 'hubtel' });
 let sessions = {};
-const apiurl = "https://api.paynowafrica.com/";
-let access = { code: "ACU001", key: "1029398" };
+const apiurl = "https://app.alias-solutions.net:5012/Ussd/";
+// let access = { code: "ACU001", key: "1029398" };
+let access = { code: "ENTLIFE", key: "1029398" };
 let helpers = require('../../utils/helpers')
 let school_types = ["Private", "Public"];
 let school_policies = ["Up To J.H.S", "Up To S.H.S", "Up To University"];
@@ -39,19 +40,17 @@ menu.sessionConfig({
 
 menu.startState({
 	run: async () => {
-		await fetchCustomer(menu.args.phoneNumber,
+		await fetchParent(menu.args.phoneNumber,
 			(response) => {
-				if(response.active)
-				{
-					menu.con(`Welcome to Saham Educational Policy\n
-					1. Subscribe
-					2. Payment
-					3. Policies
-					4. Claims
-					`)
+				if (response.active) {
+					menu.con('Welcome to Saham Educational Policy\n' +
+						'1. Subscribe\n' +
+						'2. Payment\n' +
+						'3. Policies\n' +
+						'4. Claims\n'
+					)
 				}
-				else
-				{
+				else {
 					menu.end('Please activate your account first')
 				}
 			},
@@ -61,9 +60,10 @@ menu.startState({
 	},
 	next: {
 		'0': 'Register',
-		'1': 'Payment',
-		'2': 'checkpolicy',
-		'3': 'Claims'
+		'1': 'Subscribe',
+		'2': 'Payment',
+		'3': 'Policies',
+		'4': 'Claims'
 	}
 })
 
@@ -174,7 +174,7 @@ menu.state('Register.Workplace', {
 		menu.con('Please enter place of work')
 	},
 	next: {
-		'*[a-zA-Z]+': 'Register.Workplace',
+		'*[a-zA-Z]+': 'Register.Confirm',
 	},
 	defaultNext: 'IncorrectInput'
 });
@@ -195,7 +195,7 @@ menu.state('Register.Confirm', {
 			fullname = 'customer';
 		}
 
-		menu.con('Please confirm your registration\nName: ' + fullname + '\nDOB: ' + dob + '\nProfession: ' + profession + 'Workplace: ' + menu.val +
+		menu.con('Please confirm your registration\nName: ' + fullname + '\nDOB: ' + dob + '\nProfession: ' + profession + '\nWorkplace: ' + menu.val +
 			'\n1. Confirm' +
 			'\n2. Cancel')
 	},
@@ -213,8 +213,8 @@ menu.state('Register.Submit', {
 		var dob = await menu.session.get('dob');
 		var profession = await menu.session.get('profession');
 		var workplace = await menu.session.get('workplace');
-		var mobile = menu.args.phoneNumber ;
-		
+		var mobile = menu.args.phoneNumber;
+
 		var fullname = "";
 		if (firstname && lastname) {
 			fullname = firstname + ' ' + lastname;
@@ -223,18 +223,17 @@ menu.state('Register.Submit', {
 			fullname = 'customer';
 		}
 
-		var customer = {
-            code: access.code, key: access.key,
-            fullname: fullname, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: dob, profession: profession, workplace: workplace
-        };
+		var parent = {
+			fullname: fullname, firstname: firstname, lastname: lastname, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', date_of_birth: dob, profession: profession, place_of_work: workplace
+		};
 
-		await postCustomer(customer, (response) => {
+		await Register(parent, (response) => {
 			menu.end('Thank you for registering, ' + fullname + '\nYour registration has been submitted successfully');
-        }, (error) => {
-            menu.end(error.message || 'Registration not Successful')
-        })
+		}, (error) => {
+			menu.end(error.message || 'Registration not Successful')
+		})
 
-		menu.end('Thank you for registering, ' + fullname + '\nYour registration has been submitted successfully')
+		// menu.end('Thank you for registering, ' + fullname + '\nYour registration has been submitted successfully')
 	},
 });
 ///////////////--------------END REGISTRATION--------------////////////////
@@ -245,24 +244,39 @@ menu.state('Register.Submit', {
 menu.state('Subscribe', {
 	run: async () => {
 		menu.con(
-			'Please enter student\'s name'
+			'Please enter student\'s first name'
 		);
 	},
 	next: {
-		'*[a-zA-Z]+': 'Subscribe.Name'
+		'*[a-zA-Z]+': 'Subscribe.Firstname'
 	}
 })
 
-menu.state('Subscribe.Name', {
+menu.state('Subscribe.Firstname', {
 	run: async () => {
-		menu.session.set('name', menu.val);
+
+		menu.session.set('firstname', menu.val);
 		menu.con(
-			'Please enter student\'s dat of birth \nFormat: YYYY/MM/DD , Example: 1984/12/30'
+			'Please enter student\'s last name'
+		);
+	},
+	next: {
+		'*[a-zA-Z]+': 'Subscribe.Lastname'
+	},
+	defaultNext: 'IncorrectInput'
+})
+
+menu.state('Subscribe.Lastname', {
+	run: async () => {
+		menu.session.set('lastname', menu.val);
+		menu.con(
+			'Please enter student\'s date of birth \nFormat: YYYY/MM/DD , Example: 1984/02/27'
 		);
 	},
 	next: {
 		'*[0-9]+': 'Subscribe.DOB'
-	}
+	},
+	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Subscribe.DOB', {
@@ -272,7 +286,6 @@ menu.state('Subscribe.DOB', {
 			menu.con(
 				'Please enter the school\'s name'
 			);
-
 		}
 		else {
 			menu.end('You entered an invalid date, please try again later')
@@ -306,13 +319,27 @@ menu.state('Subscribe.Policy', {
 		menu.session.set('school_type', schoolType);
 
 		let the_message = "Please select school policy\n";
-		school_policies.forEach((element, index) => {
-			the_message += `${(Number(index + 1))}. ${element}\n`;
-		});
-		menu.con(the_message)
+
+		await AvailablePolicyTypes(schoolType, (policies) => {
+            if (policies && policies.length > 0) {
+
+				menu.session.set('school_policies', policies);
+				
+                policies.forEach((element, index) => {
+					the_message += `${(Number(index + 1))}. ${element.name}\n`;
+                });
+                menu.con(the_message)
+            } else {
+                menu.end('No policy types available');
+            }
+        }, 
+		(error) => {
+			menu.end(error.message || 'Could not retrieve policies')
+		})
+		
 	},
 	next: {
-		'*[1-3]': 'Subscribe.Stage'
+		'*[1-9]': 'Subscribe.Stage'
 	},
 	defaultNext: 'IncorrectInput'
 })
@@ -320,9 +347,13 @@ menu.state('Subscribe.Policy', {
 menu.state('Subscribe.Stage', {
 	run: async () => {
 
-		let schoolPolicy = school_policies[Number(menu.val) - 1];
-		menu.session.set('school_policy', schoolPolicy);
-
+		let school_policies = await menu.session.get('school_policies');
+		let policy = school_policies[Number(menu.val - 1)];
+		menu.session.set('policy', policy);
+		if (!policy) {
+			return menu.end("You did not select a valid policy");
+		}
+		
 		menu.con('Please enter class/stage');
 	},
 	next: {
@@ -335,13 +366,15 @@ menu.state('Subscribe.Display', {
 	run: async () => {
 
 		menu.session.set('school_stage', menu.val);
-		let name = await menu.session.get('name');
+		let firstname = await menu.session.get('firstname');
+		let lastname = await menu.session.get('lastname');
 		let student_dob = await menu.session.get('student_dob');
 		let school_name = await menu.session.get('school_name');
 		let school_type = await menu.session.get('school_type');
+		let policy = await menu.session.get('policy');
 
 		let the_message = "Display Details\n";
-		menu.con(`${the_message}Name: ${name}\DOB: ${student_dob}\nSchool: ${school_name}\nClass/Stage: ${menu.val}\nAmnt:\n` +
+		menu.con(`${the_message}Name: ${firstname} ${lastname}\nDOB: ${student_dob}\nSchool: ${school_name}\nClass/Stage: ${menu.val}\nAmnt: ${policy.amount}\n` +
 			`1. Confirm\n2. Cancel\n#. Main Menu`
 		);
 	},
@@ -355,24 +388,29 @@ menu.state('Subscribe.Display', {
 
 menu.state('Subscribe.Submit', {
 	run: async () => {
-		
-		let name = await menu.session.get('name');
+
+		let firstname = await menu.session.get('firstname');
+		let lastname = await menu.session.get('lastname');
 		let student_dob = await menu.session.get('student_dob');
 		let school_name = await menu.session.get('school_name');
 		let school_type = await menu.session.get('school_type');
 		let school_stage = await menu.session.get('school_stage');
+		let policy = await menu.session.get('policy');
 
-		var customer = {
-            code: access.code, key: access.key,
-            fullname: fullname, mobile: mobile, email: "alias@gmail.com", gender: "N/A", source: "USSD", network: menu.args.operator, location: 'n/a', agentcode: 'n/a', matrialstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a', dateofbirth: student_dob, name: name, school_name: school_name, school_type: school_type , school_stage: school_stage
-        };
+		var student = {
+			code: access.code, key: access.key,
+			firstname: firstname, lastname: lastname, mobile: menu.args.phoneNumber, email: "alias@gmail.com", network: menu.args.operator, amount: policy.amount, dateofbirth: student_dob,
+			// school: school.name,schoolCode: school.code, 
+			school: school_name,
+			other: "n/a", grade: school_stage, accountcode: policy.code, gender: "N/A", source: "USSD", location: 'n/a', agentcode: 'n/a', maritalstatus: 'n/a', idnumber: 'n/a', idtype: 'n/a',
+		};
 
-		await postCustomer(customer, (response) => {
-			menu.end('Thank you for subscribing' )
-        }, (error) => {
-            menu.end(error.message || 'Registration not Successful')
-        })
-		// postCustomer
+		await Subcription(student, (response) => {
+			menu.end('Thank you for subscribing')
+		}, (error) => {
+			console.log(error)
+			menu.end((error && error.message) ? error.message : 'Subscription not successful')
+		})
 	},
 });
 
@@ -386,13 +424,13 @@ menu.state('Subscribe.Submit', {
 menu.state('Payment', {
 	run: async () => {
 
-		await getStudents(helpers.formatPhoneNumber(menu.args.phoneNumber),
+		await fetchParentChildren(helpers.formatPhoneNumber(menu.args.phoneNumber),
 			async (response) => {
 				if (response && response.length > 0) {
 					menu.session.set('students_list', response);
 					let the_message = "Please select a student\n";
 					response.forEach((element, index) => {
-						the_message += `${(Number(index + 1))}. ${element.name}\n`;
+						the_message += `${(Number(index + 1))}. ${element.fullname}\n`;
 					});
 					menu.con(the_message);
 				}
@@ -412,34 +450,63 @@ menu.state('Payment', {
 
 menu.state('Payment.Select', {
 	run: async () => {
- 
-		let students_list = await menu.session.get('students_list');
-        let student = students_list[Number(menu.val - 1)];
-        if (!student) {
-            return menu.end("You did not select a valid student");
-        }
 
-        menu.session.set('selected_student', student);
-		menu.con(
-			'Display Details\n' +
-			`Name: ${student.name}\n` +
-			'1. Proceed \n' +
-			'2. Change Policy \n' +
-			'3. Cancel \n'
-		);
+		let students_list = await menu.session.get('students_list');
+		let student = students_list[Number(menu.val - 1)];
+		if (!student) {
+			return menu.end("You did not select a valid student");
+		}
+
+		var parent = {
+			index: menu.val,
+			mobile: menu.args.phoneNumber,
+		}
+		await fetchParentChild(parent,
+			async (response) => {
+				if (response && response.active) {
+					menu.session.set('policy', response);
+					menu.session.set('selected_student', student);
+					menu.con(
+						'Display Details\n' +
+						`Name: ${student.fullname}\n` +
+						'1. Proceed \n' +
+						'2. Change Policy \n' +
+						'3. Cancel \n'
+					);
+				}
+				else {
+					menu.end('Sorry student does not exist');
+				}
+			},
+			(error) => {
+				menu.end('Sorry could not retrieve student\'s details'
+				)
+			})
 	},
 	next: {
 		'1': 'Payment.Proceed',
 		'2': 'Payment.ChangePolicy',
-		'2': 'Cancel'
-	}
+		'3': 'Cancel'
+	},
+	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Payment.Proceed', {
 	run: async () => {
-		menu.con(
-			'Please authorize the payment on your phone'
-		);
+
+		let policy = await menu.session.get('policy');
+		var customer = {
+			account: policy.policynumber,
+			source: "USSD", amount: policy.amount, mobile: menu.args.phoneNumber, netWork: menu.args.operator, method: "Momo", reference: "Payment",
+		};
+		await postDeposit(customer, (response) => {
+			menu.end(
+				'Please authorize the payment on your phone'
+			);
+		}, (error) => {
+			menu.end(error.message || 'Payment not successful')
+		})
+		
 	}
 })
 
@@ -461,11 +528,22 @@ menu.state('Payment.ChangePolicy.SchoolType', {
 		let schoolType = school_types[Number(menu.val) - 1];
 		menu.session.set('school_type', schoolType);
 
-		let the_message = "Please select school policy\n";
-		school_policies.forEach((element, index) => {
-			the_message += `${(Number(index + 1))}. ${element}\n`;
-		});
-		menu.con(the_message)
+		await AvailablePolicyTypes(schoolType, (policies) => {
+            if (policies && policies.length > 0) {
+				menu.session.set('school_policies', policies);
+				let the_message = "Please select school policy\n";
+                policies.forEach((element, index) => {
+					the_message += `${(Number(index + 1))}. ${element.name}\n`;
+                });
+                menu.con(the_message)
+            } else {
+                menu.end('No policy types available');
+            }
+        }, 
+		(error) => {
+			menu.end(error.message || 'Could not retrieve policies')
+		})
+		
 	},
 	next: {
 		'*[1-2]': 'Payment.ChangePolicy.Policy'
@@ -475,32 +553,36 @@ menu.state('Payment.ChangePolicy.SchoolType', {
 
 menu.state('Payment.ChangePolicy.Policy', {
 	run: async () => {
-		let schoolPolicy = school_policies[Number(menu.val) - 1];
-		menu.session.set('school_policy', schoolPolicy);
-
+		
+		let school_policies = await menu.session.get('school_policies');
+		let school_policy = school_policies[Number(menu.val - 1)];
+		menu.session.set('school_policy', school_policy);
+		if (!school_policy) {
+			return menu.end("You did not select a valid policy");
+		}
 		menu.con('Please enter class/stage');
 	},
 	next: {
-		'*[1-2]': 'Payment.ChangePolicy.ClassStage'
+		'*[a-zA-Z]+': 'Payment.ChangePolicy.ClassStage' 
 	},
 	defaultNext: 'IncorrectInput'
 })
 
 menu.state('Payment.ChangePolicy.ClassStage', {
 	run: async () => {
-		
+
 		menu.session.set('school_stage', menu.val);
 		let school_type = await menu.session.get('school_type');
 		let school_policy = await menu.session.get('school_policy');
 
 		let the_message = "Display Details\n";
-		menu.con(`${the_message}School Type: ${school_type}\nPolicy: ${school_policy}\nClass/Stage: ${menu.val}\nAmnt:\n` +
+		menu.con(`${the_message}School Type: ${school_type}\nPolicy: ${school_policy.name}\nClass/Stage: ${menu.val}\nAmnt: ${school_policy.amount}\n` +
 			`1. Confirm\n2. Cancel`
 		);
-		
+
 	},
 	next: {
-		'1': 'Payment.ChangePolicy.Confirm',
+		'1': 'Payment.ChangePolicy.Submit',
 		'2': 'Cancel'
 	},
 	defaultNext: 'IncorrectInput'
@@ -508,30 +590,27 @@ menu.state('Payment.ChangePolicy.ClassStage', {
 
 menu.state('Payment.ChangePolicy.Submit', {
 	run: async () => {
-		
+
 		let school_type = await menu.session.get('school_type');
 		let school_policy = await menu.session.get('school_policy');
+		let policy = await menu.session.get('policy');
 		let school_stage = await menu.session.get('school_stage');
-		let selected_student = await menu.session.get('selected_student');		
+		let selected_student = await menu.session.get('selected_student');
 
-		var policy = {
-            Code: access.code, Key: access.key, Mobile: menu.args.phoneNumber, SchoolType: school_type,
-			SchoolPolicy: school_policy, SchoolStage: school_stage, StudentId: selected_student.code
-        };
+		var student_policy = {
+			stundentNumber: selected_student.studentnumber, policyNumber: school_policy.code , accountCode: policy.policynumber, grade: school_stage,
+			source: "USSD", mobile: menu.args.phoneNumber, amount: school_policy.amount, network: menu.args.operator
+		};
+		console.log(student_policy)
+		await ChangePolicy(student_policy, (response) => {
+			menu.end('Policy change successful\n');
+		}, (error) => {
+			console.log(error)
+			menu.end( (error && error.message) ? error.message : 'Sorry, policy could not be updated')
+		})
 
-		await updatePolicy(policy, (response) => {
-			menu.end('Change successful');
-        }, (error) => {
-            menu.end(error.message || 'Sorry, policy could not be updated')
-        })
-		
-		
-	},
-	next: {
-		'1': 'Payment.ChangePolicy.Confirm',
-		'2': 'Cancel'
-	},
-	defaultNext: 'IncorrectInput'
+
+	}
 })
 
 ///////////////--------------END PAYMENT--------------////////////////
@@ -546,7 +625,7 @@ menu.state('Policies', {
 
 		let the_message = "Please select type of school\n";
 		school_types.forEach((element, index) => {
-			the_message += `${(Number(index + 1 ))}. ${element}\n`;
+			the_message += `${(Number(index + 1))}. ${element}\n`;
 		});
 		menu.con(the_message);
 	},
@@ -561,24 +640,51 @@ menu.state('Policies.Type', {
 		let schoolType = school_types[Number(menu.val) - 1];
 		menu.session.set('school_type', schoolType);
 
-		let the_message = "Please select type of school policy\n";
-		school_policies.forEach((element, index) => {
-			the_message += `${(Number(index + 1))}. ${element}\n`;
-		});
-		menu.con(the_message)
+		await AvailablePolicyTypes(schoolType, (policies) => {
+            if (policies && policies.length > 0) {
+				menu.session.set('school_policies', policies);
+				let the_message = "Please select type of school policy\n";
+                policies.forEach((element, index) => {
+					the_message += `${(Number(index + 1))}. ${element.name}\n`;
+                });
+                menu.con(the_message)
+            } else {
+                menu.end('No policy types available');
+            }
+        }, 
+		(error) => {
+			menu.end(error.message || 'Could not retrieve policies')
+		})
+
+		// let the_message = "Please select type of school policy\n";
+		// school_policies.forEach((element, index) => {
+		// 	the_message += `${(Number(index + 1))}. ${element}\n`;
+		// });
+		// menu.con(the_message)
 
 	},
 	next: {
-		'*[1-3]': 'Policies.Policy'
+		'*[1-9]': 'Policies.Policy'
 	},
 })
 
 
 menu.state('Policies.Policy', {
 	run: async () => {
-		menu.end(`Death
-		Redundancy
-		Critical Illness...`)
+		
+		let school_policies = await menu.session.get('school_policies');
+		let policy = school_policies[Number(menu.val - 1)];
+		menu.session.set('policy', policy);
+		if (!policy) {
+			return menu.end("You did not select a valid policy");
+		}
+		
+		menu.end(`Name: ${policy.name}\n` +
+		`Amount: ${policy.amount}\n` +
+		`Limit: ${policy.limit}\n` +
+		`Frequency: ${policy.frequency}\n` +
+		`Description: ${policy.description}\n`
+		)
 	},
 })
 
@@ -592,7 +698,7 @@ menu.state('Claims', {
 	run: async () => {
 		let the_message = "Please select a claim\n";
 		claim_types.forEach((element, index) => {
-			the_message += `${(Number(index +1))}. ${element}\n`;
+			the_message += `${(Number(index + 1))}. ${element}\n`;
 		});
 		menu.con(the_message);
 	},
@@ -743,7 +849,6 @@ exports.ussdApp = async (req, res) => {
 
 //////////-------------API FUNCTION--------------//////////////
 async function getInfo(mobile, callback, errorCallback) {
-	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
 	var api_endpoint = `${apiurl}getInfo/${access.code}/${access.key}/${mobile}`;
 	var req = unirest('GET', api_endpoint)
 		.headers({
@@ -758,11 +863,10 @@ async function getInfo(mobile, callback, errorCallback) {
 }
 
 async function fetchParent(val, callback, errorCallback) {
-	// try {
-	if (val && val.startsWith('+233')) {
-		// Remove Bearer from string
-		val = val.replace('+233', '0');
-	}
+	// if (val && val.startsWith('+233')) {
+	// 	// Remove Bearer from string
+	// 	val = val.replace('+233', '0');
+	// }
 	var api_endpoint = apiurl + 'getParent/' + access.code + '/' + access.key + '/' + val;
 	var request = unirest('GET', api_endpoint)
 		.end(async (resp) => {
@@ -770,88 +874,75 @@ async function fetchParent(val, callback, errorCallback) {
 				return await errorCallback(resp);
 			}
 			var response = JSON.parse(resp.raw_body);
-			if (response.active) {
-				// menu.session.set('limit', response.result.limit);
-			}
-
 			return await callback(response);
 		});
-	// }
-	// catch(err) {
-	//     return err;
-	// }
 }
 
-async function fetchParentChildren(val, callback, errorCallback) {
-	
-	var api_endpoint = apiurl + 'getParentChildren/' + access.code+'/'+access.key + '/' + val;
-	console.log(api_endpoint);
-	var request = unirest('GET', api_endpoint)
-	.end(async(resp)=> { 
-		if (resp.error) { 
-			// console.log(resp.error);
-			// var response = JSON.parse(res);
-			// return res;
-			return await errorCallback(resp.body);
-		}
-		// console.log(resp.raw_body);
-		var response = JSON.parse(resp.raw_body);
-		
-		return await callback(response);
-	});
+
+async function fetchParentChildren(mobile, callback, errorCallback) {
+	// var api_endpoint = `https://app.alias-solutions.net:5011/getInfo/${access.code}/${access.key}/${mobile}`
+	var api_endpoint = `${apiurl}GetParentChildren/${access.code}/${access.key}/${mobile}`;
+	var req = unirest('GET', api_endpoint)
+		.headers({
+			'Content-Type': 'application/json'
+		})
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp.body);
+			}
+			return await callback(resp.body);
+		});
 }
 
 async function fetchParentChild(val, callback, errorCallback) {
 
-	var api_endpoint = apiurl + 'getParentChild/'+ access.code+'/'+access.key +'/'+ val.mobile+'/'+ val.index;
+	var api_endpoint = apiurl + 'getParentChild/' + access.code + '/' + access.key + '/' + val.mobile + '/' + val.index;
 	console.log(api_endpoint);
 	var request = unirest('GET', api_endpoint)
-	.end(async(resp)=> { 
-		if (resp.error) { 
-			// console.log(resp.error);
-			// var response = JSON.parse(res);
-			// return res;
-			return await errorCallback(resp.body);
-		}
-		// console.log(resp.raw_body);
-		// var response = JSON.parse(resp.raw_body);
-		
-		return await callback(resp.body);
-	});
+		.end(async (resp) => {
+			if (resp.error) {
+				// console.log(resp.error);
+				// var response = JSON.parse(res);
+				// return res;
+				return await errorCallback(resp.body);
+			}
+			// console.log(resp.raw_body);
+			// var response = JSON.parse(resp.raw_body);
+
+			return await callback(resp.body);
+		});
 }
 
-async function AvailablePolicyTypes(val, callback) {
-    var api_endpoint = apiurl + 'AvailablePolicyTypes/' + val + '?appid=' + access.code + '&key=' + access.key;
-    var request = unirest('GET', api_endpoint)
-        .end(async (resp) => {
-            if (resp.error) {
-                // var response = JSON.parse(res);
-                // return res;
-                return await callback(resp);
-            }
-            var response = JSON.parse(resp.raw_body);
+async function AvailablePolicyTypes(val, callback, errorCallback ) {
+	var api_endpoint = apiurl + 'AvailablePolicyTypes/' + val + '?appid=' + access.code + '&key=' + access.key;
+	var request = unirest('GET', api_endpoint)
+		.end(async (resp) => {
+			if (resp.error) {
+				return await errorCallback(resp);
+			}
+			var response = JSON.parse(resp.raw_body);
 
-            return await callback(response);
-        });
+			return await callback(response);
+		});
 }
 
 async function AvailablePolicyType(val, callback) {
-    // var api_endpoint = apiurl + 'AvailablePolicyType/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
-    var api_endpoint = apiurl + 'AvailablePolicyType/' + val.type + '/' + val.index + '?appid=' + access.code + '&key=' + access.key;
-    var request = unirest('GET', api_endpoint)
-        .end(async (resp) => {
-            if (resp.error) {
-                // var response = JSON.parse(res);
-                // return res;
-                return await callback(resp);
-            }
-            var response = JSON.parse(resp.raw_body);
+	// var api_endpoint = apiurl + 'AvailablePolicyType/' + access.code+'/'+access.key + '/' + val.mobile+ '/' + val.index;
+	var api_endpoint = apiurl + 'AvailablePolicyType/' + val.type + '/' + val.index + '?appid=' + access.code + '&key=' + access.key;
+	var request = unirest('GET', api_endpoint)
+		.end(async (resp) => {
+			if (resp.error) {
+				// var response = JSON.parse(res);
+				// return res;
+				return await callback(resp);
+			}
+			var response = JSON.parse(resp.raw_body);
 
-            return await callback(response);
-        });
+			return await callback(response);
+		});
 }
 
-async function postDeposit(val, callback) {
+async function postDeposit(val, callback, errorCallback) {
 	var api_endpoint = apiurl + 'Deposit/' + access.code + '/' + access.key;
 	var req = unirest('POST', api_endpoint)
 		.headers({
@@ -860,14 +951,12 @@ async function postDeposit(val, callback) {
 		.send(JSON.stringify(val))
 		.end(async (resp) => {
 			if (resp.error) {
-				await postDeposit(val);
-				return await callback(resp);
+				return await errorCallback(resp);
 			}
 			// if (res.error) throw new Error(res.error);
 			var response = JSON.parse(resp.raw_body);
 			return await callback(response);
 		});
-	return true
 }
 
 async function Register(val, callback, errorCallback) {
@@ -888,7 +977,7 @@ async function Register(val, callback, errorCallback) {
 }
 
 async function Subcription(val, callback, errorCallback) {
-	
+
 	var api_endpoint = `${apiurl}RegisterStudent/${access.code}/${access.key}`;
 	var req = unirest('POST', api_endpoint)
 		.headers({
@@ -903,14 +992,14 @@ async function Subcription(val, callback, errorCallback) {
 		});
 }
 
-async function ChangePolicy(mobile, callback, errorCallback) {
-	
+async function ChangePolicy(val, callback, errorCallback) {
+
 	var api_endpoint = `${apiurl}ChangeStudentPolicy/${access.code}/${access.key}`;
 	var req = unirest('POST', api_endpoint)
 		.headers({
 			'Content-Type': 'application/json'
 		})
-		.send(JSON.stringify(customer))
+		.send(JSON.stringify(val))
 		.end(async (resp) => {
 			if (resp.error) {
 				return await errorCallback(resp.body);
