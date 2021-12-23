@@ -677,7 +677,6 @@ exports.transferToLocal = async (req, res) =>{
         });
 }
 
-
 exports.createGroup =  async (req, res) =>{
     const access = await getkey(req.user.merchant);
     if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` })
@@ -879,7 +878,6 @@ exports.getCustomerGroupAccount = async (req, res) =>{
         });
 }
 
-
 exports.getAccountTransactions = async (req, res) =>{
     const access = await getkey(req.user.merchant);
     if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
@@ -956,6 +954,7 @@ exports.addCustomerToGroup = async (req, res) =>{
             });
         });
 }
+
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
