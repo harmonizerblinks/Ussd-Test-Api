@@ -598,7 +598,7 @@ menu.state('Payment.ChangePolicy.Submit', {
 		let selected_student = await menu.session.get('selected_student');
 
 		var student_policy = {
-			stundentNumber: selected_student.studentnumber, policyNumber: school_policy.code , accountCode: policy.policynumber, grade: school_stage,
+			stundentNumber: selected_student.studentnumber, policyNumber: policy.policynumber , accountCode:school_policy.code , grade: school_stage,
 			source: "USSD", mobile: menu.args.phoneNumber, amount: school_policy.amount, network: menu.args.operator
 		};
 		console.log(student_policy)
@@ -694,31 +694,15 @@ menu.state('Policies.Policy', {
 
 ///////////////--------------START CLAIMS--------------////////////////
 
+
 menu.state('Claims', {
-	run: async () => {
-		let the_message = "Please select a claim\n";
-		claim_types.forEach((element, index) => {
-			the_message += `${(Number(index + 1))}. ${element}\n`;
-		});
-		menu.con(the_message);
-	},
-	next: {
-		'*[1-6]': 'Claims.Select'
-	},
-})
-
-menu.state('Claims.Select', {
-	run: async () => {
-
-		let claim_type = claim_types[Number(menu.val) - 1];
-		menu.session.set('claim_type', claim_type);
-
-		menu.end(
-			`Claim request received, our help desk will attend to you shortly\n`
-		)
-	},
-	defaultNext: 'IncorrectInput'
-})
+    run: () => {
+        menu.end('Please enter reason for claim.')
+    },
+    next: {
+        '*[a-zA-Z]+': 'Claims.Reason',
+    },
+});
 
 ///////////////--------------END CLAIMS--------------////////////////
 
