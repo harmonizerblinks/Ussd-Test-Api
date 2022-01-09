@@ -18,15 +18,16 @@ let accesses = [{
 }, {
     code: "ACU001",
     key: "1029398",
-    apiurl: "http://localhost:5000/"
+    apiurl: "https://app.alias-solutions.net:5003/",
+    // apiurl: "http://localhost:5000/"
 }, {
     code: "500",
     key: "1029398",
     apiurl: "https://app.alias-solutions.net:5003/"
 }];
 //const apiUrl = "https://app.alias-solutions.net:5003/";
-const apiurl = "http://localhost:5000/";
-// const apiurl = "https://app.alias-solutions.net:5003/";
+// const apiurl = "http://localhost:5000/";
+const apiurl = "https://app.alias-solutions.net:5003/";
 
 
 exports.validateCustomer = (req, res) => {
@@ -94,18 +95,20 @@ exports.sendOtp = async (req, res) => {
     var val = req.body;
     const access = getkey(val.merchant);
     var api_endpoint = (access.apiurl || apiurl )+ 'otp/' + val.mobile + '/' + val.merchant + '?id=CUSTOMER';
+    console.log(api_endpoint);
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
-                res.status(500).send({
+                console.log(resp);
+                return res.status(500).send({
                     success: false,
                     message: 'Unable to sent Otp'
                 });
             }
-            var response = JSON.parse(resp.raw_body);
-            res.send({
+            // var response = JSON.parse(resp.raw_body);
+            return res.send({
                 success: true,
-                message: response.message
+                message: resp.body.message
             });
         });
 }
