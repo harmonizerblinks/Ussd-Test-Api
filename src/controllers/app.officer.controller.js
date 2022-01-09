@@ -14,8 +14,8 @@ let accesses = [{
 }, {
     code: "ACU001",
     key: "1029398",
-    apiurl: "http://localhost:5000/"
-    // apiurl: "https://app.alias-solutions.net:5003/"
+    // apiurl: "http://localhost:5000/"
+    apiurl: "https://app.alias-solutions.net:5003/"
 }, {
     code: "SHA001",
     key: "1029398",
