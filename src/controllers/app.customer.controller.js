@@ -739,7 +739,7 @@ exports.getGroupDetails = async (req, res) =>{
     const access = await getkey(req.user.merchant);
     if (!access) res.status(404).send({ success: false, message: `No merchant was found with code ${merchant}` });
     const { code } =  req.params;
-    var api_endpoint = (access.apiurl || apiurl) + `AirtelTigo/GetGroup/${access.code}/${access.key}/${code}`;
+    var api_endpoint = (access.apiurl || apiurl) + `App/GetGroup/${access.code}/${access.key}/${code}`;
     var request = unirest('GET', api_endpoint)
         .end(async (resp) => {
             if (resp.error) {
