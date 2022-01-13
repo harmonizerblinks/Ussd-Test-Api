@@ -5,7 +5,7 @@ let menu = new UssdMenu({ provider: 'hubtel' });
 let helpers = require('../../utils/helpers')
 let school_types = ["Private", "Public"];
 let school_policies = ["Up To J.H.S", "Up To S.H.S", "Up To University"];
-let amount = 0.2;
+let amount = 0.21;
 
 
 // Test Credentials
