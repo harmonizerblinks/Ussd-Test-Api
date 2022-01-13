@@ -20,6 +20,11 @@ let accesses = [{
     code: "SHA001",
     key: "1029398",
     apiurl: "https://app.alias-solutions.net:5003/"
+},{
+    code: "INV001",
+    key: "68777876",
+    // apiurl: "http://localhost:5000/"
+    apiurl: "https://app.alias-solutions.net:5014/"
 }];
 // const apiUrl = "https://app.alias-solutions.net:5003/";
 // const apiurl = "http://localhost:5000/";
