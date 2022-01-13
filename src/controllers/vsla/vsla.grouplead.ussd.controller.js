@@ -4,7 +4,9 @@ var generator = require('generate-serial-number');
 let menu = new UssdMenu();
 let sessions = {};
 const appKey = '062262554'; const appId = '052683438';
-const apiUrl = "https://api.alias-solutions.net:8446/api/services/app/Channels";
+//const apiUrl = "https://api.alias-solutions.net:8446/api/services/app/Channels";
+const apiUrl = "https://app.alias-solutions.net:5003";
+
 
 menu.sessionConfig({
     start: (sessionId, callback) => {
