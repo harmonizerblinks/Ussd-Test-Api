@@ -425,6 +425,7 @@ menu.state('Member.cancel', {
 exports.ussdApp = async(req, res) => {
     // Create a 
     let args = req.body;
+    console.log(args);
     menu.run(args, ussdResult => {
         res.send(ussdResult);
     });
