@@ -19,7 +19,7 @@ const app = express();
 global.appRoot = path.resolve(__dirname);
 global.config = config;
 
-const PORT = process.env.PORT || 5006;
+const PORT = process.env.PORT || 5007;
 
 // Creating a Server
 let server = http.createServer(app);
@@ -80,12 +80,12 @@ app.use(xss());
 // console.log('working')
 
 // require('./routes/users.routes.js')(app);
-require('./routes/app.ppt.routes.js')(app);
-require('./routes/app.ppt.test.routes.js')(app);
+// require('./routes/app.ppt.routes.js')(app);
+// require('./routes/app.ppt.test.routes.js')(app);
 require('./routes/ussd.routes.js')(app);
-require('./routes/app.officer.routes.js')(app);
-require('./routes/app.diaspora.routes.js')(app);
-require('./routes/app.customer.routes.js')(app);
+// require('./routes/app.officer.routes.js')(app);
+// require('./routes/app.diaspora.routes.js')(app);
+// require('./routes/app.customer.routes.js')(app);
 // Handler for 404 - Resource Not Found
 app.use((req, res, next) => {
     res.status(404).send({ message: 'We think you are lost!' });

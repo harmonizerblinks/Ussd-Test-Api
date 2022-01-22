@@ -1,5 +1,5 @@
 const UssdMenu = require('ussd-builder');
-let menu = new UssdMenu({ provider: 'cross-switch' });
+let menu = new UssdMenu({ provider: 'nalo' });
 let sessions = {};
 
 menu.sessionConfig({
