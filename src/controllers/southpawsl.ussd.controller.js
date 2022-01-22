@@ -328,26 +328,15 @@ menu.state('Contact.website', {
 });
 
 
-// Pension USSD
+// USSD Endpoint
 exports.ussdApp = async(req, res) => {
     // Create a 
     let args = req.body;
-    if (args.Type == 'initiation') {
-        args.Type = req.body.Type.replace(/\b[a-z]/g, (x) => x.toUpperCase());
-    }
     menu.run(args, ussdResult => {
         res.send(ussdResult);
     });
-    // let args = {
-    //     phoneNumber: req.body.phoneNumber,
-    //     sessionId: req.body.sessionId,
-    //     serviceCode: req.body.serviceCode,
-    //     text: req.body.text
-    // };
-    // await menu.run(args, resMsg => {
-    //     res.send(resMsg);
-    // });
 };
+
 
 function fetchBalance(val) {
     return "2.00"
