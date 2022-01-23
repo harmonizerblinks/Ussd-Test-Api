@@ -427,6 +427,7 @@ exports.ussdApp = async(req, res) => {
     let args = req.body;
     console.log(args);
     menu.run(args, ussdResult => {
+        console.log(ussdResult);
         res.send(ussdResult);
     });
 };
