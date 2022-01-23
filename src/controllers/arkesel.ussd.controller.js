@@ -37,7 +37,12 @@ menu.on('error', (err) => {
 menu.startState({
     run: () => {
         // use menu.con() to send response without terminating session      
-        menu.con('Welcome to Porting Benin');
+        menu.con(' Welcome to Arkesel Ussd Test' +
+        '\n1. Pay' +
+        '\n2. Check Balance' +
+        '\n3. Withdrawal/Claims' +
+        '\n4. ICare' +
+        '\n5. Contact');
     },
     // next object links to next state based on user input
     next: {
@@ -52,7 +57,7 @@ menu.startState({
 menu.state('Start', {
     run: () => {
         // use menu.con() to send response without terminating session      
-        menu.con(' Welcome to Peoples Pension Trust' +
+        menu.con(' Welcome to Arkesel Ussd Test' +
             '\n1. Pay' +
             '\n2. Check Balance' +
             '\n3. Withdrawal/Claims' +
