@@ -440,29 +440,52 @@ menu.state('Contact', {
 
 menu.state('Contact.name', {
     run: () => {
-        // Cancel Savings request
-        menu.end('Creed Church Management System.');
+        menu.con('Creed Church Management System.' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
     }
 });
 
 menu.state('Contact.email', {
     run: () => {
         // Cancel Savings request
-        menu.end('info@creed-cms.com.');
+        menu.end('info@creed-cms.com.' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
     }
 });
 
 menu.state('Contact.mobile', {
     run: () => {
         // Cancel Savings request
-        menu.end('0546467407');
+        menu.end('0546467407' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
     }
 });
 
 menu.state('Contact.website', {
     run: () => {
         // Cancel Savings request
-        menu.end('http://www.creed-cms.com');
+        menu.end('http://www.creed-cms.com' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
     }
 });
 

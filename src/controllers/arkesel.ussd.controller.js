@@ -1,5 +1,5 @@
 const UssdMenu = require('ussd-builder');
-let menu = new UssdMenu({ provider: 'arkesel' });
+let menu = new UssdMenu({ provider: 'nalo' });
 var unirest = require('unirest');
 let apiurl = "https://api-demo.creed-cms.com/Website/";
 // let apiurl = "http://localhost:54634/Website/";
@@ -419,6 +419,76 @@ menu.state('Member.cancel', {
         menu.end('Thank you for using Creed Church System Ussd.');
     }
 });
+
+
+menu.state('Contact', {
+    run: () => {
+        // use menu.con() to send response without terminating session      
+        menu.con('1. Name' +
+            '\n2. Email' +
+            '\n3. Mobile' +
+            '\n4. Website');
+    },
+    // next object links to next state based on user input
+    next: {
+        '1': 'Contact.name',
+        '2': 'Contact.email',
+        '3': 'Contact.mobile',
+        '4': 'Contact.website'
+    }
+});
+
+menu.state('Contact.name', {
+    run: () => {
+        menu.con('Creed Church Management System.' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
+    }
+});
+
+menu.state('Contact.email', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('info@creed-cms.com.' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
+    }
+});
+
+menu.state('Contact.mobile', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('0546467407' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
+    }
+});
+
+menu.state('Contact.website', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('http://www.creed-cms.com' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
+    }
+});
+
 
 
 // POST Creed
