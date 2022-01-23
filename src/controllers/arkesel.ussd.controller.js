@@ -1,5 +1,5 @@
 const UssdMenu = require('ussd-builder');
-let menu = new UssdMenu({ provider: 'nalo' });
+let menu = new UssdMenu({ provider: 'arkesel' });
 var unirest = require('unirest');
 let apiurl = "https://api-demo.creed-cms.com/Website/";
 // let apiurl = "http://localhost:54634/Website/";

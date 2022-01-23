@@ -421,6 +421,52 @@ menu.state('Member.cancel', {
 });
 
 
+menu.state('Contact', {
+    run: () => {
+        // use menu.con() to send response without terminating session      
+        menu.con('1. Name' +
+            '\n2. Email' +
+            '\n3. Mobile' +
+            '\n4. Website');
+    },
+    // next object links to next state based on user input
+    next: {
+        '1': 'Contact.name',
+        '2': 'Contact.email',
+        '3': 'Contact.mobile',
+        '4': 'Contact.website'
+    }
+});
+
+menu.state('Contact.name', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('Creed Church Management System.');
+    }
+});
+
+menu.state('Contact.email', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('info@creed-cms.com.');
+    }
+});
+
+menu.state('Contact.mobile', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('0546467407');
+    }
+});
+
+menu.state('Contact.website', {
+    run: () => {
+        // Cancel Savings request
+        menu.end('http://www.creed-cms.com');
+    }
+});
+
+
 // POST Creed
 exports.ussdApp = async(req, res) => {
     // Create a 
