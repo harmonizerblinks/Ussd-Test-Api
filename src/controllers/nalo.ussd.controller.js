@@ -199,7 +199,7 @@ menu.state('Church.reference', {
     next: {
         '#': 'Start',
         '0': 'Church.amount',
-        '*[a-zA-Z]+': 'Church.confirm'
+        '*[a-zA-Z0-9]+': 'Church.confirm'
     }
 });
 
@@ -361,7 +361,7 @@ menu.state('Member.reference', {
     next: {
         '#': 'Start',
         '0': 'Member.amount',
-        '*[a-zA-Z]+': 'Member.confirm'
+        '*[a-zA-Z0-9]+': 'Member.confirm'
     }
 });
 
