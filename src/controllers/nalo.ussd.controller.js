@@ -3,7 +3,6 @@ let menu = new UssdMenu({ provider: 'nalo' });
 var unirest = require('unirest');
 let apiurl = "https://api-demo.creed-cms.com/Website/";
 // let apiurl = "http://localhost:54634/Website/";
-var infoUrl = "https://app.alias-solutions.net:5003/ussd/";
 
 var access = { key: "", code: "" };
 
