@@ -1,9 +1,8 @@
 const UssdMenu = require('ussd-builder');
 let menu = new UssdMenu({ provider: 'southpawsl' });
 var unirest = require('unirest');
-let apiurl = "https://api-demo.creed-cms.com/Website/";
-// let apiurl = "http://localhost:54634/Website/";
-var infoUrl = "https://app.alias-solutions.net:5003/ussd/";
+// let apiurl = "https://api-demo.creed-cms.com/Website/";
+let apiurl = "http://localhost:54634/Website/";
 
 var access = { key: "", code: "" };
 
