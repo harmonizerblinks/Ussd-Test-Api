@@ -1,5 +1,5 @@
 const UssdMenu = require('ussd-builder');
-let menu = new UssdMenu({ provider: 'hubtel' });
+let menu = new UssdMenu({ provider: 'southpawsl' });
 let sessions = {};
 
 menu.sessionConfig({
