@@ -198,7 +198,7 @@ menu.state('Church.reference', {
     next: {
         '#': 'Start',
         '0': 'Church.amount',
-        '*[a-zA-Z]+': 'Church.confirm'
+        '*[a-zA-Z0-9]+': 'Church.confirm'
     }
 });
 
@@ -240,10 +240,17 @@ menu.state('Church.send', {
             channel: network, amount:amount, currency: "GHC", reference: reference,
         }
         // payMerchant(data);
-        await payChurch(data, async(result)=> { 
-            console.log(data);
-            // menu.end(JSON.stringify(result)); 
-        });
+
+        setTimeout(() => {
+            payChurch(data,(result)=> { 
+                console.log(result);
+                // menu.end(JSON.stringify(result)); 
+            });
+        }, 1000);
+        // payChurch(data,(result)=> { 
+        //     console.log(result);
+        //     // menu.end(JSON.stringify(result)); 
+        // });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone. kindly confirm payment');
     }
 });
@@ -278,8 +285,8 @@ menu.state('Member.code', {
             // use menu.con() to send response without terminating session 
             if(data.code) {
                 var church = { code: church_code, church: data.church, branch: data.branch };
-                menu.session.set('church', data);
-                menu.session.set('member', member);
+                menu.session.set('church', church);
+                menu.session.set('member', data);
                 menu.con('Hello '+data.name+
                     ', \nWelcome to '+data.church+', '+data.branch +
                     '\n1.Proceed' +
@@ -360,7 +367,7 @@ menu.state('Member.reference', {
     next: {
         '#': 'Start',
         '0': 'Member.amount',
-        '*[a-zA-Z]+': 'Member.confirm'
+        '*[a-zA-Z0-9]+': 'Member.confirm'
     }
 });
 
@@ -396,18 +403,29 @@ menu.state('Member.confirm', {
 menu.state('Member.send', {
     run: async() => {
         // access user input value save in session
-        var code = await menu.session.get('code');
+        var member = await menu.session.get('member');
         var type = await menu.session.get('type');
         var amount = await menu.session.get('amount');
-        // var service = await menu.session.get('service');
+        var church = await menu.session.get('church');
         var reference = await menu.session.get('reference');
         var network = menu.args.operator;
         var mobile = menu.args.phoneNumber;
-        var data = {code: code, type: type,service: "Pay Church", network:network,mobile: mobile,amount: amount, reference: reference};
-        await payMerchant(data, async(result)=> { 
-            console.log(result);
-            // menu.end(JSON.stringify(result)); 
-        });
+        // var data = {code: code, type: type,service: "Pay Church", network:network,mobile: mobile,amount: amount, reference: reference};
+        var data = {
+            church:church.code, name:member.name, email:"ussd@creed-cms.com", source:"USSD", type:type, mobile:mobile,
+            channel: network, amount:amount, currency: "GHC", reference: reference,
+        }
+
+        setTimeout(() => {
+            payChurch(data,(result)=> { 
+                console.log(result);
+                // menu.end(JSON.stringify(result)); 
+            });
+        }, 1000);
+        // payChurch(data, (result)=> { 
+        //     console.log(result);
+        //     // menu.end(JSON.stringify(result)); 
+        // });
         menu.end('Payment request of amount GHC ' + amount + ' sent to your phone. kindly confirm payment');
     }
 });
@@ -439,31 +457,55 @@ menu.state('Contact', {
 
 menu.state('Contact.name', {
     run: () => {
-        // Cancel Savings request
-        menu.end('Creed Church Management System.');
+        menu.con('Creed Church Management System.' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
     }
 });
 
 menu.state('Contact.email', {
     run: () => {
         // Cancel Savings request
-        menu.end('info@creed-cms.com.');
+        menu.end('info@creed-cms.com.' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
     }
 });
 
 menu.state('Contact.mobile', {
     run: () => {
         // Cancel Savings request
-        menu.end('0546467407');
+        menu.end('0546467407' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
     }
 });
 
 menu.state('Contact.website', {
     run: () => {
         // Cancel Savings request
-        menu.end('http://www.creed-cms.com');
+        menu.end('http://www.creed-cms.com' +
+            '\n0. Go back' +
+            '\n#. Main Menu');
+    },
+    next: {
+        '#': 'Start',
+        '0': 'Contact'
     }
 });
+
 
 
 // POST Creed
@@ -472,6 +514,7 @@ exports.ussdApp = async(req, res) => {
     let args = req.body;
     console.log(args);
     menu.run(args, ussdResult => {
+        console.log(ussdResult);
         res.send(ussdResult);
     });
 };
