@@ -246,7 +246,7 @@ menu.state('Church.send', {
                 console.log(result);
                 // menu.end(JSON.stringify(result)); 
             });
-        }, 1000);
+        }, 3000);
         // payChurch(data,(result)=> { 
         //     console.log(result);
         //     // menu.end(JSON.stringify(result)); 
@@ -421,7 +421,7 @@ menu.state('Member.send', {
                 console.log(result);
                 // menu.end(JSON.stringify(result)); 
             });
-        }, 1000);
+        }, 3000);
         // payChurch(data, (result)=> { 
         //     console.log(result);
         //     // menu.end(JSON.stringify(result)); 
@@ -607,11 +607,3 @@ async function getInfo(val, callback) {
     return true
 }
 
-
-function fetchBalance(val) {
-    return "2.00"
-}
-
-// function buyAirtime(phone, val) {
-//     return true
-// }

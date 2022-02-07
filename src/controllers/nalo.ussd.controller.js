@@ -280,7 +280,7 @@ menu.state('Member.code', {
         // use menu.val to access user input value
         var code = menu.val;
         // save user input in session
-        await fetchChurch({code: code, type: 'General'}, (data)=> { 
+        await fetchMember({code: code, type: 'General'}, (data)=> { 
             // console.log(1,data); 
             // use menu.con() to send response without terminating session 
             if(data.code) {
