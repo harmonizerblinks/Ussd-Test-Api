@@ -37,7 +37,7 @@ menu.on('error', (err) => {
 menu.startState({
     run: () => {
         // use menu.con() to send response without terminating session      
-        menu.con('Welcome to Porting Benin');
+        menu.con('Welcome to Africa Talking USSD Sample');
     },
     // next object links to next state based on user input
     next: {
@@ -49,25 +49,6 @@ menu.startState({
     }
 });
 
-menu.state('Start', {
-    run: () => {
-        // use menu.con() to send response without terminating session      
-        menu.con(' Welcome to Peoples Pension Trust' +
-            '\n1. Pay' +
-            '\n2. Check Balance' +
-            '\n3. Withdrawal/Claims' +
-            '\n4. ICare' +
-            '\n5. Contact');
-    },
-    // next object links to next state based on user input
-    next: {
-        '1': 'Pay',
-        '2': 'checkBalance',
-        '3': 'Withdrawal',
-        '4': 'ICare',
-        '5': 'Contact'
-    }
-});
 
 menu.state('Pay', {
     run: () => {
@@ -99,6 +80,7 @@ menu.state('Pay.amount', {
     }
 });
 
+
 menu.state('Pay.confirm', {
     run: async() => {
         // access user input value save in session
@@ -106,6 +88,7 @@ menu.state('Pay.confirm', {
         menu.end('Your transaction was successful. You will receive a prompt of GHS ' + amount + ' shortly.');
     }
 });
+
 
 // nesting states
 menu.state('Pay.auto', {

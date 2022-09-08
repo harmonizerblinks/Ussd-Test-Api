@@ -60,23 +60,6 @@ menu.startState({
     }
 });
 
-// Define Start
-menu.state('Start', {
-    run: () => {
-        // use menu.con() to send response without terminating session      
-        menu.con('Welcome to Creed Church System' +
-            '\n1. Church Code' +
-            '\n2. Member Number' +
-            '\n9. Contact');
-    },
-    // next object links to next state based on user input
-    next: {
-        '1': 'Church',
-        '2': 'Member',
-        '9': 'Contact'
-    }
-});
-
 menu.state('Church', {
     run: () => {
         // use menu.con() to send response without terminating session      

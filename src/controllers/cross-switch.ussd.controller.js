@@ -36,8 +36,13 @@ menu.on('error', (err) => {
 // Define menu states
 menu.startState({
     run: () => {
-        // use menu.con() to send response without terminating session      
-        menu.con('Welcome to Porting Benin');
+        // use menu.con() to send response without terminating session 
+        menu.con(' Welcome to Peoples Pension Trust' +
+        '\n1. Pay' +
+        '\n2. Check Balance' +
+        '\n3. Withdrawal/Claims' +
+        '\n4. ICare' +
+        '\n5. Contact');
     },
     // next object links to next state based on user input
     next: {
@@ -49,25 +54,6 @@ menu.startState({
     }
 });
 
-menu.state('Start', {
-    run: () => {
-        // use menu.con() to send response without terminating session      
-        menu.con(' Welcome to Peoples Pension Trust' +
-            '\n1. Pay' +
-            '\n2. Check Balance' +
-            '\n3. Withdrawal/Claims' +
-            '\n4. ICare' +
-            '\n5. Contact');
-    },
-    // next object links to next state based on user input
-    next: {
-        '1': 'Pay',
-        '2': 'checkBalance',
-        '3': 'Withdrawal',
-        '4': 'ICare',
-        '5': 'Contact'
-    }
-});
 
 menu.state('Pay', {
     run: () => {
