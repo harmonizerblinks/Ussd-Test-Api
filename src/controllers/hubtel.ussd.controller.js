@@ -37,7 +37,7 @@ menu.on('error', (err) => {
 menu.startState({
     run: () => {
         // use menu.con() to send response without terminating session 
-        menu.con(' Welcome to Peoples Pension Trust' +
+        menu.con(' Welcome to Hubtel Insurance' +
         '\n1. Pay' +
         '\n2. Check Balance' +
         '\n3. Withdrawal/Claims' +
@@ -112,7 +112,7 @@ menu.state('Pay.auto', {
 menu.state('Pay.cancel', {
     run: () => {
         // Cancel Savings request
-        menu.end('Thank you for using Peoples Pension Trust.');
+        menu.end('Thank you for using Hubtel Insurance.');
     }
 });
 

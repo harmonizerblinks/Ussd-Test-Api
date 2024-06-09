@@ -21,6 +21,9 @@ module.exports = function(app) {
     // Southpawsl
     var southpawsl = require('../controllers/southpawsl.ussd.controller.js');
 
+    // Beem
+    var beem = require('../controllers/beem.ussd.controller.js');
+
     
     // Personal Test
     app.post('/api/creed', creed.ussdApp);
@@ -43,6 +46,9 @@ module.exports = function(app) {
 
     // Nalo USSD API 
     app.post('/api/nalo', nalo.ussdApp);
+
+    // Beem USSD API 
+    app.post('/api/beem', beem.ussdApp);
 
 
 }

@@ -1,5 +1,5 @@
 const UssdMenu = require('ussd-builder');
-let menu = new UssdMenu({ provider: 'emergent' });
+let menu = new UssdMenu({ provider: 'beem' });
 let sessions = {};
 
 menu.sessionConfig({
@@ -37,7 +37,7 @@ menu.on('error', (err) => {
 menu.startState({
     run: () => {
         // use menu.con() to send response without terminating session 
-        menu.con(' Welcome to Emergent' +
+        menu.con(' Welcome to Beem USSD' +
         '\n1. Pay' +
         '\n2. Check Balance' +
         '\n3. Withdrawal/Claims' +
@@ -112,7 +112,7 @@ menu.state('Pay.auto', {
 menu.state('Pay.cancel', {
     run: () => {
         // Cancel Savings request
-        menu.end('Thank you for using Emergent.');
+        menu.end('Thank you for using Peoples Pension Trust.');
     }
 });
 
@@ -317,6 +317,9 @@ menu.state('Contact.website', {
 exports.ussdApp = async(req, res) => {
     // Create a 
     let args = req.body;
+    // args.Type = args.command;
+    // args.serviceCode = 0;
+    // args.text = args.payload.response;
     menu.run(args, ussdResult => {
         res.send(ussdResult);
     });
